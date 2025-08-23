@@ -1,0 +1,344 @@
+<div class="mouvements-container">
+  <!-- Header avec actions -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1>
+        <mat-icon>swap_horiz</mat-icon>
+        Gestion des Mouvements de Stock
+      </h1>
+      <p class="subtitle">Suivez tous les mouvements d'entrée, sortie et transferts</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openMouvementForm()">
+        <mat-icon>add</mat-icon>
+        Nouveau Mouvement
+      </button>
+      <button mat-stroked-button (click)="exportMouvements()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un mouvement</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm" 
+                 (input)="onSearch()"
+                 placeholder="Article, référence, motif...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Type de mouvement</mat-label>
+          <mat-select [(ngModel)]="selectedType" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les types</mat-option>
+            <mat-option value="Entree">Entrée</mat-option>
+            <mat-option value="Sortie">Sortie</mat-option>
+            <mat-option value="Transfert">Transfert</mat-option>
+            <mat-option value="Ajustement">Ajustement</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Article</mat-label>
+          <mat-select [(ngModel)]="selectedArticle" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les articles</mat-option>
+            <mat-option *ngFor="let article of articles" [value]="article.id">
+              {{ article.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Emplacement</mat-label>
+          <mat-select [(ngModel)]="selectedEmplacement" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les emplacements</mat-option>
+            <mat-option *ngFor="let emplacement of emplacements" [value]="emplacement.id">
+              {{ emplacement.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Période</mat-label>
+          <mat-select [(ngModel)]="selectedPeriode" (selectionChange)="onFilterChange()">
+            <mat-option value="">Toutes les périodes</mat-option>
+            <mat-option value="AUJOURD_HUI">Aujourd'hui</mat-option>
+            <mat-option value="CETTE_SEMAINE">Cette semaine</mat-option>
+            <mat-option value="CE_MOIS">Ce mois</mat-option>
+            <mat-option value="CE_TRIMESTRE">Ce trimestre</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-row" *ngIf="stats">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">swap_horiz</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.totalMouvements }}</span>
+            <span class="stat-label">Total Mouvements</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon success">input</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.entrees }}</span>
+            <span class="stat-label">Entrées</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon warning">output</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.sorties }}</span>
+            <span class="stat-label">Sorties</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon accent">compare_arrows</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.transferts }}</span>
+            <span class="stat-label">Transferts</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Table des mouvements -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Liste des Mouvements
+      </mat-card-title>
+      <div class="table-actions">
+        <mat-form-field appearance="outline" class="page-size-field">
+          <mat-label>Éléments par page</mat-label>
+          <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange()">
+            <mat-option value="10">10</mat-option>
+            <mat-option value="25">25</mat-option>
+            <mat-option value="50">50</mat-option>
+            <mat-option value="100">100</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingTemplate">
+        <table mat-table [dataSource]="dataSource" matSort class="mouvements-table">
+          
+          <!-- Colonne Date -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="date-info">
+                <span class="date-value">{{ mouvement.dateMouvement | date:'dd/MM/yyyy' }}</span>
+                <span class="time-value">{{ mouvement.dateMouvement | date:'HH:mm' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Type -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <mat-chip [color]="getTypeColor(mouvement.typeMouvement)" selected>
+                <mat-icon>{{ getTypeIcon(mouvement.typeMouvement) }}</mat-icon>
+                {{ getTypeLabel(mouvement.typeMouvement) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Article -->
+          <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Article</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="article-info">
+                <span class="article-name">{{ mouvement.article?.nom || 'Article supprimé' }}</span>
+                <span class="article-ref" *ngIf="mouvement.article?.reference">
+                  Réf: {{ mouvement.article.reference }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Quantité -->
+          <ng-container matColumnDef="quantite">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Quantité</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="quantite-info">
+                <span class="quantite-value" [ngClass]="getQuantiteClass(mouvement)">
+                  {{ getQuantiteDisplay(mouvement) }}
+                </span>
+                <span class="quantite-unit">{{ mouvement.article?.unite || 'unité' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Emplacements -->
+          <ng-container matColumnDef="emplacements">
+            <th mat-header-cell *matHeaderCellDef>Emplacements</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="emplacements-info">
+                <div class="emplacement-item" *ngIf="mouvement.emplacementSource">
+                  <mat-icon class="emplacement-icon">location_on</mat-icon>
+                  <span>De: {{ mouvement.emplacementSource.nom }}</span>
+                </div>
+                <div class="emplacement-item" *ngIf="mouvement.emplacementDestination">
+                  <mat-icon class="emplacement-icon">location_on</mat-icon>
+                  <span>Vers: {{ mouvement.emplacementDestination.nom }}</span>
+                </div>
+                <div class="emplacement-item" *ngIf="!mouvement.emplacementSource && !mouvement.emplacementDestination">
+                  <span class="no-emplacement">Non spécifié</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Motif -->
+          <ng-container matColumnDef="motif">
+            <th mat-header-cell *matHeaderCellDef>Motif</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="motif-info">
+                <span class="motif-text">{{ mouvement.motif }}</span>
+                <span class="reference-doc" *ngIf="mouvement.referenceDocument">
+                  Réf: {{ mouvement.referenceDocument }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Utilisateur -->
+          <ng-container matColumnDef="utilisateur">
+            <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="utilisateur-info">
+                <mat-icon class="user-icon">person</mat-icon>
+                <span>{{ mouvement.utilisateur?.nom || 'Utilisateur supprimé' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <mat-chip [color]="getStatutColor(mouvement.statut)" selected>
+                {{ getStatutLabel(mouvement.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let mouvement">
+              <div class="action-buttons">
+                <button mat-icon-button (click)="viewMouvement(mouvement)" matTooltip="Voir détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editMouvement(mouvement)" 
+                        [disabled]="mouvement.statut === 'VALIDE'"
+                        matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="duplicateMouvement(mouvement)">
+                    <mat-icon>content_copy</mat-icon>
+                    Dupliquer
+                  </button>
+                  <button mat-menu-item (click)="viewArticleHistory(mouvement.articleId)">
+                    <mat-icon>history</mat-icon>
+                    Historique article
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="validerMouvement(mouvement)"
+                          [disabled]="mouvement.statut === 'VALIDE'">
+                    <mat-icon>check</mat-icon>
+                    Valider
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="annulerMouvement(mouvement)" 
+                          [disabled]="mouvement.statut === 'VALIDE'"
+                          class="danger-action">
+                    <mat-icon>cancel</mat-icon>
+                    Annuler
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewMouvement(row)" 
+              class="clickable-row"></tr>
+        </table>
+
+        <!-- Message si aucun résultat -->
+        <div class="no-data" *ngIf="dataSource.data.length === 0">
+          <mat-icon>swap_horiz</mat-icon>
+          <h3>Aucun mouvement trouvé</h3>
+          <p>Aucun mouvement ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openMouvementForm()">
+            <mat-icon>add</mat-icon>
+            Créer le premier mouvement
+          </button>
+        </div>
+      </div>
+
+      <!-- Template de chargement -->
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des mouvements...</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageIndex]="currentPage"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

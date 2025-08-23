@@ -1,0 +1,363 @@
+<div class="utilisateurs-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <mat-icon>people</mat-icon>
+        Gestion des Utilisateurs
+      </h1>
+      <p class="subtitle">Gérez les utilisateurs, rôles et permissions du système</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openUserForm()">
+        <mat-icon>person_add</mat-icon>
+        Nouvel Utilisateur
+      </button>
+      <button mat-stroked-button (click)="exportUsers()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+      <button mat-stroked-button (click)="importUsers()">
+        <mat-icon>upload</mat-icon>
+        Importer
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un utilisateur</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onSearch()" 
+                 placeholder="Nom, prénom, email...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Rôle</mat-label>
+          <mat-select [(value)]="selectedRole" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les rôles</mat-option>
+            <mat-option value="ADMIN">Administrateur</mat-option>
+            <mat-option value="MANAGER">Manager</mat-option>
+            <mat-option value="EMPLOYEE">Employé</mat-option>
+            <mat-option value="VIEWER">Lecteur</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(value)]="selectedStatus" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="ACTIF">Actif</mat-option>
+            <mat-option value="INACTIF">Inactif</mat-option>
+            <mat-option value="SUSPENDU">Suspendu</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Département</mat-label>
+          <mat-select [(value)]="selectedDepartment" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les départements</mat-option>
+            <mat-option value="PRODUCTION">Production</mat-option>
+            <mat-option value="LOGISTIQUE">Logistique</mat-option>
+            <mat-option value="COMMERCIAL">Commercial</mat-option>
+            <mat-option value="ADMINISTRATION">Administration</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistics -->
+  <div class="stats-row">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">people</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.totalUsers || 0 }}</span>
+            <span class="stat-label">Total Utilisateurs</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon success">check_circle</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.activeUsers || 0 }}</span>
+            <span class="stat-label">Actifs</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon warning">schedule</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.onlineUsers || 0 }}</span>
+            <span class="stat-label">En ligne</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon accent">admin_panel_settings</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.adminUsers || 0 }}</span>
+            <span class="stat-label">Administrateurs</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Users Table -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Liste des Utilisateurs
+      </mat-card-title>
+      <div class="table-actions">
+        <button mat-icon-button (click)="refreshData()" matTooltip="Actualiser">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="viewMenu" matTooltip="Affichage">
+          <mat-icon>view_column</mat-icon>
+        </button>
+        <mat-menu #viewMenu="matMenu">
+          <mat-checkbox *ngFor="let col of availableColumns" 
+                       [(ngModel)]="col.visible" 
+                       (change)="updateDisplayedColumns()">
+            {{ col.label }}
+          </mat-checkbox>
+        </mat-menu>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingTemplate">
+        <table mat-table [dataSource]="dataSource" matSort class="users-table">
+          
+          <!-- Selection Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox (change)="$event ? masterToggle() : null"
+                           [checked]="selection.hasValue() && isAllSelected()"
+                           [indeterminate]="selection.hasValue() && !isAllSelected()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let user">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                           (change)="$event ? selection.toggle(user) : null"
+                           [checked]="selection.isSelected(user)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Avatar & Name Column -->
+          <ng-container matColumnDef="user">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Utilisateur</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="user-info">
+                <div class="user-avatar">
+                  <img *ngIf="user.avatar; else defaultAvatar" 
+                       [src]="user.avatar" 
+                       [alt]="user.prenom + ' ' + user.nom">
+                  <ng-template #defaultAvatar>
+                    <mat-icon>person</mat-icon>
+                  </ng-template>
+                  <div class="online-indicator" *ngIf="user.isOnline"></div>
+                </div>
+                <div class="user-details">
+                  <span class="user-name">{{ user.prenom }} {{ user.nom }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                  <span class="user-phone" *ngIf="user.telephone">{{ user.telephone }}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Role Column -->
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Rôle</th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip [color]="getRoleColor(user.role)" selected>
+                <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
+                {{ getRoleLabel(user.role) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Department Column -->
+          <ng-container matColumnDef="department">
+            <th mat-header-cell *matHeaderCellDef>Département</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="department-info">
+                <mat-icon class="department-icon">{{ getDepartmentIcon(user.departement) }}</mat-icon>
+                <span>{{ getDepartmentLabel(user.departement) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip [color]="getStatusColor(user.statut)" selected>
+                <mat-icon>{{ getStatusIcon(user.statut) }}</mat-icon>
+                {{ getStatusLabel(user.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Last Login Column -->
+          <ng-container matColumnDef="lastLogin">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Dernière connexion</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="last-login-info">
+                <span *ngIf="user.derniereConnexion; else neverConnected" 
+                      class="login-date">
+                  {{ user.derniereConnexion | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+                <ng-template #neverConnected>
+                  <span class="never-connected">Jamais connecté</span>
+                </ng-template>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Created Date Column -->
+          <ng-container matColumnDef="created">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Créé le</th>
+            <td mat-cell *matCellDef="let user">
+              {{ user.dateCreation | date:'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="action-buttons">
+                <button mat-icon-button (click)="viewUser(user)" matTooltip="Voir détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editUser(user)" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="resetPassword(user)">
+                    <mat-icon>lock_reset</mat-icon>
+                    Réinitialiser mot de passe
+                  </button>
+                  <button mat-menu-item (click)="changeRole(user)">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    Changer le rôle
+                  </button>
+                  <button mat-menu-item (click)="toggleUserStatus(user)">
+                    <mat-icon>{{ user.statut === 'ACTIF' ? 'block' : 'check_circle' }}</mat-icon>
+                    {{ user.statut === 'ACTIF' ? 'Désactiver' : 'Activer' }}
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="viewUserActivity(user)">
+                    <mat-icon>history</mat-icon>
+                    Historique d'activité
+                  </button>
+                  <button mat-menu-item (click)="viewUserPermissions(user)">
+                    <mat-icon>security</mat-icon>
+                    Permissions
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteUser(user)" class="danger-action">
+                    <mat-icon>delete</mat-icon>
+                    Supprimer
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewUser(row)" 
+              class="clickable-row"
+              [class.selected]="selection.isSelected(row)"></tr>
+        </table>
+
+        <!-- No Data Message -->
+        <div class="no-data" *ngIf="dataSource.data.length === 0">
+          <mat-icon>people_outline</mat-icon>
+          <h3>Aucun utilisateur trouvé</h3>
+          <p>Aucun utilisateur ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openUserForm()">
+            <mat-icon>person_add</mat-icon>
+            Créer le premier utilisateur
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading Template -->
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des utilisateurs...</p>
+        </div>
+      </ng-template>
+
+      <!-- Bulk Actions -->
+      <div class="bulk-actions" *ngIf="selection.hasValue()">
+        <div class="bulk-info">
+          <span>{{ selection.selected.length }} utilisateur(s) sélectionné(s)</span>
+        </div>
+        <div class="bulk-buttons">
+          <button mat-stroked-button (click)="bulkActivate()">
+            <mat-icon>check_circle</mat-icon>
+            Activer
+          </button>
+          <button mat-stroked-button (click)="bulkDeactivate()">
+            <mat-icon>block</mat-icon>
+            Désactiver
+          </button>
+          <button mat-stroked-button (click)="bulkExport()">
+            <mat-icon>download</mat-icon>
+            Exporter
+          </button>
+          <button mat-stroked-button color="warn" (click)="bulkDelete()">
+            <mat-icon>delete</mat-icon>
+            Supprimer
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageIndex]="currentPage"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

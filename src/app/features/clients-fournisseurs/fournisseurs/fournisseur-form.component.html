@@ -1,0 +1,302 @@
+<div class="fournisseur-form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>{{ isEditMode ? 'edit' : 'business' }}</mat-icon>
+      </div>
+      <mat-card-title>{{ isEditMode ? 'Modifier le Fournisseur' : 'Nouveau Fournisseur' }}</mat-card-title>
+      <mat-card-subtitle>{{ isEditMode ? 'Modification des informations fournisseur' : 'Création d\'un nouveau fournisseur' }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="fournisseurForm" (ngSubmit)="onSubmit()" class="fournisseur-form">
+        <!-- Informations générales -->
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Code fournisseur</mat-label>
+              <input matInput formControlName="codeFournisseur" placeholder="FOUR-001">
+              <mat-error *ngIf="fournisseurForm.get('codeFournisseur')?.hasError('required')">
+                Le code fournisseur est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Nom / Raison sociale</mat-label>
+              <input matInput formControlName="nom" placeholder="Nom du fournisseur">
+              <mat-error *ngIf="fournisseurForm.get('nom')?.hasError('required')">
+                Le nom est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Nom du contact</mat-label>
+              <input matInput formControlName="nomContact" placeholder="Nom de la personne de contact">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Fonction du contact</mat-label>
+              <input matInput formControlName="fonctionContact" placeholder="Directeur commercial, Responsable achats...">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>SIRET</mat-label>
+              <input matInput formControlName="siret" placeholder="12345678901234">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>TVA Intracommunautaire</mat-label>
+              <input matInput formControlName="numeroTVA" placeholder="FR12345678901">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Coordonnées -->
+        <div class="form-section">
+          <h3>Coordonnées</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="fournisseur@example.com">
+              <mat-error *ngIf="fournisseurForm.get('email')?.hasError('email')">
+                Format d'email invalide
+              </mat-error>
+              <mat-error *ngIf="fournisseurForm.get('email')?.hasError('required')">
+                L'email est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Téléphone</mat-label>
+              <input matInput formControlName="telephone" placeholder="+33 1 23 45 67 89">
+              <mat-error *ngIf="fournisseurForm.get('telephone')?.hasError('required')">
+                Le téléphone est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Téléphone mobile</mat-label>
+              <input matInput formControlName="telephoneMobile" placeholder="+33 6 12 34 56 78">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Fax</mat-label>
+              <input matInput formControlName="fax" placeholder="+33 1 23 45 67 90">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Site web</mat-label>
+              <input matInput formControlName="siteWeb" placeholder="https://www.fournisseur.com">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Adresse -->
+        <div class="form-section">
+          <h3>Adresse</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Adresse ligne 1</mat-label>
+              <input matInput formControlName="adresse" placeholder="123 Rue de l'Industrie">
+              <mat-error *ngIf="fournisseurForm.get('adresse')?.hasError('required')">
+                L'adresse est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Adresse ligne 2</mat-label>
+              <input matInput formControlName="adresseComplement" placeholder="Zone industrielle">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Code postal</mat-label>
+              <input matInput formControlName="codePostal" placeholder="75001">
+              <mat-error *ngIf="fournisseurForm.get('codePostal')?.hasError('required')">
+                Le code postal est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Ville</mat-label>
+              <input matInput formControlName="ville" placeholder="Paris">
+              <mat-error *ngIf="fournisseurForm.get('ville')?.hasError('required')">
+                La ville est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Pays</mat-label>
+              <mat-select formControlName="pays">
+                <mat-option value="France">France</mat-option>
+                <mat-option value="Belgique">Belgique</mat-option>
+                <mat-option value="Suisse">Suisse</mat-option>
+                <mat-option value="Luxembourg">Luxembourg</mat-option>
+                <mat-option value="Allemagne">Allemagne</mat-option>
+                <mat-option value="Italie">Italie</mat-option>
+                <mat-option value="Espagne">Espagne</mat-option>
+                <mat-option value="Autre">Autre</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Paramètres commerciaux -->
+        <div class="form-section">
+          <h3>Paramètres Commerciaux</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Délai de livraison (jours)</mat-label>
+              <input matInput type="number" formControlName="delaiLivraison" min="0">
+              <span matTextSuffix> jours</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Délai de paiement (jours)</mat-label>
+              <input matInput type="number" formControlName="delaiPaiement" min="0">
+              <span matTextSuffix> jours</span>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Mode de paiement</mat-label>
+              <mat-select formControlName="modePaiement">
+                <mat-option value="Virement">Virement bancaire</mat-option>
+                <mat-option value="Cheque">Chèque</mat-option>
+                <mat-option value="Traite">Traite</mat-option>
+                <mat-option value="Especes">Espèces</mat-option>
+                <mat-option value="CB">Carte bancaire</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Devise</mat-label>
+              <mat-select formControlName="devise">
+                <mat-option value="EUR">Euro (€)</mat-option>
+                <mat-option value="USD">Dollar ($)</mat-option>
+                <mat-option value="GBP">Livre Sterling (£)</mat-option>
+                <mat-option value="CHF">Franc Suisse (CHF)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Montant minimum de commande</mat-label>
+              <input matInput type="number" formControlName="montantMinCommande" min="0" step="0.01">
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Remise négociée (%)</mat-label>
+              <input matInput type="number" formControlName="remiseNegociee" min="0" max="100" step="0.1">
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="fournisseurActif">
+              Fournisseur actif
+            </mat-checkbox>
+          </div>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="fournisseurPrefere">
+              Fournisseur préféré
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <!-- Informations bancaires -->
+        <div class="form-section">
+          <h3>Informations Bancaires</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>IBAN</mat-label>
+              <input matInput formControlName="iban" placeholder="FR76 1234 5678 9012 3456 7890 123">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>BIC/SWIFT</mat-label>
+              <input matInput formControlName="bic" placeholder="BNPAFRPPXXX">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de la banque</mat-label>
+              <input matInput formControlName="nomBanque" placeholder="BNP Paribas">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Catégories et spécialités -->
+        <div class="form-section">
+          <h3>Spécialités</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Catégories de produits</mat-label>
+              <mat-select formControlName="categories" multiple>
+                <mat-option value="Tissus">Tissus</mat-option>
+                <mat-option value="Fils">Fils</mat-option>
+                <mat-option value="Accessoires">Accessoires</mat-option>
+                <mat-option value="Boutons">Boutons</mat-option>
+                <mat-option value="Fermetures">Fermetures</mat-option>
+                <mat-option value="Elastiques">Élastiques</mat-option>
+                <mat-option value="Doublures">Doublures</mat-option>
+                <mat-option value="Teintures">Teintures</mat-option>
+                <mat-option value="Machines">Machines</mat-option>
+                <mat-option value="Outils">Outils</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Spécialités</mat-label>
+              <textarea matInput formControlName="specialites" rows="3" 
+                        placeholder="Décrivez les spécialités du fournisseur..."></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section">
+          <h3>Notes et Commentaires</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes internes</mat-label>
+              <textarea matInput formControlName="notes" rows="4" 
+                        placeholder="Informations complémentaires sur ce fournisseur..."></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button (click)="onCancel()">
+            Annuler
+          </button>
+          <button type="submit" mat-raised-button color="primary" 
+                  [disabled]="fournisseurForm.invalid || loading">
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

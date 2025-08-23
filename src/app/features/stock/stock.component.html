@@ -1,0 +1,310 @@
+<div class="stock-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <h1 class="page-title">Gestion du Stock</h1>
+    <p class="page-subtitle">Gérez vos articles et suivez les niveaux de stock</p>
+  </div>
+
+  <!-- Barre d'actions -->
+  <div class="actions-bar">
+    <div class="search-section">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Rechercher un article</mat-label>
+        <input matInput 
+               [(ngModel)]="searchTerm" 
+               (input)="onSearch()"
+               placeholder="Nom, référence, code-barres...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Catégorie</mat-label>
+        <mat-select [(value)]="selectedCategory" (selectionChange)="onCategoryChange()">
+          <mat-option value="">Toutes les catégories</mat-option>
+          <mat-option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" (click)="openAddDialog()">
+        <mat-icon>add</mat-icon>
+        Nouvel Article
+      </button>
+      
+      <button mat-stroked-button (click)="exportData()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+      
+      <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'options">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="importData()">
+          <mat-icon>upload</mat-icon>
+          Importer des données
+        </button>
+        <button mat-menu-item (click)="generateReport()">
+          <mat-icon>assessment</mat-icon>
+          Générer un rapport
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="refreshData()">
+          <mat-icon>refresh</mat-icon>
+          Actualiser
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Filtres avancés (collapsible) -->
+  <mat-expansion-panel class="filters-panel" [expanded]="showAdvancedFilters">
+    <mat-expansion-panel-header>
+      <mat-panel-title>Filtres Avancés</mat-panel-title>
+    </mat-expansion-panel-header>
+    
+    <div class="advanced-filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Stock minimum</mat-label>
+        <input matInput type="number" [(ngModel)]="filters.minStock">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Stock maximum</mat-label>
+        <input matInput type="number" [(ngModel)]="filters.maxStock">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Prix minimum</mat-label>
+        <input matInput type="number" [(ngModel)]="filters.minPrice">
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline">
+        <mat-label>Prix maximum</mat-label>
+        <input matInput type="number" [(ngModel)]="filters.maxPrice">
+      </mat-form-field>
+      
+      <div class="filter-actions">
+        <button mat-raised-button color="primary" (click)="applyFilters()">
+          Appliquer
+        </button>
+        <button mat-button (click)="clearFilters()">
+          Effacer
+        </button>
+      </div>
+    </div>
+  </mat-expansion-panel>
+
+  <!-- Indicateurs de stock -->
+  <div class="stock-indicators" *ngIf="stockSummary">
+    <mat-card class="indicator-card low-stock">
+      <mat-card-content>
+        <div class="indicator-content">
+          <mat-icon class="indicator-icon">warning</mat-icon>
+          <div class="indicator-info">
+            <div class="indicator-value">{{ stockSummary.lowStock }}</div>
+            <div class="indicator-label">Stock Faible</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="indicator-card out-of-stock">
+      <mat-card-content>
+        <div class="indicator-content">
+          <mat-icon class="indicator-icon">error</mat-icon>
+          <div class="indicator-info">
+            <div class="indicator-value">{{ stockSummary.outOfStock }}</div>
+            <div class="indicator-label">Rupture</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="indicator-card total-value">
+      <mat-card-content>
+        <div class="indicator-content">
+          <mat-icon class="indicator-icon">euro</mat-icon>
+          <div class="indicator-info">
+            <div class="indicator-value">{{ stockSummary.totalValue | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="indicator-label">Valeur Totale</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Table des articles -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Chargement des articles...</p>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="!loading" class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="stock-table">
+          
+          <!-- Checkbox Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox (change)="$event ? masterToggle() : null"
+                           [checked]="selection.hasValue() && isAllSelected()"
+                           [indeterminate]="selection.hasValue() && !isAllSelected()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                           (change)="$event ? selection.toggle(row) : null"
+                           [checked]="selection.isSelected(row)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Image Column -->
+          <ng-container matColumnDef="image">
+            <th mat-header-cell *matHeaderCellDef>Image</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="product-image">
+                <img [src]="element.imageUrl || 'assets/images/no-image.png'" 
+                     [alt]="element.nom"
+                     (error)="onImageError($event)">
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Nom Column -->
+          <ng-container matColumnDef="nom">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="product-info">
+                <div class="product-name">{{ element.nom }}</div>
+                <div class="product-reference">Réf: {{ element.reference }}</div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Catégorie Column -->
+          <ng-container matColumnDef="categorie">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Catégorie</th>
+            <td mat-cell *matCellDef="let element">
+              <mat-chip class="category-chip">{{ element.categorie }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Quantité Column -->
+          <ng-container matColumnDef="quantite">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="stock-info">
+                <span class="stock-quantity" 
+                      [class.low-stock]="element.quantite <= element.seuilMinimum"
+                      [class.out-of-stock]="element.quantite === 0">
+                  {{ element.quantite }}
+                </span>
+                <span class="stock-unit">{{ element.unite }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Prix Column -->
+          <ng-container matColumnDef="prix">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Prix</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.prix | currency:'EUR':'symbol':'1.2-2' }}
+            </td>
+          </ng-container>
+
+          <!-- Statut Column -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let element">
+              <mat-chip [class]="getStatusClass(element)">
+                {{ getStatusText(element) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="action-buttons">
+                <button mat-icon-button (click)="viewDetails(element)" matTooltip="Voir détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editItem(element)" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button (click)="adjustStock(element)" matTooltip="Ajuster stock">
+                  <mat-icon>tune</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        (click)="deleteItem(element)" 
+                        matTooltip="Supprimer"
+                        color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              (click)="selectRow(row)"
+              [class.selected-row]="selection.isSelected(row)"></tr>
+        </table>
+
+        <!-- No data message -->
+        <div *ngIf="dataSource.data.length === 0" class="no-data">
+          <mat-icon class="no-data-icon">inventory_2</mat-icon>
+          <h3>Aucun article trouvé</h3>
+          <p>Aucun article ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openAddDialog()">
+            Ajouter le premier article
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]"
+                     [pageSize]="25"
+                     showFirstLastButtons
+                     aria-label="Sélectionner la page">
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Actions sur sélection multiple -->
+  <div class="bulk-actions" *ngIf="selection.hasValue()">
+    <mat-card>
+      <mat-card-content>
+        <div class="bulk-actions-content">
+          <span class="selection-info">
+            {{ selection.selected.length }} article(s) sélectionné(s)
+          </span>
+          <div class="bulk-buttons">
+            <button mat-raised-button (click)="bulkExport()">
+              <mat-icon>download</mat-icon>
+              Exporter
+            </button>
+            <button mat-raised-button (click)="bulkEdit()">
+              <mat-icon>edit</mat-icon>
+              Modifier
+            </button>
+            <button mat-raised-button color="warn" (click)="bulkDelete()">
+              <mat-icon>delete</mat-icon>
+              Supprimer
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

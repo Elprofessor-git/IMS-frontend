@@ -1,0 +1,196 @@
+<div class="achat-form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>{{ isEditMode ? 'edit' : 'add_shopping_cart' }}</mat-icon>
+      </div>
+      <mat-card-title>{{ isEditMode ? 'Modifier l\'Achat' : 'Nouvel Achat' }}</mat-card-title>
+      <mat-card-subtitle>{{ isEditMode ? 'Modification des informations d\'achat' : 'Création d\'un nouvel achat' }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="achatForm" (ngSubmit)="onSubmit()" class="achat-form">
+        <!-- Informations générales -->
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Numéro d'achat</mat-label>
+              <input matInput formControlName="numeroAchat" placeholder="ACH-2024-001">
+              <mat-error *ngIf="achatForm.get('numeroAchat')?.hasError('required')">
+                Le numéro d'achat est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date d'achat</mat-label>
+              <input matInput [matDatepicker]="dateAchatPicker" formControlName="dateAchat">
+              <mat-datepicker-toggle matIconSuffix [for]="dateAchatPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateAchatPicker></mat-datepicker>
+              <mat-error *ngIf="achatForm.get('dateAchat')?.hasError('required')">
+                La date d'achat est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Fournisseur</mat-label>
+              <mat-select formControlName="fournisseurId">
+                <mat-option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
+                  {{ fournisseur.nom }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="achatForm.get('fournisseurId')?.hasError('required')">
+                Le fournisseur est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Statut</mat-label>
+              <mat-select formControlName="statut">
+                <mat-option value="En_Attente">En Attente</mat-option>
+                <mat-option value="Confirmee">Confirmée</mat-option>
+                <mat-option value="En_Cours">En Cours</mat-option>
+                <mat-option value="Livree">Livrée</mat-option>
+                <mat-option value="Annulee">Annulée</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date de livraison prévue</mat-label>
+              <input matInput [matDatepicker]="dateLivraisonPicker" formControlName="dateLivraisonPrevue">
+              <mat-datepicker-toggle matIconSuffix [for]="dateLivraisonPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateLivraisonPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Lignes d'achat -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Articles à Acheter</h3>
+            <button type="button" mat-raised-button color="primary" (click)="addLigneAchat()">
+              <mat-icon>add</mat-icon>
+              Ajouter un article
+            </button>
+          </div>
+
+          <div formArrayName="lignesAchat" class="lignes-container">
+            <mat-card *ngFor="let ligne of lignesAchatArray.controls; let i = index" [formGroupName]="i" class="ligne-card">
+              <mat-card-header>
+                <mat-card-title>Article {{ i + 1 }}</mat-card-title>
+                <div class="ligne-actions">
+                  <button type="button" mat-icon-button color="warn" (click)="removeLigneAchat(i)" 
+                          [disabled]="lignesAchatArray.length === 1">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="ligne-form">
+                  <mat-form-field appearance="outline" class="article-field">
+                    <mat-label>Article</mat-label>
+                    <mat-select formControlName="articleId" (selectionChange)="onArticleChange(i, $event.value)">
+                      <mat-option *ngFor="let article of articles" [value]="article.id">
+                        {{ article.nom }} - {{ article.reference }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="ligne.get('articleId')?.hasError('required')">
+                      L'article est obligatoire
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="quantity-field">
+                    <mat-label>Quantité</mat-label>
+                    <input matInput type="number" formControlName="quantite" min="1" 
+                           (input)="calculateLigneTotal(i)">
+                    <mat-error *ngIf="ligne.get('quantite')?.hasError('required')">
+                      La quantité est obligatoire
+                    </mat-error>
+                    <mat-error *ngIf="ligne.get('quantite')?.hasError('min')">
+                      La quantité doit être supérieure à 0
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="price-field">
+                    <mat-label>Prix unitaire</mat-label>
+                    <input matInput type="number" formControlName="prixUnitaire" min="0" step="0.01"
+                           (input)="calculateLigneTotal(i)">
+                    <span matTextPrefix>€ </span>
+                    <mat-error *ngIf="ligne.get('prixUnitaire')?.hasError('required')">
+                      Le prix unitaire est obligatoire
+                    </mat-error>
+                    <mat-error *ngIf="ligne.get('prixUnitaire')?.hasError('min')">
+                      Le prix doit être positif
+                    </mat-error>
+                  </mat-form-field>
+
+                  <div class="total-field">
+                    <strong>Total: {{ getLigneTotal(i) | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- Montants -->
+        <div class="form-section">
+          <h3>Montants</h3>
+          <div class="montants-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Montant HT</mat-label>
+              <input matInput type="number" formControlName="montantHT" readonly>
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>TVA (%)</mat-label>
+              <input matInput type="number" formControlName="tauxTVA" min="0" max="100" step="0.1"
+                     (input)="calculateMontants()">
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Montant TVA</mat-label>
+              <input matInput type="number" formControlName="montantTVA" readonly>
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="total-field">
+              <mat-label>Montant TTC</mat-label>
+              <input matInput type="number" formControlName="montantTTC" readonly>
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section">
+          <h3>Notes</h3>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes et commentaires</mat-label>
+            <textarea matInput formControlName="notes" rows="4" 
+                      placeholder="Informations complémentaires sur cet achat..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button (click)="onCancel()">
+            Annuler
+          </button>
+          <button type="submit" mat-raised-button color="primary" 
+                  [disabled]="achatForm.invalid || loading">
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

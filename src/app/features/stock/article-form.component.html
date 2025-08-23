@@ -1,0 +1,255 @@
+<div class="article-form-container">
+  <div class="form-header">
+    <h2 class="form-title">
+      {{ isEditMode ? 'Modifier l\'article' : 'Nouvel article' }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="articleForm" (ngSubmit)="onSubmit()" class="article-form">
+    
+    <!-- Section Informations générales -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Informations générales</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom de l'article *</mat-label>
+            <input matInput 
+                   formControlName="nom" 
+                   placeholder="Ex: Tissu coton bio"
+                   required>
+            <mat-error *ngIf="articleForm.get('nom')?.hasError('required')">
+              Le nom est obligatoire
+            </mat-error>
+            <mat-error *ngIf="articleForm.get('nom')?.hasError('minlength')">
+              Le nom doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Référence *</mat-label>
+            <input matInput 
+                   formControlName="reference" 
+                   placeholder="Ex: TCB-001"
+                   required>
+            <mat-error *ngIf="articleForm.get('reference')?.hasError('required')">
+              La référence est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Code-barres</mat-label>
+            <input matInput 
+                   formControlName="codeBarres" 
+                   placeholder="Ex: 1234567890123">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput 
+                      formControlName="description" 
+                      rows="3"
+                      placeholder="Description détaillée de l'article..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Catégorie *</mat-label>
+            <mat-select formControlName="categorie" required>
+              <mat-option value="">Sélectionner une catégorie</mat-option>
+              <mat-option *ngFor="let category of categories" [value]="category">
+                {{ category }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="articleForm.get('categorie')?.hasError('required')">
+              La catégorie est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Emplacement</mat-label>
+            <input matInput 
+                   formControlName="emplacement" 
+                   placeholder="Ex: Entrepôt A - Allée 3">
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section Prix et unités -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Prix et unités</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Prix unitaire *</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="prix" 
+                   step="0.01"
+                   min="0"
+                   placeholder="0.00"
+                   required>
+            <span matSuffix>€</span>
+            <mat-error *ngIf="articleForm.get('prix')?.hasError('required')">
+              Le prix est obligatoire
+            </mat-error>
+            <mat-error *ngIf="articleForm.get('prix')?.hasError('min')">
+              Le prix doit être positif
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Unité *</mat-label>
+            <mat-select formControlName="unite" required>
+              <mat-option value="">Sélectionner une unité</mat-option>
+              <mat-option value="pièce">Pièce</mat-option>
+              <mat-option value="mètre">Mètre</mat-option>
+              <mat-option value="kg">Kilogramme</mat-option>
+              <mat-option value="litre">Litre</mat-option>
+              <mat-option value="rouleau">Rouleau</mat-option>
+              <mat-option value="lot">Lot</mat-option>
+            </mat-select>
+            <mat-error *ngIf="articleForm.get('unite')?.hasError('required')">
+              L'unité est obligatoire
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section Stock -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Gestion du stock</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Quantité initiale</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="quantite" 
+                   min="0"
+                   placeholder="0">
+            <mat-error *ngIf="articleForm.get('quantite')?.hasError('min')">
+              La quantité doit être positive
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Seuil minimum *</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="seuilMinimum" 
+                   min="0"
+                   placeholder="10"
+                   required>
+            <mat-error *ngIf="articleForm.get('seuilMinimum')?.hasError('required')">
+              Le seuil minimum est obligatoire
+            </mat-error>
+            <mat-error *ngIf="articleForm.get('seuilMinimum')?.hasError('min')">
+              Le seuil doit être positif
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Seuil maximum</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="seuilMaximum" 
+                   min="0"
+                   placeholder="100">
+            <mat-error *ngIf="articleForm.get('seuilMaximum')?.hasError('min')">
+              Le seuil doit être positif
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-checkbox formControlName="actif" class="full-width">
+            Article actif
+          </mat-checkbox>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section Image -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Image de l'article</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="image-upload-section">
+          <div class="image-preview" *ngIf="imagePreview">
+            <img [src]="imagePreview" alt="Aperçu" class="preview-image">
+            <button mat-icon-button 
+                    type="button"
+                    (click)="removeImage()" 
+                    class="remove-image-btn">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          
+          <div class="upload-area" *ngIf="!imagePreview">
+            <input #fileInput 
+                   type="file" 
+                   accept="image/*" 
+                   (change)="onImageSelected($event)"
+                   style="display: none;">
+            
+            <button mat-stroked-button 
+                    type="button"
+                    (click)="fileInput.click()"
+                    class="upload-btn">
+              <mat-icon>cloud_upload</mat-icon>
+              Ajouter une image
+            </button>
+            
+            <p class="upload-hint">
+              Formats acceptés: JPG, PNG, GIF (max 5MB)
+            </p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <div class="action-buttons">
+        <button mat-button 
+                type="button" 
+                (click)="onCancel()"
+                [disabled]="loading">
+          Annuler
+        </button>
+        
+        <button mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="articleForm.invalid || loading">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">
+            {{ isEditMode ? 'Modifier' : 'Créer' }}
+          </span>
+        </button>
+      </div>
+      
+      <div class="form-status" *ngIf="error">
+        <mat-error>{{ error }}</mat-error>
+      </div>
+    </div>
+  </form>
+</div>

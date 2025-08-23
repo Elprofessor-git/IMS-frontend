@@ -1,0 +1,371 @@
+<div class="roles-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Gestion des rôles
+      </h1>
+      <p class="subtitle">Gérez les rôles et permissions de votre organisation</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="createRole()">
+        <mat-icon>add</mat-icon>
+        Nouveau rôle
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <mat-card class="stat-card total">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>admin_panel_settings</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{totalRoles}}</span>
+            <span class="stat-label">Total des rôles</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card active">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{activeRoles}}</span>
+            <span class="stat-label">Rôles actifs</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card users">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{totalUsers}}</span>
+            <span class="stat-label">Utilisateurs assignés</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card permissions">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>security</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{totalPermissions}}</span>
+            <span class="stat-label">Permissions disponibles</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-section">
+    <mat-card-content>
+      <div class="filters-grid">
+        <!-- Recherche -->
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un rôle</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm"
+                 (ngModelChange)="onSearchChange()"
+                 placeholder="Nom, description...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <!-- Filtre par statut -->
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="actif">
+              <mat-icon>check_circle</mat-icon>
+              Actifs uniquement
+            </mat-option>
+            <mat-option value="inactif">
+              <mat-icon>cancel</mat-icon>
+              Inactifs uniquement
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Filtre par niveau -->
+        <mat-form-field appearance="outline">
+          <mat-label>Niveau</mat-label>
+          <mat-select [(ngModel)]="levelFilter" (ngModelChange)="onFilterChange()">
+            <mat-option value="">Tous les niveaux</mat-option>
+            <mat-option value="1">Niveau 1 - Administrateur</mat-option>
+            <mat-option value="2">Niveau 2 - Manager</mat-option>
+            <mat-option value="3">Niveau 3 - Superviseur</mat-option>
+            <mat-option value="4">Niveau 4 - Utilisateur</mat-option>
+            <mat-option value="5">Niveau 5 - Invité</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Actions groupées -->
+        <div class="bulk-actions" *ngIf="selection.hasValue()">
+          <button mat-stroked-button (click)="bulkActivate()" [disabled]="loading">
+            <mat-icon>check_circle</mat-icon>
+            Activer ({{selection.selected.length}})
+          </button>
+          <button mat-stroked-button (click)="bulkDeactivate()" [disabled]="loading">
+            <mat-icon>cancel</mat-icon>
+            Désactiver ({{selection.selected.length}})
+          </button>
+          <button mat-stroked-button color="warn" (click)="bulkDelete()" [disabled]="loading">
+            <mat-icon>delete</mat-icon>
+            Supprimer ({{selection.selected.length}})
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Liste des rôles -->
+  <mat-card class="roles-table-section">
+    <mat-card-header>
+      <mat-card-title>
+        <span>Rôles ({{filteredRoles.length}})</span>
+        <div class="table-actions">
+          <button mat-icon-button [matMenuTriggerFor]="viewMenu">
+            <mat-icon>view_column</mat-icon>
+          </button>
+          <mat-menu #viewMenu="matMenu">
+            <button mat-menu-item *ngFor="let column of availableColumns" 
+                    (click)="toggleColumn(column)">
+              <mat-checkbox [checked]="displayedColumns.includes(column.key)" 
+                            (click)="$event.stopPropagation()">
+                {{column.label}}
+              </mat-checkbox>
+            </button>
+          </mat-menu>
+
+          <button mat-icon-button (click)="exportRoles()">
+            <mat-icon>download</mat-icon>
+          </button>
+          <button mat-icon-button (click)="refreshRoles()">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <!-- État de chargement -->
+      <div class="loading-section" *ngIf="loading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Chargement des rôles...</p>
+      </div>
+
+      <!-- Table des rôles -->
+      <div class="table-container" *ngIf="!loading">
+        <table mat-table [dataSource]="dataSource" matSort class="roles-table">
+          
+          <!-- Colonne de sélection -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="selection.hasValue() && !isAllSelected()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? selection.toggle(row) : null"
+                            [checked]="selection.isSelected(row)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Nom du rôle -->
+          <ng-container matColumnDef="nom">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom du rôle</th>
+            <td mat-cell *matCellDef="let role">
+              <div class="role-name-cell">
+                <div class="role-color" [style.background-color]="role.couleur"></div>
+                <div class="role-info">
+                  <span class="role-name">{{role.nom}}</span>
+                  <span class="role-description" *ngIf="role.description">{{role.description}}</span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Niveau -->
+          <ng-container matColumnDef="niveau">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Niveau</th>
+            <td mat-cell *matCellDef="let role">
+              <mat-chip [class]="'level-' + role.niveau">
+                <mat-icon>{{getLevelIcon(role.niveau)}}</mat-icon>
+                Niveau {{role.niveau}}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Permissions -->
+          <ng-container matColumnDef="permissions">
+            <th mat-header-cell *matHeaderCellDef>Permissions</th>
+            <td mat-cell *matCellDef="let role">
+              <div class="permissions-cell">
+                <mat-chip-set>
+                  <mat-chip *ngFor="let permission of role.permissions | slice:0:3">
+                    {{permission.nom}}
+                  </mat-chip>
+                  <mat-chip *ngIf="role.permissions.length > 3" class="more-permissions">
+                    +{{role.permissions.length - 3}} autres
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Utilisateurs assignés -->
+          <ng-container matColumnDef="utilisateurs">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Utilisateurs</th>
+            <td mat-cell *matCellDef="let role">
+              <div class="users-cell">
+                <div class="users-avatars" *ngIf="role.utilisateurs && role.utilisateurs.length > 0">
+                  <div class="user-avatar" *ngFor="let user of role.utilisateurs | slice:0:3">
+                    <mat-icon *ngIf="!user.avatar">person</mat-icon>
+                    <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.prenom + ' ' + user.nom">
+                  </div>
+                  <div class="more-users" *ngIf="role.utilisateurs.length > 3">
+                    +{{role.utilisateurs.length - 3}}
+                  </div>
+                </div>
+                <span class="users-count">{{role.utilisateurs?.length || 0}} utilisateur(s)</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+            <td mat-cell *matCellDef="let role">
+              <mat-chip [class]="role.actif ? 'status-active' : 'status-inactive'">
+                <mat-icon>{{role.actif ? 'check_circle' : 'cancel'}}</mat-icon>
+                {{role.actif ? 'Actif' : 'Inactif'}}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Date de création -->
+          <ng-container matColumnDef="dateCreation">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Créé le</th>
+            <td mat-cell *matCellDef="let role">
+              <div class="date-cell">
+                <span class="date">{{role.dateCreation ? (role.dateCreation | date:'dd/MM/yyyy') : 'Non définie'}}</span>
+                <span class="time">{{role.dateCreation ? (role.dateCreation | date:'HH:mm') : ''}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let role">
+              <div class="actions-cell">
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" (click)="$event.stopPropagation()">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item (click)="viewRole(role)">
+                    <mat-icon>visibility</mat-icon>
+                    Voir les détails
+                  </button>
+                  <button mat-menu-item (click)="editRole(role)">
+                    <mat-icon>edit</mat-icon>
+                    Modifier
+                  </button>
+                  <button mat-menu-item (click)="duplicateRole(role)">
+                    <mat-icon>content_copy</mat-icon>
+                    Dupliquer
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="toggleRoleStatus(role)">
+                    <mat-icon>{{role.actif ? 'cancel' : 'check_circle'}}</mat-icon>
+                    {{role.actif ? 'Désactiver' : 'Activer'}}
+                  </button>
+                  <button mat-menu-item (click)="assignUsers(role)">
+                    <mat-icon>person_add</mat-icon>
+                    Assigner des utilisateurs
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteRole(role)" class="delete-action">
+                    <mat-icon>delete</mat-icon>
+                    Supprimer
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewRole(row)"
+              class="role-row"></tr>
+        </table>
+
+        <!-- Message si aucun rôle -->
+        <div class="no-data" *ngIf="filteredRoles.length === 0 && !loading">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <h3>Aucun rôle trouvé</h3>
+          <p *ngIf="searchTerm || statusFilter || levelFilter">
+            Aucun rôle ne correspond aux critères de recherche.
+            <button mat-button (click)="clearFilters()">Effacer les filtres</button>
+          </p>
+          <p *ngIf="!searchTerm && !statusFilter && !levelFilter">
+            Commencez par créer votre premier rôle.
+          </p>
+          <button mat-raised-button color="primary" (click)="createRole()">
+            <mat-icon>add</mat-icon>
+            Créer un rôle
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]"
+                     [pageSize]="25"
+                     [showFirstLastButtons]="true"
+                     [length]="filteredRoles.length">
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Dialogs de confirmation -->
+<ng-template #deleteConfirmDialog>
+  <div class="dialog-content">
+    <h2 mat-dialog-title>
+      <mat-icon color="warn">warning</mat-icon>
+      Confirmer la suppression
+    </h2>
+    <mat-dialog-content>
+      <p>Êtes-vous sûr de vouloir supprimer ce rôle ?</p>
+      <p><strong>{{roleToDelete?.nom}}</strong></p>
+      <p class="warning-text">
+        <mat-icon>info</mat-icon>
+        Cette action est irréversible. Tous les utilisateurs assignés à ce rôle perdront leurs permissions.
+      </p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Annuler</button>
+      <button mat-raised-button color="warn" (click)="confirmDelete()">
+        <mat-icon>delete</mat-icon>
+        Supprimer
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

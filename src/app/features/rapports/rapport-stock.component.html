@@ -1,0 +1,479 @@
+<div class="rapport-stock-container">
+  <!-- Header -->
+  <div class="rapport-header">
+    <div class="title-section">
+      <h1>Rapport de Stock</h1>
+      <p>Analyse détaillée de l'état des stocks et des mouvements</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="date-range">
+        <mat-label>Période</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate placeholder="Date début" [(ngModel)]="dateDebut">
+          <input matEndDate placeholder="Date fin" [(ngModel)]="dateFin">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="generateReport()">
+        <mat-icon>assessment</mat-icon>
+        Générer
+      </button>
+      <button mat-stroked-button (click)="exportToPDF()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        PDF
+      </button>
+      <button mat-stroked-button (click)="exportToExcel()">
+        <mat-icon>table_chart</mat-icon>
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-section" *ngIf="rapportData">
+    <div class="summary-grid">
+      <mat-card class="summary-card total-value">
+        <mat-card-content>
+          <div class="card-header">
+            <mat-icon>euro</mat-icon>
+            <span class="card-title">Valeur Totale du Stock</span>
+          </div>
+          <div class="card-value">{{ rapportData.valeurTotale | currency:'EUR':'symbol':'1.0-0' }}</div>
+          <div class="card-subtitle">{{ rapportData.totalArticles }} articles référencés</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card stock-level">
+        <mat-card-content>
+          <div class="card-header">
+            <mat-icon>inventory</mat-icon>
+            <span class="card-title">Niveau de Stock</span>
+          </div>
+          <div class="card-value">{{ rapportData.quantiteTotale | number }}</div>
+          <div class="card-subtitle">unités en stock</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card alerts">
+        <mat-card-content>
+          <div class="card-header">
+            <mat-icon>warning</mat-icon>
+            <span class="card-title">Alertes</span>
+          </div>
+          <div class="card-value">{{ rapportData.alertes }}</div>
+          <div class="card-subtitle">articles en rupture/seuil</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card rotation">
+        <mat-card-content>
+          <div class="card-header">
+            <mat-icon>refresh</mat-icon>
+            <span class="card-title">Rotation Moyenne</span>
+          </div>
+          <div class="card-value">{{ rapportData.rotationMoyenne }}x</div>
+          <div class="card-subtitle">par an</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filters and Controls -->
+  <div class="controls-section">
+    <mat-card class="filters-card">
+      <mat-card-header>
+        <mat-card-title>Filtres et Options</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="filters-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Catégorie</mat-label>
+            <mat-select [(value)]="selectedCategorie" (selectionChange)="applyFilters()">
+              <mat-option value="">Toutes les catégories</mat-option>
+              <mat-option *ngFor="let categorie of categories" [value]="categorie">
+                {{ categorie }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Emplacement</mat-label>
+            <mat-select [(value)]="selectedEmplacement" (selectionChange)="applyFilters()">
+              <mat-option value="">Tous les emplacements</mat-option>
+              <mat-option *ngFor="let emplacement of emplacements" [value]="emplacement.id">
+                {{ emplacement.nom }} - {{ emplacement.zone }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Statut Stock</mat-label>
+            <mat-select [(value)]="selectedStatut" (selectionChange)="applyFilters()">
+              <mat-option value="">Tous les statuts</mat-option>
+              <mat-option value="normal">Stock Normal</mat-option>
+              <mat-option value="bas">Stock Bas</mat-option>
+              <mat-option value="critique">Stock Critique</mat-option>
+              <mat-option value="rupture">Rupture</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rechercher</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" 
+                   placeholder="Nom ou référence...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Main Content Tabs -->
+  <div class="content-section">
+    <mat-tab-group class="rapport-tabs" [(selectedIndex)]="selectedTabIndex">
+      <!-- Stock Actuel Tab -->
+      <mat-tab label="Stock Actuel">
+        <div class="tab-content">
+          <div class="table-header">
+            <h3>État du Stock par Article</h3>
+            <div class="table-actions">
+              <button mat-icon-button (click)="refreshData()">
+                <mat-icon>refresh</mat-icon>
+              </button>
+              <button mat-icon-button [matMenuTriggerFor]="columnsMenu">
+                <mat-icon>view_column</mat-icon>
+              </button>
+              <mat-menu #columnsMenu="matMenu">
+                <mat-checkbox *ngFor="let col of availableColumns" 
+                             [(ngModel)]="col.visible" 
+                             (change)="updateDisplayedColumns()">
+                  {{ col.label }}
+                </mat-checkbox>
+              </mat-menu>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table mat-table [dataSource]="stockDataSource" matSort class="stock-table">
+              <!-- Article -->
+              <ng-container matColumnDef="article">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Article</th>
+                <td mat-cell *matCellDef="let item">
+                  <div class="article-cell">
+                    <strong>{{ item.nom }}</strong>
+                    <span class="reference">{{ item.reference }}</span>
+                    <span class="categorie">{{ item.categorie }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Quantité -->
+              <ng-container matColumnDef="quantite">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Quantité</th>
+                <td mat-cell *matCellDef="let item">
+                  <div class="quantity-cell" [ngClass]="getStockStatusClass(item)">
+                    <span class="quantity">{{ item.quantite }}</span>
+                    <span class="unit">{{ item.unite }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Seuil -->
+              <ng-container matColumnDef="seuil">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Seuil Min.</th>
+                <td mat-cell *matCellDef="let item">{{ item.seuilMinimum }}</td>
+              </ng-container>
+
+              <!-- Valeur -->
+              <ng-container matColumnDef="valeur">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Valeur</th>
+                <td mat-cell *matCellDef="let item">
+                  <div class="value-cell">
+                    <span class="unit-price">{{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    <strong class="total-value">{{ (item.quantite * item.prixUnitaire) | currency:'EUR':'symbol':'1.0-0' }}</strong>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Emplacement -->
+              <ng-container matColumnDef="emplacement">
+                <th mat-header-cell *matHeaderCellDef>Emplacement</th>
+                <td mat-cell *matCellDef="let item">
+                  <div class="location-cell">
+                    <span class="location-name">{{ item.emplacement?.nom }}</span>
+                    <span class="location-details">{{ item.emplacement?.zone }} - {{ item.emplacement?.rangee }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Dernière Mise à Jour -->
+              <ng-container matColumnDef="derniereMaj">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Dernière MAJ</th>
+                <td mat-cell *matCellDef="let item">{{ item.derniereMiseAJour | date:'dd/MM/yyyy HH:mm' }}</td>
+              </ng-container>
+
+              <!-- Statut -->
+              <ng-container matColumnDef="statut">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let item">
+                  <span class="status-chip" [ngClass]="getStockStatusClass(item)">
+                    {{ getStockStatusLabel(item) }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Actions -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let item">
+                  <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #actionMenu="matMenu">
+                    <button mat-menu-item (click)="viewArticleDetails(item)">
+                      <mat-icon>visibility</mat-icon>
+                      Voir détails
+                    </button>
+                    <button mat-menu-item (click)="viewMovements(item)">
+                      <mat-icon>timeline</mat-icon>
+                      Mouvements
+                    </button>
+                    <button mat-menu-item (click)="adjustStock(item)">
+                      <mat-icon>tune</mat-icon>
+                      Ajuster stock
+                    </button>
+                  </mat-menu>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+                  [ngClass]="getRowClass(row)"></tr>
+            </table>
+          </div>
+
+          <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" 
+                         [pageSize]="25" 
+                         showFirstLastButtons>
+          </mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- Mouvements Tab -->
+      <mat-tab label="Mouvements">
+        <div class="tab-content">
+          <div class="movements-summary">
+            <div class="movement-stats">
+              <div class="stat-item entrees">
+                <mat-icon>add_circle</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.mouvements?.entrees || 0 }}</span>
+                  <span class="stat-label">Entrées</span>
+                </div>
+              </div>
+              <div class="stat-item sorties">
+                <mat-icon>remove_circle</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.mouvements?.sorties || 0 }}</span>
+                  <span class="stat-label">Sorties</span>
+                </div>
+              </div>
+              <div class="stat-item transferts">
+                <mat-icon>swap_horiz</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.mouvements?.transferts || 0 }}</span>
+                  <span class="stat-label">Transferts</span>
+                </div>
+              </div>
+              <div class="stat-item ajustements">
+                <mat-icon>tune</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.mouvements?.ajustements || 0 }}</span>
+                  <span class="stat-label">Ajustements</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="movements-chart">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Évolution des Mouvements</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="chart-container" id="movementsChart">
+                  <div class="chart-placeholder" *ngIf="!rapportData?.mouvementsChart">
+                    <mat-spinner diameter="40"></mat-spinner>
+                    <p>Chargement du graphique...</p>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Analyses Tab -->
+      <mat-tab label="Analyses">
+        <div class="tab-content">
+          <div class="analysis-grid">
+            <!-- Rotation des Stocks -->
+            <mat-card class="analysis-card">
+              <mat-card-header>
+                <mat-card-title>Rotation des Stocks</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="rotation-analysis">
+                  <div class="rotation-categories">
+                    <div class="rotation-item fast">
+                      <div class="rotation-header">
+                        <mat-icon>trending_up</mat-icon>
+                        <span>Rotation Rapide</span>
+                      </div>
+                      <div class="rotation-value">{{ rapportData?.rotation?.rapide || 0 }}</div>
+                      <div class="rotation-desc">articles (>6x/an)</div>
+                    </div>
+                    <div class="rotation-item medium">
+                      <div class="rotation-header">
+                        <mat-icon>trending_flat</mat-icon>
+                        <span>Rotation Normale</span>
+                      </div>
+                      <div class="rotation-value">{{ rapportData?.rotation?.normale || 0 }}</div>
+                      <div class="rotation-desc">articles (2-6x/an)</div>
+                    </div>
+                    <div class="rotation-item slow">
+                      <div class="rotation-header">
+                        <mat-icon>trending_down</mat-icon>
+                        <span>Rotation Lente</span>
+                      </div>
+                      <div class="rotation-value">{{ rapportData?.rotation?.lente || 0 }}</div>
+                      <div class="rotation-desc">articles (<2x/an)</div>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Top Articles -->
+            <mat-card class="analysis-card">
+              <mat-card-header>
+                <mat-card-title>Articles les Plus Vendus</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="top-articles-list">
+                  <div class="article-rank-item" *ngFor="let article of rapportData?.topArticles; let i = index">
+                    <div class="rank-number">{{ i + 1 }}</div>
+                    <div class="article-info">
+                      <strong>{{ article.nom }}</strong>
+                      <span class="reference">{{ article.reference }}</span>
+                    </div>
+                    <div class="article-metrics">
+                      <span class="quantity">{{ article.quantiteVendue }} vendus</span>
+                      <span class="revenue">{{ article.chiffreAffaires | currency:'EUR':'symbol':'1.0-0' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Prévisions -->
+            <mat-card class="analysis-card">
+              <mat-card-header>
+                <mat-card-title>Prévisions de Réapprovisionnement</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="forecasts-list">
+                  <div class="forecast-item" *ngFor="let forecast of rapportData?.previsions">
+                    <div class="forecast-article">
+                      <strong>{{ forecast.articleNom }}</strong>
+                      <span class="reference">{{ forecast.reference }}</span>
+                    </div>
+                    <div class="forecast-details">
+                      <div class="forecast-date">
+                        <mat-icon>schedule</mat-icon>
+                        <span>{{ forecast.datePrevisionnelle | date:'dd/MM/yyyy' }}</span>
+                      </div>
+                      <div class="forecast-quantity">
+                        <span class="quantity">{{ forecast.quantiteRecommandee }}</span>
+                        <span class="unit">{{ forecast.unite }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Alertes Tab -->
+      <mat-tab label="Alertes">
+        <div class="tab-content">
+          <div class="alerts-summary">
+            <div class="alert-stats">
+              <div class="alert-stat critical">
+                <mat-icon>error</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.alertes?.critiques || 0 }}</span>
+                  <span class="stat-label">Critiques</span>
+                </div>
+              </div>
+              <div class="alert-stat warning">
+                <mat-icon>warning</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.alertes?.avertissements || 0 }}</span>
+                  <span class="stat-label">Avertissements</span>
+                </div>
+              </div>
+              <div class="alert-stat info">
+                <mat-icon>info</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ rapportData?.alertes?.informations || 0 }}</span>
+                  <span class="stat-label">Informations</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alerts-list">
+            <mat-card class="alert-card" *ngFor="let alert of rapportData?.alertesDetaillees" 
+                      [ngClass]="'alert-' + alert.niveau">
+              <mat-card-content>
+                <div class="alert-header">
+                  <mat-icon>{{ getAlertIcon(alert.niveau) }}</mat-icon>
+                  <div class="alert-title">
+                    <strong>{{ alert.articleNom }}</strong>
+                    <span class="alert-type">{{ alert.type }}</span>
+                  </div>
+                  <div class="alert-date">{{ alert.dateDetection | date:'dd/MM/yyyy HH:mm' }}</div>
+                </div>
+                <div class="alert-content">
+                  <p>{{ alert.message }}</p>
+                  <div class="alert-details">
+                    <span>Stock actuel: {{ alert.stockActuel }}</span>
+                    <span>Seuil: {{ alert.seuil }}</span>
+                  </div>
+                </div>
+                <div class="alert-actions">
+                  <button mat-stroked-button (click)="resolveAlert(alert)">
+                    Résoudre
+                  </button>
+                  <button mat-button (click)="viewArticleDetails(alert.article)">
+                    Voir article
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Génération du rapport en cours...</p>
+  </div>
+</div>

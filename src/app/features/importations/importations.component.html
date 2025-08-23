@@ -1,0 +1,349 @@
+<div class="importations-container">
+  <!-- Header avec actions -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1>
+        <mat-icon>flight_land</mat-icon>
+        Gestion des Importations
+      </h1>
+      <p class="subtitle">Gérez vos importations et réceptions internationales</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openImportationForm()">
+        <mat-icon>add</mat-icon>
+        Nouvelle Importation
+      </button>
+      <button mat-stroked-button (click)="exportImportations()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher une importation</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm" 
+                 (input)="onSearch()"
+                 placeholder="Référence, fournisseur...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatut" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="EN_PREPARATION">En préparation</mat-option>
+            <mat-option value="EXPEDIE">Expédié</mat-option>
+            <mat-option value="EN_TRANSIT">En transit</mat-option>
+            <mat-option value="ARRIVE">Arrivé</mat-option>
+            <mat-option value="LIVRE">Livré</mat-option>
+            <mat-option value="ANNULE">Annulé</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fournisseur</mat-label>
+          <mat-select [(ngModel)]="selectedFournisseur" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les fournisseurs</mat-option>
+            <mat-option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
+              {{ fournisseur.nomEntreprise }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Mode d'expédition</mat-label>
+          <mat-select [(ngModel)]="selectedModeExpedition" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les modes</mat-option>
+            <mat-option value="MARITIME">Maritime</mat-option>
+            <mat-option value="AERIEN">Aérien</mat-option>
+            <mat-option value="ROUTIER">Routier</mat-option>
+            <mat-option value="FERROVIAIRE">Ferroviaire</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Période</mat-label>
+          <mat-select [(ngModel)]="selectedPeriode" (selectionChange)="onFilterChange()">
+            <mat-option value="">Toutes les périodes</mat-option>
+            <mat-option value="AUJOURD_HUI">Aujourd'hui</mat-option>
+            <mat-option value="CETTE_SEMAINE">Cette semaine</mat-option>
+            <mat-option value="CE_MOIS">Ce mois</mat-option>
+            <mat-option value="CE_TRIMESTRE">Ce trimestre</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-row" *ngIf="stats">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">flight_land</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.totalImportations }}</span>
+            <span class="stat-label">Total Importations</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon warning">schedule</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.importationsEnCours }}</span>
+            <span class="stat-label">En Cours</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon success">check_circle</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.importationsLivrees }}</span>
+            <span class="stat-label">Livrées</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon accent">euro</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.montantTotal | currency:'EUR':'symbol':'1.0-0' }}</span>
+            <span class="stat-label">Montant Total</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Table des importations -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Liste des Importations
+      </mat-card-title>
+      <div class="table-actions">
+        <mat-form-field appearance="outline" class="page-size-field">
+          <mat-label>Éléments par page</mat-label>
+          <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange()">
+            <mat-option value="10">10</mat-option>
+            <mat-option value="25">25</mat-option>
+            <mat-option value="50">50</mat-option>
+            <mat-option value="100">100</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingTemplate">
+        <table mat-table [dataSource]="dataSource" matSort class="importations-table">
+          
+          <!-- Colonne Référence -->
+          <ng-container matColumnDef="reference">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Référence</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="reference-info">
+                <span class="reference-number">{{ importation.referenceImportation }}</span>
+                <span class="reference-date">{{ importation.dateImportation | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Fournisseur -->
+          <ng-container matColumnDef="fournisseur">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Fournisseur</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="fournisseur-info">
+                <span class="fournisseur-name">{{ importation.fournisseur?.nom || 'Non défini' }}</span>
+                <span class="fournisseur-pays" *ngIf="importation.fournisseur?.pays">
+                  <mat-icon class="country-icon">public</mat-icon>
+                  {{ importation.fournisseur.pays }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let importation">
+              <mat-chip [color]="getStatutColor(importation.statut)" selected>
+                <mat-icon>{{ getStatutIcon(importation.statut) }}</mat-icon>
+                {{ getStatutLabel(importation.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Mode d'expédition -->
+          <ng-container matColumnDef="modeExpedition">
+            <th mat-header-cell *matHeaderCellDef>Mode d'expédition</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="mode-expedition">
+                <mat-icon class="mode-icon">{{ getModeIcon(importation.modeExpedition) }}</mat-icon>
+                <span>{{ getModeLabel(importation.modeExpedition) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Articles -->
+          <ng-container matColumnDef="articles">
+            <th mat-header-cell *matHeaderCellDef>Articles</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="articles-info">
+                <mat-chip class="articles-count">
+                  {{ importation.lignesImportation?.length || 0 }} article(s)
+                </mat-chip>
+                <div class="articles-preview" *ngIf="importation.lignesImportation && importation.lignesImportation.length > 0">
+                  <span class="article-name">{{ importation.lignesImportation[0].article?.nom }}</span>
+                  <span class="more-articles" *ngIf="importation.lignesImportation.length > 1">
+                    +{{ importation.lignesImportation.length - 1 }} autre(s)
+                  </span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Montant -->
+          <ng-container matColumnDef="montant">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Montant</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="montant-info">
+                <span class="montant-total">{{ importation.montantTotal | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Progression -->
+          <ng-container matColumnDef="progression">
+            <th mat-header-cell *matHeaderCellDef>Progression</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="progression-info">
+                <mat-progress-bar 
+                  [value]="getProgressionValue(importation.statut)" 
+                  [color]="getProgressionColor(importation.statut)">
+                </mat-progress-bar>
+                <span class="progression-text">{{ getProgressionText(importation.statut) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let importation">
+              <div class="action-buttons">
+                <button mat-icon-button (click)="viewImportation(importation)" matTooltip="Voir détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editImportation(importation)" 
+                        [disabled]="importation.statut === 'LIVRE' || importation.statut === 'ANNULE'"
+                        matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="duplicateImportation(importation)">
+                    <mat-icon>content_copy</mat-icon>
+                    Dupliquer
+                  </button>
+                  <button mat-menu-item (click)="generateDocuments(importation)">
+                    <mat-icon>description</mat-icon>
+                    Documents douaniers
+                  </button>
+                  <button mat-menu-item (click)="trackShipment(importation)"
+                          [disabled]="importation.statut === 'EN_PREPARATION'">
+                    <mat-icon>track_changes</mat-icon>
+                    Suivi colis
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="updateStatut(importation, 'EXPEDIE')"
+                          [disabled]="importation.statut !== 'EN_PREPARATION'">
+                    <mat-icon>local_shipping</mat-icon>
+                    Marquer expédié
+                  </button>
+                  <button mat-menu-item (click)="updateStatut(importation, 'ARRIVE')"
+                          [disabled]="importation.statut !== 'EN_TRANSIT'">
+                    <mat-icon>flight_land</mat-icon>
+                    Marquer arrivé
+                  </button>
+                  <button mat-menu-item (click)="updateStatut(importation, 'LIVRE')"
+                          [disabled]="importation.statut !== 'ARRIVE'">
+                    <mat-icon>check_circle</mat-icon>
+                    Marquer livré
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="annulerImportation(importation)" 
+                          [disabled]="importation.statut === 'LIVRE' || importation.statut === 'ANNULE'"
+                          class="danger-action">
+                    <mat-icon>cancel</mat-icon>
+                    Annuler
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewImportation(row)" 
+              class="clickable-row"></tr>
+        </table>
+
+        <!-- Message si aucun résultat -->
+        <div class="no-data" *ngIf="dataSource.data.length === 0">
+          <mat-icon>flight_land</mat-icon>
+          <h3>Aucune importation trouvée</h3>
+          <p>Aucune importation ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openImportationForm()">
+            <mat-icon>add</mat-icon>
+            Créer la première importation
+          </button>
+        </div>
+      </div>
+
+      <!-- Template de chargement -->
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des importations...</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageIndex]="currentPage"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

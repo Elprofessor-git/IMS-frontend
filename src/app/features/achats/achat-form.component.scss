@@ -1,0 +1,234 @@
+.achat-form-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .form-card {
+    mat-card-header {
+      .header-icon {
+        background-color: var(--primary-color);
+        color: white;
+      }
+    }
+  }
+
+  .achat-form {
+    .form-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+
+      h3 {
+        margin: 0 0 20px 0;
+        color: var(--primary-color);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &::before {
+          content: '';
+          width: 4px;
+          height: 20px;
+          background-color: var(--primary-color);
+          border-radius: 2px;
+        }
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+
+        h3 {
+          margin: 0;
+        }
+      }
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .half-width {
+      flex: 1;
+    }
+
+    // Lignes d'achat
+    .lignes-container {
+      .ligne-card {
+        margin-bottom: 16px;
+        border-left: 4px solid var(--accent-color);
+
+        mat-card-header {
+          background-color: #f5f5f5;
+          padding: 16px;
+
+          mat-card-title {
+            font-size: 16px;
+            font-weight: 500;
+          }
+
+          .ligne-actions {
+            margin-left: auto;
+          }
+        }
+
+        .ligne-form {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr auto;
+          gap: 16px;
+          align-items: start;
+
+          @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+          }
+
+          .total-field {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
+            font-size: 16px;
+            color: var(--primary-color);
+            white-space: nowrap;
+
+            @media (max-width: 768px) {
+              justify-content: center;
+              padding: 8px 0;
+            }
+          }
+        }
+      }
+    }
+
+    // Montants
+    .montants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+
+      .total-field {
+        input {
+          font-weight: 600;
+          font-size: 16px;
+          color: var(--accent-color);
+        }
+      }
+    }
+
+    // Actions
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+
+      button {
+        min-width: 120px;
+
+        mat-spinner {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  // Form field customizations
+  mat-form-field {
+    &.article-field {
+      min-width: 250px;
+    }
+
+    &.quantity-field {
+      min-width: 120px;
+    }
+
+    &.price-field {
+      min-width: 150px;
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 10px;
+
+    .form-section {
+      padding: 15px;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+
+    .montants-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+      flex-direction: column;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  // Loading state
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  // Error states
+  mat-error {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  // Custom button styles
+  button[color="warn"] {
+    color: #d32f2f;
+  }
+
+  // Animation for adding/removing lines
+  .ligne-card {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

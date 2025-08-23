@@ -1,0 +1,325 @@
+@import '../../../../styles/variables';
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, 
+    lighten($primary-color, 45%) 0%, 
+    lighten($primary-color, 35%) 50%, 
+    lighten($accent-color, 40%) 100%);
+  padding: $spacing-lg;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  
+  mat-card {
+    box-shadow: $shadow-heavy;
+    border-radius: $border-radius-lg;
+    overflow: hidden;
+  }
+}
+
+.login-header {
+  text-align: center;
+  padding: $spacing-xl $spacing-lg $spacing-lg;
+  background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+  color: white;
+  
+  .logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+    
+    .app-logo {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: white;
+    }
+    
+    .app-title {
+      font-size: 24px;
+      font-weight: 300;
+      margin: 0;
+      color: white;
+    }
+  }
+  
+  .login-subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+  }
+}
+
+.login-form {
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: $spacing-sm 0;
+    
+    .remember-me {
+      .mat-checkbox-label {
+        font-size: 14px;
+        color: $text-secondary;
+      }
+    }
+    
+    .forgot-password-link {
+      font-size: 14px;
+      color: $primary-color;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    background-color: lighten($warn-color, 40%);
+    color: $warn-color;
+    border-radius: $border-radius;
+    font-size: 14px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .login-button {
+    height: 48px;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: $spacing-md;
+    
+    mat-spinner {
+      margin-right: $spacing-sm;
+    }
+  }
+}
+
+// Demo section
+.demo-section {
+  margin-top: $spacing-lg;
+  
+  mat-divider {
+    margin-bottom: $spacing-md;
+  }
+  
+  .demo-title {
+    font-size: 14px;
+    color: $text-secondary;
+    text-align: center;
+    margin: 0 0 $spacing-md 0;
+  }
+  
+  .demo-accounts {
+    display: flex;
+    gap: $spacing-sm;
+    
+    .demo-button {
+      flex: 1;
+      height: 40px;
+      font-size: 12px;
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: $spacing-xs;
+      }
+    }
+  }
+}
+
+.login-actions {
+  padding: $spacing-lg;
+  background-color: lighten($background-color, 2%);
+  
+  .register-section {
+    text-align: center;
+    font-size: 14px;
+    color: $text-secondary;
+    
+    .register-link {
+      color: $primary-color;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: $spacing-xs;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.login-footer {
+  margin-top: $spacing-xl;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  
+  p {
+    font-size: 12px;
+    margin: 0 0 $spacing-sm 0;
+  }
+  
+  .footer-links {
+    font-size: 12px;
+    
+    a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    span {
+      margin: 0 $spacing-sm;
+    }
+  }
+}
+
+// Form field customization
+.mat-form-field {
+  .mat-form-field-outline {
+    color: rgba(0, 0, 0, 0.12);
+  }
+  
+  &.mat-focused {
+    .mat-form-field-outline-thick {
+      color: $primary-color;
+    }
+  }
+  
+  .mat-form-field-label {
+    color: $text-secondary;
+  }
+  
+  &.mat-focused .mat-form-field-label {
+    color: $primary-color;
+  }
+}
+
+// Loading state
+.loading {
+  .login-form {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+// Responsive design
+@media (max-width: $mobile) {
+  .login-container {
+    padding: $spacing-md;
+  }
+  
+  .login-card {
+    max-width: 100%;
+  }
+  
+  .login-header {
+    padding: $spacing-lg $spacing-md $spacing-md;
+    
+    .logo-section {
+      .app-logo {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+      }
+      
+      .app-title {
+        font-size: 20px;
+      }
+    }
+  }
+  
+  .login-form {
+    padding: $spacing-md;
+    
+    .form-options {
+      flex-direction: column;
+      align-items: stretch;
+      gap: $spacing-sm;
+      
+      .remember-me {
+        align-self: flex-start;
+      }
+      
+      .forgot-password-link {
+        align-self: flex-end;
+      }
+    }
+    
+    .demo-accounts {
+      flex-direction: column;
+    }
+  }
+}
+
+// Animation
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+// Focus styles
+.mat-button:focus,
+.mat-raised-button:focus,
+.mat-stroked-button:focus {
+  outline: 2px solid $primary-color;
+  outline-offset: 2px;
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .login-container {
+    background: white;
+  }
+  
+  .login-header {
+    background: $primary-color;
+    border-bottom: 2px solid black;
+  }
+  
+  .error-message {
+    border: 2px solid $warn-color;
+  }
+}

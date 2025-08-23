@@ -1,0 +1,219 @@
+@import '../../../styles/variables';
+
+.article-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: $spacing-lg;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  
+  .form-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: $text-primary;
+    margin: 0;
+  }
+  
+  .close-button {
+    color: $text-secondary;
+  }
+}
+
+.article-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.form-section {
+  .mat-card-header {
+    margin-bottom: $spacing-md;
+    
+    .mat-card-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: $primary-color;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Form field widths
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.third-width {
+  flex: 1;
+}
+
+// Image upload section
+.image-upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.image-preview {
+  position: relative;
+  display: inline-block;
+  
+  .preview-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: $border-radius;
+    box-shadow: $shadow-light;
+  }
+  
+  .remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: $warn-color;
+    color: white;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xl;
+  border: 2px dashed $border-color;
+  border-radius: $border-radius;
+  background-color: lighten($background-color, 2%);
+  transition: $transition-normal;
+  
+  &:hover {
+    border-color: $primary-color;
+    background-color: lighten($primary-color, 48%);
+  }
+  
+  .upload-btn {
+    mat-icon {
+      margin-right: $spacing-sm;
+    }
+  }
+  
+  .upload-hint {
+    font-size: 12px;
+    color: $text-secondary;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+// Form actions
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $border-color;
+  
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-md;
+    
+    button {
+      min-width: 100px;
+      
+      mat-spinner {
+        margin-right: $spacing-sm;
+      }
+    }
+  }
+  
+  .form-status {
+    text-align: center;
+  }
+}
+
+// Form validation styles
+.mat-form-field {
+  .mat-error {
+    font-size: 12px;
+  }
+}
+
+.mat-checkbox {
+  .mat-checkbox-label {
+    font-weight: 500;
+  }
+}
+
+// Responsive
+@media (max-width: $tablet) {
+  .article-form-container {
+    padding: $spacing-md;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: $spacing-sm;
+    
+    .half-width,
+    .third-width {
+      width: 100%;
+    }
+  }
+  
+  .form-header {
+    .form-title {
+      font-size: 20px;
+    }
+  }
+  
+  .action-buttons {
+    flex-direction: column-reverse;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// Loading state
+.loading {
+  .article-form {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+// Error state
+.error {
+  .form-section {
+    border-left: 4px solid $warn-color;
+  }
+}

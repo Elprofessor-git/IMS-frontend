@@ -1,0 +1,499 @@
+<div class="utilisateur-form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <h2>
+        <mat-icon>{{isEditMode ? 'edit' : 'person_add'}}</mat-icon>
+        {{isEditMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}}
+      </h2>
+      <p class="subtitle" *ngIf="!isEditMode">Créez un nouveau compte utilisateur</p>
+      <p class="subtitle" *ngIf="isEditMode">Modifiez les informations de l'utilisateur</p>
+    </div>
+    
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulaire -->
+  <form [formGroup]="utilisateurForm" (ngSubmit)="onSubmit()" class="user-form">
+    
+    <!-- Photo de profil -->
+    <mat-card class="form-section profile-section">
+      <mat-card-content>
+        <div class="profile-upload">
+          <div class="avatar-section">
+            <div class="avatar-container">
+              <div class="avatar" [class.has-image]="selectedAvatar || currentUser?.avatar">
+                <img *ngIf="selectedAvatar || currentUser?.avatar" 
+                     [src]="selectedAvatar || currentUser?.avatar" 
+                     [alt]="utilisateurForm.get('prenom')?.value + ' ' + utilisateurForm.get('nom')?.value">
+                <mat-icon *ngIf="!selectedAvatar && !currentUser?.avatar">person</mat-icon>
+              </div>
+              <button type="button" mat-fab color="primary" class="upload-button" (click)="avatarInput.click()">
+                <mat-icon>camera_alt</mat-icon>
+              </button>
+              <input #avatarInput 
+                     type="file" 
+                     accept="image/*" 
+                     style="display: none"
+                     (change)="onAvatarSelected($event)">
+            </div>
+          </div>
+          <div class="profile-info">
+            <h3>Photo de profil</h3>
+            <p>Ajoutez une photo pour personnaliser le profil</p>
+            <div class="upload-actions">
+              <button type="button" mat-stroked-button (click)="avatarInput.click()">
+                <mat-icon>upload</mat-icon>
+                Choisir une photo
+              </button>
+              <button type="button" 
+                      mat-stroked-button 
+                      (click)="removeAvatar()" 
+                      *ngIf="selectedAvatar || currentUser?.avatar">
+                <mat-icon>delete</mat-icon>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Informations personnelles -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Informations personnelles
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Prénom -->
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom *</mat-label>
+            <input matInput 
+                   formControlName="prenom"
+                   placeholder="Entrez le prénom"
+                   maxlength="50">
+            <mat-error *ngIf="utilisateurForm.get('prenom')?.hasError('required')">
+              Le prénom est requis
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.get('prenom')?.hasError('minlength')">
+              Le prénom doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Nom -->
+          <mat-form-field appearance="outline">
+            <mat-label>Nom *</mat-label>
+            <input matInput 
+                   formControlName="nom"
+                   placeholder="Entrez le nom"
+                   maxlength="50">
+            <mat-error *ngIf="utilisateurForm.get('nom')?.hasError('required')">
+              Le nom est requis
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.get('nom')?.hasError('minlength')">
+              Le nom doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Email -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Adresse email *</mat-label>
+            <input matInput 
+                   type="email"
+                   formControlName="email"
+                   placeholder="exemple@entreprise.com">
+            <mat-error *ngIf="utilisateurForm.get('email')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.get('email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Téléphone -->
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput 
+                   type="tel"
+                   formControlName="telephone"
+                   placeholder="+33 1 23 45 67 89">
+            <mat-error *ngIf="utilisateurForm.get('telephone')?.hasError('pattern')">
+              Format de téléphone invalide
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Date de naissance -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date de naissance</mat-label>
+            <input matInput 
+                   [matDatepicker]="birthDatePicker" 
+                   formControlName="dateNaissance"
+                   [max]="maxBirthDate">
+            <mat-datepicker-toggle matSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #birthDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Genre -->
+          <mat-form-field appearance="outline">
+            <mat-label>Genre</mat-label>
+            <mat-select formControlName="genre">
+              <mat-option value="M">Masculin</mat-option>
+              <mat-option value="F">Féminin</mat-option>
+              <mat-option value="A">Autre</mat-option>
+              <mat-option value="N">Non spécifié</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Informations professionnelles -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>work</mat-icon>
+          Informations professionnelles
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Poste -->
+          <mat-form-field appearance="outline">
+            <mat-label>Poste</mat-label>
+            <input matInput 
+                   formControlName="poste"
+                   placeholder="Titre du poste"
+                   maxlength="100">
+          </mat-form-field>
+
+          <!-- Département -->
+          <mat-form-field appearance="outline">
+            <mat-label>Département</mat-label>
+            <mat-select formControlName="departement">
+              <mat-option value="PRODUCTION">Production</mat-option>
+              <mat-option value="QUALITE">Qualité</mat-option>
+              <mat-option value="LOGISTIQUE">Logistique</mat-option>
+              <mat-option value="COMMERCIAL">Commercial</mat-option>
+              <mat-option value="ADMINISTRATION">Administration</mat-option>
+              <mat-option value="RH">Ressources Humaines</mat-option>
+              <mat-option value="FINANCE">Finance</mat-option>
+              <mat-option value="IT">Informatique</mat-option>
+              <mat-option value="DIRECTION">Direction</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Manager -->
+          <mat-form-field appearance="outline">
+            <mat-label>Manager</mat-label>
+            <mat-select formControlName="managerId">
+              <mat-option value="">Aucun manager</mat-option>
+              <mat-option *ngFor="let manager of availableManagers" [value]="manager.id">
+                {{manager.prenom}} {{manager.nom}} - {{manager.poste}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Date d'embauche -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date d'embauche</mat-label>
+            <input matInput 
+                   [matDatepicker]="hireDatePicker" 
+                   formControlName="dateEmbauche"
+                   [max]="today">
+            <mat-datepicker-toggle matSuffix [for]="hireDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #hireDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Salaire (optionnel, pour les RH) -->
+          <mat-form-field appearance="outline" *ngIf="canEditSalary">
+            <mat-label>Salaire mensuel</mat-label>
+            <input matInput 
+                   type="number"
+                   formControlName="salaire"
+                   placeholder="0"
+                   min="0">
+            <span matSuffix>€</span>
+          </mat-form-field>
+
+          <!-- Type de contrat -->
+          <mat-form-field appearance="outline">
+            <mat-label>Type de contrat</mat-label>
+            <mat-select formControlName="typeContrat">
+              <mat-option value="CDI">CDI</mat-option>
+              <mat-option value="CDD">CDD</mat-option>
+              <mat-option value="STAGE">Stage</mat-option>
+              <mat-option value="INTERIM">Intérim</mat-option>
+              <mat-option value="FREELANCE">Freelance</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Compte et sécurité -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>security</mat-icon>
+          Compte et sécurité
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Nom d'utilisateur -->
+          <mat-form-field appearance="outline">
+            <mat-label>Nom d'utilisateur *</mat-label>
+            <input matInput 
+                   formControlName="nomUtilisateur"
+                   placeholder="nom.utilisateur"
+                   maxlength="50">
+            <mat-hint>Utilisé pour la connexion</mat-hint>
+            <mat-error *ngIf="utilisateurForm.get('nomUtilisateur')?.hasError('required')">
+              Le nom d'utilisateur est requis
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.get('nomUtilisateur')?.hasError('pattern')">
+              Seuls les lettres, chiffres, points et tirets sont autorisés
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Mot de passe (nouveau utilisateur) -->
+          <mat-form-field appearance="outline" *ngIf="!isEditMode">
+            <mat-label>Mot de passe *</mat-label>
+            <input matInput 
+                   [type]="hidePassword ? 'password' : 'text'"
+                   formControlName="motDePasse"
+                   placeholder="Mot de passe sécurisé">
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+              <mat-icon>{{hidePassword ? 'visibility' : 'visibility_off'}}</mat-icon>
+            </button>
+            <mat-hint>Au moins 8 caractères avec majuscules, minuscules et chiffres</mat-hint>
+            <mat-error *ngIf="utilisateurForm.get('motDePasse')?.hasError('required')">
+              Le mot de passe est requis
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.get('motDePasse')?.hasError('minlength')">
+              Le mot de passe doit contenir au moins 8 caractères
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.get('motDePasse')?.hasError('pattern')">
+              Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Confirmation mot de passe (nouveau utilisateur) -->
+          <mat-form-field appearance="outline" *ngIf="!isEditMode">
+            <mat-label>Confirmer le mot de passe *</mat-label>
+            <input matInput 
+                   [type]="hideConfirmPassword ? 'password' : 'text'"
+                   formControlName="confirmerMotDePasse"
+                   placeholder="Répétez le mot de passe">
+            <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
+              <mat-icon>{{hideConfirmPassword ? 'visibility' : 'visibility_off'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="utilisateurForm.get('confirmerMotDePasse')?.hasError('required')">
+              La confirmation est requise
+            </mat-error>
+            <mat-error *ngIf="utilisateurForm.hasError('passwordMismatch')">
+              Les mots de passe ne correspondent pas
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Rôle -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rôle *</mat-label>
+            <mat-select formControlName="roleId" multiple>
+              <mat-option *ngFor="let role of availableRoles" [value]="role.id">
+                <div class="role-option">
+                  <div class="role-color" [style.background-color]="role.couleur"></div>
+                  <span class="role-name">{{role.nom}}</span>
+                  <mat-chip class="role-level">Niveau {{role.niveau}}</mat-chip>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="utilisateurForm.get('roleId')?.hasError('required')">
+              Au moins un rôle doit être sélectionné
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Options de sécurité -->
+          <div class="security-options full-width">
+            <h4>Options de sécurité</h4>
+            <div class="security-toggles">
+              <mat-slide-toggle formControlName="forceChangePassword" color="primary">
+                <span class="toggle-label">
+                  <mat-icon>lock_reset</mat-icon>
+                  Forcer le changement de mot de passe à la première connexion
+                </span>
+              </mat-slide-toggle>
+              
+              <mat-slide-toggle formControlName="activerNotifications" color="primary">
+                <span class="toggle-label">
+                  <mat-icon>notifications</mat-icon>
+                  Activer les notifications par email
+                </span>
+              </mat-slide-toggle>
+              
+              <mat-slide-toggle formControlName="activerDoubleAuthentification" color="primary">
+                <span class="toggle-label">
+                  <mat-icon>security</mat-icon>
+                  Activer la double authentification (2FA)
+                </span>
+              </mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Adresse -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>location_on</mat-icon>
+          Adresse
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Adresse -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Adresse</mat-label>
+            <input matInput 
+                   formControlName="adresse"
+                   placeholder="Numéro et nom de rue"
+                   maxlength="200">
+          </mat-form-field>
+
+          <!-- Code postal -->
+          <mat-form-field appearance="outline">
+            <mat-label>Code postal</mat-label>
+            <input matInput 
+                   formControlName="codePostal"
+                   placeholder="75000"
+                   maxlength="10">
+          </mat-form-field>
+
+          <!-- Ville -->
+          <mat-form-field appearance="outline">
+            <mat-label>Ville</mat-label>
+            <input matInput 
+                   formControlName="ville"
+                   placeholder="Paris"
+                   maxlength="100">
+          </mat-form-field>
+
+          <!-- Pays -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Pays</mat-label>
+            <mat-select formControlName="pays">
+              <mat-option value="FR">France</mat-option>
+              <mat-option value="BE">Belgique</mat-option>
+              <mat-option value="CH">Suisse</mat-option>
+              <mat-option value="CA">Canada</mat-option>
+              <mat-option value="MA">Maroc</mat-option>
+              <mat-option value="TN">Tunisie</mat-option>
+              <mat-option value="SN">Sénégal</mat-option>
+              <mat-option value="CI">Côte d'Ivoire</mat-option>
+              <mat-option value="OTHER">Autre</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Notes et commentaires -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>note</mat-icon>
+          Notes et commentaires
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes internes</mat-label>
+          <textarea matInput 
+                    formControlName="notes"
+                    rows="4"
+                    placeholder="Notes internes sur l'utilisateur..."
+                    maxlength="1000"></textarea>
+          <mat-hint align="end">{{utilisateurForm.get('notes')?.value?.length || 0}}/1000</mat-hint>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Statut du compte (en mode édition) -->
+    <mat-card class="form-section" *ngIf="isEditMode">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>account_circle</mat-icon>
+          Statut du compte
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-section">
+          <mat-slide-toggle formControlName="actif" color="primary">
+            <span class="toggle-label">
+              <mat-icon>{{utilisateurForm.get('actif')?.value ? 'check_circle' : 'cancel'}}</mat-icon>
+              Compte {{utilisateurForm.get('actif')?.value ? 'actif' : 'inactif'}}
+            </span>
+          </mat-slide-toggle>
+          <mat-hint>Les comptes inactifs ne peuvent pas se connecter</mat-hint>
+          
+          <div class="account-stats" *ngIf="currentUser">
+            <div class="stat-item">
+              <mat-icon>login</mat-icon>
+              <span>Dernière connexion: {{currentUser.derniereConnexion ? (currentUser.derniereConnexion | date:'dd/MM/yyyy HH:mm') : 'Jamais'}}</span>
+            </div>
+            <div class="stat-item">
+              <mat-icon>calendar_today</mat-icon>
+              <span>Compte créé le: {{currentUser.dateCreation ? (currentUser.dateCreation | date:'dd/MM/yyyy') : 'Non définie'}}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions du formulaire -->
+    <div class="form-actions">
+      <div class="form-status">
+        <span class="status-indicator" [class]="getFormStatus()">
+          <mat-icon>{{getFormStatusIcon()}}</mat-icon>
+          {{getFormStatusText()}}
+        </span>
+      </div>
+      
+      <div class="action-buttons">
+        <button type="button" mat-stroked-button (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Annuler
+        </button>
+        <button type="button" 
+                mat-stroked-button 
+                (click)="saveAsDraft()" 
+                [disabled]="loading">
+          <mat-icon>save</mat-icon>
+          Sauvegarder brouillon
+        </button>
+        <button type="submit" 
+                mat-raised-button 
+                color="primary" 
+                [disabled]="utilisateurForm.invalid || loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">{{isEditMode ? 'save' : 'person_add'}}</mat-icon>
+          {{isEditMode ? 'Mettre à jour' : 'Créer l\'utilisateur'}}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- État de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>{{isEditMode ? 'Mise à jour de l\'utilisateur...' : 'Création de l\'utilisateur...'}}</p>
+  </div>
+</div>

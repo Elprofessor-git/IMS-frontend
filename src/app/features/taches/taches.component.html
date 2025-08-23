@@ -1,0 +1,290 @@
+<div class="taches-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1>
+        <mat-icon>task</mat-icon>
+        Gestion des Tâches de Production
+      </h1>
+      <p class="subtitle">Planifiez et suivez vos tâches de production textile</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openTaskForm()">
+        <mat-icon>add_task</mat-icon>
+        Nouvelle Tâche
+      </button>
+      <button mat-stroked-button (click)="exportTasks()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher une tâche</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onSearch()" placeholder="Nom, description...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="EN_ATTENTE">En attente</mat-option>
+            <mat-option value="EN_COURS">En cours</mat-option>
+            <mat-option value="TERMINEE">Terminée</mat-option>
+            <mat-option value="ANNULEE">Annulée</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Priorité</mat-label>
+          <mat-select [(ngModel)]="selectedPriority" (selectionChange)="onFilterChange()">
+            <mat-option value="">Toutes les priorités</mat-option>
+            <mat-option value="HAUTE">Haute</mat-option>
+            <mat-option value="MOYENNE">Moyenne</mat-option>
+            <mat-option value="BASSE">Basse</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Assigné à</mat-label>
+          <mat-select [(ngModel)]="selectedAssignee" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les utilisateurs</mat-option>
+            <mat-option value="1">Jean Dupont</mat-option>
+            <mat-option value="2">Marie Martin</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistiques -->
+  <div class="stats-row">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">task</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats?.totalTasks || 0 }}</span>
+            <span class="stat-label">Total Tâches</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon warning">schedule</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats?.tasksEnCours || 0 }}</span>
+            <span class="stat-label">En Cours</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon success">check_circle</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats?.tasksTerminees || 0 }}</span>
+            <span class="stat-label">Terminées</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon accent">trending_up</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats?.productivite || 0 }}%</span>
+            <span class="stat-label">Productivité</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Table des tâches -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Liste des Tâches
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingTemplate">
+        <table mat-table [dataSource]="dataSource" matSort class="tasks-table">
+          
+          <!-- Colonne Tâche -->
+          <ng-container matColumnDef="task">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Tâche</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="task-info">
+                <span class="task-name">{{ task.nom }}</span>
+                <span class="task-description">{{ task.description }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Priorité -->
+          <ng-container matColumnDef="priority">
+            <th mat-header-cell *matHeaderCellDef>Priorité</th>
+            <td mat-cell *matCellDef="let task">
+              <mat-chip [color]="getPriorityColor(task.priorite)" selected>
+                <mat-icon>{{ getPriorityIcon(task.priorite) }}</mat-icon>
+                {{ getPriorityLabel(task.priorite) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let task">
+              <mat-chip [color]="getStatusColor(task.statut)" selected>
+                <mat-icon>{{ getStatusIcon(task.statut) }}</mat-icon>
+                {{ getStatusLabel(task.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Assigné à -->
+          <ng-container matColumnDef="assignee">
+            <th mat-header-cell *matHeaderCellDef>Assigné à</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="assignee-info" *ngIf="task.assigneA; else unassigned">
+                <div class="assignee-avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <span class="assignee-name">{{ task.assigneA.nom }} {{ task.assigneA.prenom }}</span>
+              </div>
+              <ng-template #unassigned>
+                <span class="unassigned">Non assigné</span>
+              </ng-template>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Progression -->
+          <ng-container matColumnDef="progress">
+            <th mat-header-cell *matHeaderCellDef>Progression</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="progress-info">
+                <mat-progress-bar 
+                  [value]="task.progression" 
+                  [color]="getProgressColor(task.progression)">
+                </mat-progress-bar>
+                <span class="progress-text">{{ task.progression }}%</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Échéance -->
+          <ng-container matColumnDef="deadline">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Échéance</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="deadline-info">
+                <span class="deadline-date" [class.overdue]="isOverdue(task.dateEcheance)">
+                  {{ task.dateEcheance | date:'dd/MM/yyyy' }}
+                </span>
+                <mat-icon *ngIf="isOverdue(task.dateEcheance)" class="overdue-icon">warning</mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="action-buttons">
+                <button mat-icon-button (click)="viewTask(task)" matTooltip="Voir détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editTask(task)" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="startTask(task)" [disabled]="task.statut !== 'EN_ATTENTE'">
+                    <mat-icon>play_arrow</mat-icon>
+                    Démarrer
+                  </button>
+                  <button mat-menu-item (click)="completeTask(task)" [disabled]="task.statut !== 'EN_COURS'">
+                    <mat-icon>check_circle</mat-icon>
+                    Terminer
+                  </button>
+                  <button mat-menu-item (click)="assignTask(task)">
+                    <mat-icon>person_add</mat-icon>
+                    Assigner
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="duplicateTask(task)">
+                    <mat-icon>content_copy</mat-icon>
+                    Dupliquer
+                  </button>
+                  <button mat-menu-item (click)="cancelTask(task)" class="danger-action">
+                    <mat-icon>cancel</mat-icon>
+                    Annuler
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewTask(row)" 
+              class="clickable-row"></tr>
+        </table>
+
+        <!-- Message si aucun résultat -->
+        <div class="no-data" *ngIf="dataSource.data.length === 0">
+          <mat-icon>task</mat-icon>
+          <h3>Aucune tâche trouvée</h3>
+          <p>Aucune tâche ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openTaskForm()">
+            <mat-icon>add_task</mat-icon>
+            Créer la première tâche
+          </button>
+        </div>
+      </div>
+
+      <!-- Template de chargement -->
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des tâches...</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageIndex]="currentPage"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>
