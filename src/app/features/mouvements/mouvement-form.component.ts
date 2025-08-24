@@ -20,6 +20,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { MouvementService, MouvementStock } from '../../core/services/mouvement.service';
 import { ArticleService } from '../../core/services/article.service';
 import { EmplacementService } from '../../core/services/emplacement.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-mouvement-form',
@@ -397,6 +398,7 @@ export class MouvementFormComponent implements OnInit {
     private mouvementService: MouvementService,
     private articleService: ArticleService,
     private emplacementService: EmplacementService,
+    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
@@ -574,9 +576,10 @@ export class MouvementFormComponent implements OnInit {
     if (this.mouvementForm.valid) {
       this.isSubmitting = true;
       
+      const currentUser = this.authService.getCurrentUser();
       const mouvementData: MouvementStock = {
         ...this.mouvementForm.value,
-        utilisateurId: 1 // TODO: Récupérer l'utilisateur connecté
+        utilisateurId: currentUser ? currentUser.id : 0
       };
       
       const request = this.isEditMode && this.mouvementId

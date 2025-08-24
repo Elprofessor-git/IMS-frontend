@@ -14,6 +14,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { ForgotPasswordComponent } from '../forgot-password/forgot-password.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-login',
@@ -59,7 +61,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.initializeForm();
   }
@@ -160,20 +163,22 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onForgotPassword(event: Event): void {
     event.preventDefault();
-    
-    // TODO: Implement forgot password functionality
-    this.snackBar.open('Fonctionnalité "Mot de passe oublié" en cours de développement', 'Fermer', {
-      duration: 3000
+    const dialogRef = this.dialog.open(ForgotPasswordComponent, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.snackBar.open('Si votre email est dans notre système, vous recevrez un lien de réinitialisation.', 'Fermer', {
+          duration: 5000
+        });
+      }
     });
   }
 
   onRegister(event: Event): void {
     event.preventDefault();
-    
-    // TODO: Navigate to register page when implemented
-    this.snackBar.open('Page d\'inscription en cours de développement', 'Fermer', {
-      duration: 3000
-    });
+    this.router.navigate(['/register']);
   }
 
   onPrivacyPolicy(event: Event): void {

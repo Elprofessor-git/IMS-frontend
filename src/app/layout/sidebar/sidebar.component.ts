@@ -209,14 +209,9 @@ export class SidebarComponent {
   constructor(private authService: AuthService) {}
 
   hasPermission(item: MenuItem): boolean {
-    // Pour le développement, afficher tous les modules
-    // TODO: Implémenter la logique de permissions plus tard
-    return true;
-    
-    // Code original (à utiliser en production) :
-    // if (!item.permission) {
-    //   return true;
-    // }
-    // return this.authService.hasPermission(item.permission.module, item.permission.action);
+    if (!item.permission) {
+      return true;
+    }
+    return this.authService.hasPermission(item.permission.module, item.permission.action);
   }
 }
