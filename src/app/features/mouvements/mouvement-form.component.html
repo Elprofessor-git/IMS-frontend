@@ -1,0 +1,305 @@
+<div class="mouvement-form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>{{ isEditMode ? 'edit' : 'add_circle' }}</mat-icon>
+      </div>
+      <mat-card-title>{{ isEditMode ? 'Modifier le Mouvement' : 'Nouveau Mouvement de Stock' }}</mat-card-title>
+      <mat-card-subtitle>{{ isEditMode ? 'Modification du mouvement de stock' : 'Enregistrement d\'un nouveau mouvement' }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="mouvementForm" (ngSubmit)="onSubmit()" class="mouvement-form">
+        <!-- Type de mouvement -->
+        <div class="form-section">
+          <h3>Type de Mouvement</h3>
+          <div class="type-selection">
+            <mat-radio-group formControlName="type" class="type-radio-group" (change)="onTypeChange($event)">
+              <mat-radio-button value="Entree" class="type-option entree">
+                <div class="type-content">
+                  <mat-icon>add_circle</mat-icon>
+                  <div class="type-info">
+                    <strong>Entrée</strong>
+                    <span>Ajout de stock</span>
+                  </div>
+                </div>
+              </mat-radio-button>
+              <mat-radio-button value="Sortie" class="type-option sortie">
+                <div class="type-content">
+                  <mat-icon>remove_circle</mat-icon>
+                  <div class="type-info">
+                    <strong>Sortie</strong>
+                    <span>Retrait de stock</span>
+                  </div>
+                </div>
+              </mat-radio-button>
+              <mat-radio-button value="Transfert" class="type-option transfert">
+                <div class="type-content">
+                  <mat-icon>swap_horiz</mat-icon>
+                  <div class="type-info">
+                    <strong>Transfert</strong>
+                    <span>Déplacement entre emplacements</span>
+                  </div>
+                </div>
+              </mat-radio-button>
+              <mat-radio-button value="Ajustement" class="type-option ajustement">
+                <div class="type-content">
+                  <mat-icon>tune</mat-icon>
+                  <div class="type-info">
+                    <strong>Ajustement</strong>
+                    <span>Correction d'inventaire</span>
+                  </div>
+                </div>
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+        </div>
+
+        <!-- Informations générales -->
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Numéro de mouvement</mat-label>
+              <input matInput formControlName="numeroMouvement" placeholder="MOV-2024-001">
+              <mat-error *ngIf="mouvementForm.get('numeroMouvement')?.hasError('required')">
+                Le numéro de mouvement est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date du mouvement</mat-label>
+              <input matInput [matDatepicker]="dateMouvementPicker" formControlName="dateMouvement">
+              <mat-datepicker-toggle matIconSuffix [for]="dateMouvementPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateMouvementPicker></mat-datepicker>
+              <mat-error *ngIf="mouvementForm.get('dateMouvement')?.hasError('required')">
+                La date du mouvement est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Référence externe</mat-label>
+              <input matInput formControlName="referenceExterne" placeholder="Bon de livraison, commande, etc.">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Statut</mat-label>
+              <mat-select formControlName="statut">
+                <mat-option value="En_Attente">En Attente</mat-option>
+                <mat-option value="Valide">Validé</mat-option>
+                <mat-option value="Annule">Annulé</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Article concerné -->
+        <div class="form-section">
+          <h3>Article Concerné</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Sélectionner un article</mat-label>
+              <mat-select formControlName="articleId" (selectionChange)="onArticleChange($event.value)">
+                <mat-option *ngFor="let article of articles" [value]="article.id">
+                  <div class="article-option">
+                    <div class="article-main">
+                      <strong>{{ article.nom }}</strong>
+                      <span class="reference">{{ article.reference }}</span>
+                    </div>
+                    <div class="article-details">
+                      <span class="stock">Stock: {{ article.quantiteStock }}</span>
+                      <span class="price">{{ article.prix | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="mouvementForm.get('articleId')?.hasError('required')">
+                L'article est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Informations article sélectionné -->
+          <div class="article-info" *ngIf="selectedArticle">
+            <mat-card class="article-card">
+              <mat-card-content>
+                <div class="article-summary">
+                  <div class="article-header">
+                    <h4>{{ selectedArticle.nom }}</h4>
+                    <span class="reference">{{ selectedArticle.reference }}</span>
+                  </div>
+                  <div class="article-stats">
+                    <div class="stat-item">
+                      <label>Stock actuel:</label>
+                      <span class="stock-value" [ngClass]="getStockClass(selectedArticle.quantiteStock)">
+                        {{ selectedArticle.quantiteStock }} {{ selectedArticle.unite }}
+                      </span>
+                    </div>
+                    <div class="stat-item">
+                      <label>Seuil minimum:</label>
+                      <span>{{ selectedArticle.seuilMinimum }} {{ selectedArticle.unite }}</span>
+                    </div>
+                    <div class="stat-item">
+                      <label>Prix unitaire:</label>
+                      <span>{{ selectedArticle.prix | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- Quantité et emplacements -->
+        <div class="form-section">
+          <h3>Quantité et Emplacements</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="quantity-field">
+              <mat-label>Quantité</mat-label>
+              <input matInput type="number" formControlName="quantite" min="1"
+                     (input)="onQuantityChange($event)" placeholder="0">
+              <span matTextSuffix>{{ selectedArticle?.unite || 'pcs' }}</span>
+              <mat-error *ngIf="mouvementForm.get('quantite')?.hasError('required')">
+                La quantité est obligatoire
+              </mat-error>
+              <mat-error *ngIf="mouvementForm.get('quantite')?.hasError('min')">
+                La quantité doit être supérieure à 0
+              </mat-error>
+              <mat-error *ngIf="mouvementForm.get('quantite')?.hasError('max')">
+                Quantité insuffisante en stock
+              </mat-error>
+            </mat-form-field>
+
+            <div class="quantity-impact" *ngIf="selectedArticle && mouvementForm.get('quantite')?.value">
+              <div class="impact-info">
+                <label>Impact sur le stock:</label>
+                <div class="impact-calculation">
+                  <span class="current">{{ selectedArticle.quantiteStock }}</span>
+                  <mat-icon>{{ getImpactIcon() }}</mat-icon>
+                  <span class="change">{{ mouvementForm.get('quantite')?.value }}</span>
+                  <mat-icon>arrow_forward</mat-icon>
+                  <span class="result" [ngClass]="getResultClass()">{{ getNewStockLevel() }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emplacement source (pour sortie et transfert) -->
+          <div class="form-row" *ngIf="needsSourceLocation()">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Emplacement source</mat-label>
+              <mat-select formControlName="emplacementSourceId">
+                <mat-option *ngFor="let emplacement of emplacements" [value]="emplacement.id">
+                  {{ emplacement.nom }} - {{ emplacement.zone }} ({{ emplacement.capaciteDisponible }} disponible)
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="mouvementForm.get('emplacementSourceId')?.hasError('required')">
+                L'emplacement source est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Emplacement destination (pour entrée et transfert) -->
+          <div class="form-row" *ngIf="needsDestinationLocation()">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Emplacement destination</mat-label>
+              <mat-select formControlName="emplacementDestinationId">
+                <mat-option *ngFor="let emplacement of emplacements" [value]="emplacement.id">
+                  {{ emplacement.nom }} - {{ emplacement.zone }} ({{ emplacement.capaciteDisponible }} disponible)
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="mouvementForm.get('emplacementDestinationId')?.hasError('required')">
+                L'emplacement destination est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Traçabilité -->
+        <div class="form-section">
+          <h3>Traçabilité</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Numéro de lot</mat-label>
+              <input matInput formControlName="numeroLot" placeholder="LOT-2024-001">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Numéro de série</mat-label>
+              <input matInput formControlName="numeroSerie" placeholder="SN-123456789">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Motif du mouvement</mat-label>
+              <mat-select formControlName="motif">
+                <mat-option value="Livraison_Fournisseur">Livraison fournisseur</mat-option>
+                <mat-option value="Vente_Client">Vente client</mat-option>
+                <mat-option value="Retour_Client">Retour client</mat-option>
+                <mat-option value="Inventaire">Inventaire</mat-option>
+                <mat-option value="Casse">Casse/Perte</mat-option>
+                <mat-option value="Reorganisation">Réorganisation</mat-option>
+                <mat-option value="Autre">Autre</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Notes et commentaires -->
+        <div class="form-section">
+          <h3>Notes et Commentaires</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes</mat-label>
+              <textarea matInput formControlName="notes" rows="4"
+                        placeholder="Notes sur ce mouvement de stock..."></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Alertes et validations -->
+        <div class="alerts-section" *ngIf="hasAlerts()">
+          <div class="alert warning" *ngIf="isStockAlert()">
+            <mat-icon>warning</mat-icon>
+            <div class="alert-content">
+              <strong>Attention !</strong>
+              <span>Ce mouvement va faire passer le stock en dessous du seuil minimum ({{ selectedArticle?.seuilMinimum }}).</span>
+            </div>
+          </div>
+          <div class="alert error" *ngIf="isInsufficientStockAlert()">
+            <mat-icon>error</mat-icon>
+            <div class="alert-content">
+              <strong>Stock insuffisant !</strong>
+              <span>La quantité demandée dépasse le stock disponible.</span>
+            </div>
+          </div>
+          <div class="alert info" *ngIf="isCapacityAlert()">
+            <mat-icon>info</mat-icon>
+            <div class="alert-content">
+              <strong>Information</strong>
+              <span>Vérifiez la capacité de l'emplacement de destination.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button (click)="onCancel()">
+            Annuler
+          </button>
+          <button type="button" mat-stroked-button (click)="saveDraft()" [disabled]="loading">
+            Enregistrer comme brouillon
+          </button>
+          <button type="submit" mat-raised-button color="primary"
+                  [disabled]="mouvementForm.invalid || loading || hasBlockingAlerts()">
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Enregistrer' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

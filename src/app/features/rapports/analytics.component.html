@@ -1,0 +1,356 @@
+<div class="analytics-container">
+  <!-- Header -->
+  <div class="analytics-header">
+    <div class="title-section">
+      <h1>Tableau de Bord Analytique</h1>
+      <p>Vue d'ensemble des performances et indicateurs clés</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="period-selector">
+        <mat-label>Période</mat-label>
+        <mat-select [(value)]="selectedPeriod" (selectionChange)="onPeriodChange($event.value)">
+          <mat-option value="today">Aujourd'hui</mat-option>
+          <mat-option value="week">Cette semaine</mat-option>
+          <mat-option value="month">Ce mois</mat-option>
+          <mat-option value="quarter">Ce trimestre</mat-option>
+          <mat-option value="year">Cette année</mat-option>
+          <mat-option value="custom">Personnalisé</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="exportData()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+      <button mat-icon-button (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-section">
+    <h2>Indicateurs Clés de Performance</h2>
+    <div class="kpi-grid">
+      <mat-card class="kpi-card revenue">
+        <mat-card-content>
+          <div class="kpi-header">
+            <mat-icon>euro</mat-icon>
+            <span class="kpi-title">Chiffre d'Affaires</span>
+          </div>
+          <div class="kpi-value">
+            <span class="value">{{ analytics?.revenue | currency:'EUR':'symbol':'1.0-0' }}</span>
+            <span class="trend" [ngClass]="getTrendClass(analytics?.revenueTrend)">
+              <mat-icon>{{ getTrendIcon(analytics?.revenueTrend) }}</mat-icon>
+              {{ analytics?.revenueTrend }}%
+            </span>
+          </div>
+          <div class="kpi-subtitle">vs période précédente</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card orders">
+        <mat-card-content>
+          <div class="kpi-header">
+            <mat-icon>shopping_cart</mat-icon>
+            <span class="kpi-title">Commandes</span>
+          </div>
+          <div class="kpi-value">
+            <span class="value">{{ analytics?.totalOrders | number }}</span>
+            <span class="trend" [ngClass]="getTrendClass(analytics?.ordersTrend)">
+              <mat-icon>{{ getTrendIcon(analytics?.ordersTrend) }}</mat-icon>
+              {{ analytics?.ordersTrend }}%
+            </span>
+          </div>
+          <div class="kpi-subtitle">{{ analytics?.newOrders }} nouvelles</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card products">
+        <mat-card-content>
+          <div class="kpi-header">
+            <mat-icon>inventory_2</mat-icon>
+            <span class="kpi-title">Articles en Stock</span>
+          </div>
+          <div class="kpi-value">
+            <span class="value">{{ analytics?.totalProducts | number }}</span>
+            <span class="trend" [ngClass]="getTrendClass(analytics?.stockTrend)">
+              <mat-icon>{{ getTrendIcon(analytics?.stockTrend) }}</mat-icon>
+              {{ analytics?.stockTrend }}%
+            </span>
+          </div>
+          <div class="kpi-subtitle">{{ analytics?.lowStockItems }} en rupture</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card customers">
+        <mat-card-content>
+          <div class="kpi-header">
+            <mat-icon>people</mat-icon>
+            <span class="kpi-title">Clients Actifs</span>
+          </div>
+          <div class="kpi-value">
+            <span class="value">{{ analytics?.activeCustomers | number }}</span>
+            <span class="trend" [ngClass]="getTrendClass(analytics?.customersTrend)">
+              <mat-icon>{{ getTrendIcon(analytics?.customersTrend) }}</mat-icon>
+              {{ analytics?.customersTrend }}%
+            </span>
+          </div>
+          <div class="kpi-subtitle">{{ analytics?.newCustomers }} nouveaux</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <div class="charts-grid">
+      <!-- Revenue Chart -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Évolution du Chiffre d'Affaires</mat-card-title>
+          <div class="chart-actions">
+            <button mat-icon-button [matMenuTriggerFor]="revenueMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #revenueMenu="matMenu">
+              <button mat-menu-item (click)="exportChart('revenue')">
+                <mat-icon>download</mat-icon>
+                Exporter
+              </button>
+              <button mat-menu-item (click)="viewDetails('revenue')">
+                <mat-icon>visibility</mat-icon>
+                Voir détails
+              </button>
+            </mat-menu>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container" id="revenueChart">
+            <!-- Chart will be rendered here -->
+            <div class="chart-placeholder" *ngIf="!analytics?.revenueChart">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Chargement du graphique...</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Orders Chart -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Commandes par Statut</mat-card-title>
+          <div class="chart-actions">
+            <button mat-icon-button [matMenuTriggerFor]="ordersMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #ordersMenu="matMenu">
+              <button mat-menu-item (click)="exportChart('orders')">
+                <mat-icon>download</mat-icon>
+                Exporter
+              </button>
+              <button mat-menu-item (click)="viewDetails('orders')">
+                <mat-icon>visibility</mat-icon>
+                Voir détails
+              </button>
+            </mat-menu>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container" id="ordersChart">
+            <div class="chart-placeholder" *ngIf="!analytics?.ordersChart">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Chargement du graphique...</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Top Products -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Top 10 Articles</mat-card-title>
+          <div class="chart-actions">
+            <button mat-icon-button [matMenuTriggerFor]="productsMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #productsMenu="matMenu">
+              <button mat-menu-item (click)="exportChart('products')">
+                <mat-icon>download</mat-icon>
+                Exporter
+              </button>
+              <button mat-menu-item (click)="viewDetails('products')">
+                <mat-icon>visibility</mat-icon>
+                Voir détails
+              </button>
+            </mat-menu>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="top-products-list">
+            <div class="product-item" *ngFor="let product of analytics?.topProducts; let i = index">
+              <div class="product-rank">{{ i + 1 }}</div>
+              <div class="product-info">
+                <strong>{{ product.name }}</strong>
+                <span class="product-ref">{{ product.reference }}</span>
+              </div>
+              <div class="product-stats">
+                <span class="sales">{{ product.sales | number }} ventes</span>
+                <span class="revenue">{{ product.revenue | currency:'EUR':'symbol':'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Stock Alerts -->
+      <mat-card class="chart-card alerts-card">
+        <mat-card-header>
+          <mat-card-title>Alertes Stock</mat-card-title>
+          <div class="chart-actions">
+            <button mat-raised-button color="warn" (click)="viewAllAlerts()">
+              Voir tout
+            </button>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="alerts-list">
+            <div class="alert-item" *ngFor="let alert of analytics?.stockAlerts" [ngClass]="'alert-' + alert.level">
+              <mat-icon>{{ getAlertIcon(alert.level) }}</mat-icon>
+              <div class="alert-content">
+                <strong>{{ alert.productName }}</strong>
+                <span>{{ alert.message }}</span>
+                <small>{{ alert.currentStock }} en stock</small>
+              </div>
+              <button mat-icon-button (click)="resolveAlert(alert)">
+                <mat-icon>check</mat-icon>
+              </button>
+            </div>
+            <div class="no-alerts" *ngIf="!analytics?.stockAlerts?.length">
+              <mat-icon>check_circle</mat-icon>
+              <span>Aucune alerte stock</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Detailed Tables -->
+  <div class="tables-section">
+    <mat-tab-group class="analytics-tabs">
+      <!-- Recent Orders Tab -->
+      <mat-tab label="Commandes Récentes">
+        <div class="tab-content">
+          <div class="table-header">
+            <h3>Dernières Commandes</h3>
+            <button mat-stroked-button (click)="viewAllOrders()">
+              Voir toutes les commandes
+            </button>
+          </div>
+          <div class="table-container">
+            <table mat-table [dataSource]="recentOrdersDataSource" class="recent-orders-table">
+              <ng-container matColumnDef="numero">
+                <th mat-header-cell *matHeaderCellDef>N° Commande</th>
+                <td mat-cell *matCellDef="let order">{{ order.numero }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef>Client</th>
+                <td mat-cell *matCellDef="let order">{{ order.clientNom }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let order">{{ order.date | date:'dd/MM/yyyy' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="montant">
+                <th mat-header-cell *matHeaderCellDef>Montant</th>
+                <td mat-cell *matCellDef="let order">{{ order.montant | currency:'EUR':'symbol':'1.2-2' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="statut">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let order">
+                  <span class="status-chip" [ngClass]="'status-' + order.statut?.toLowerCase()">
+                    {{ order.statut }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let order">
+                  <button mat-icon-button (click)="viewOrder(order)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="recentOrdersColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: recentOrdersColumns;"></tr>
+            </table>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Performance Tab -->
+      <mat-tab label="Performance">
+        <div class="tab-content">
+          <div class="performance-metrics">
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <h4>Taux de Conversion</h4>
+                <div class="metric-value">{{ analytics?.conversionRate }}%</div>
+                <div class="metric-trend positive">+2.3% vs mois dernier</div>
+              </div>
+              <div class="metric-card">
+                <h4>Panier Moyen</h4>
+                <div class="metric-value">{{ analytics?.averageOrderValue | currency:'EUR':'symbol':'1.0-0' }}</div>
+                <div class="metric-trend positive">+5.1% vs mois dernier</div>
+              </div>
+              <div class="metric-card">
+                <h4>Temps de Traitement</h4>
+                <div class="metric-value">{{ analytics?.averageProcessingTime }}h</div>
+                <div class="metric-trend negative">-0.5h vs mois dernier</div>
+              </div>
+              <div class="metric-card">
+                <h4>Satisfaction Client</h4>
+                <div class="metric-value">{{ analytics?.customerSatisfaction }}/5</div>
+                <div class="metric-trend positive">+0.2 vs mois dernier</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Inventory Tab -->
+      <mat-tab label="Inventaire">
+        <div class="tab-content">
+          <div class="inventory-overview">
+            <div class="inventory-stats">
+              <div class="stat-box">
+                <h4>Valeur Totale du Stock</h4>
+                <div class="stat-value">{{ analytics?.totalStockValue | currency:'EUR':'symbol':'1.0-0' }}</div>
+              </div>
+              <div class="stat-box">
+                <h4>Rotation des Stocks</h4>
+                <div class="stat-value">{{ analytics?.stockTurnover }}x/an</div>
+              </div>
+              <div class="stat-box">
+                <h4>Articles en Rupture</h4>
+                <div class="stat-value">{{ analytics?.outOfStockItems }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des données analytiques...</p>
+  </div>
+</div>

@@ -1,0 +1,317 @@
+<div class="tache-details-container" *ngIf="tache">
+  <!-- Header avec actions -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="breadcrumb">
+        <a routerLink="/taches" class="breadcrumb-link">
+          <mat-icon>assignment</mat-icon>
+          Tâches
+        </a>
+        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+        <span class="breadcrumb-current">{{tache.titre}}</span>
+      </div>
+      <h1>
+        <mat-icon [class]="'priority-' + tache.priorite">{{getPriorityIcon(tache.priorite)}}</mat-icon>
+        {{tache.titre}}
+      </h1>
+      <div class="task-meta">
+        <mat-chip-set>
+          <mat-chip [class]="'status-' + tache.statut">
+            <mat-icon>{{getStatusIcon(tache.statut)}}</mat-icon>
+            {{getStatusLabel(tache.statut)}}
+          </mat-chip>
+          <mat-chip [class]="'priority-' + tache.priorite">
+            <mat-icon>{{getPriorityIcon(tache.priorite)}}</mat-icon>
+            {{getPriorityLabel(tache.priorite)}}
+          </mat-chip>
+          <mat-chip *ngIf="tache.type">
+            <mat-icon>{{getTypeIcon(tache.type)}}</mat-icon>
+            {{getTypeLabel(tache.type)}}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="editTask()" [disabled]="!canEdit()">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
+      <button mat-stroked-button [matMenuTriggerFor]="actionsMenu">
+        <mat-icon>more_vert</mat-icon>
+        Actions
+      </button>
+      <mat-menu #actionsMenu="matMenu">
+        <button mat-menu-item (click)="duplicateTask()" [disabled]="!canEdit()">
+          <mat-icon>content_copy</mat-icon>
+          Dupliquer
+        </button>
+        <button mat-menu-item (click)="assignTask()" [disabled]="!canAssign()">
+          <mat-icon>person_add</mat-icon>
+          Assigner
+        </button>
+        <button mat-menu-item (click)="changeStatus()" [disabled]="!canEdit()">
+          <mat-icon>update</mat-icon>
+          Changer le statut
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="exportTask()">
+          <mat-icon>download</mat-icon>
+          Exporter
+        </button>
+        <button mat-menu-item (click)="printTask()">
+          <mat-icon>print</mat-icon>
+          Imprimer
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="deleteTask()" [disabled]="!canDelete()" class="delete-action">
+          <mat-icon>delete</mat-icon>
+          Supprimer
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="main-content">
+    <!-- Informations générales -->
+    <div class="content-section">
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            Informations générales
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Description:</span>
+              <div class="value description" [innerHTML]="tache.description || 'Aucune description'"></div>
+            </div>
+            <div class="info-item">
+              <span class="label">Créée par:</span>
+              <div class="value user">
+                <mat-icon>person</mat-icon>
+                {{tache.createurNom || 'Inconnu'}}
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="label">Assignée à:</span>
+              <div class="value user" *ngIf="tache.assigneNom">
+                <mat-icon>person</mat-icon>
+                {{tache.assigneNom}}
+              </div>
+              <div class="value unassigned" *ngIf="!tache.assigneNom">
+                <mat-icon>person_off</mat-icon>
+                Non assignée
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="label">Date de création:</span>
+              <div class="value">{{tache.dateCreation | date:'dd/MM/yyyy HH:mm'}}</div>
+            </div>
+            <div class="info-item" *ngIf="tache.dateEcheance">
+              <span class="label">Date d'échéance:</span>
+              <div class="value" [class.overdue]="isOverdue(tache.dateEcheance)" [class.due-soon]="isDueSoon(tache.dateEcheance)">
+                <mat-icon>schedule</mat-icon>
+                {{tache.dateEcheance | date:'dd/MM/yyyy HH:mm'}}
+                <span class="due-indicator" *ngIf="isOverdue(tache.dateEcheance)">En retard</span>
+                <span class="due-indicator" *ngIf="isDueSoon(tache.dateEcheance) && !isOverdue(tache.dateEcheance)">Bientôt due</span>
+              </div>
+            </div>
+            <div class="info-item" *ngIf="tache.dateCompletee">
+              <span class="label">Complétée le:</span>
+              <div class="value completed">
+                <mat-icon>check_circle</mat-icon>
+                {{tache.dateCompletee | date:'dd/MM/yyyy HH:mm'}}
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Progression et temps -->
+    <div class="content-section">
+      <mat-card class="progress-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>trending_up</mat-icon>
+            Progression et temps
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="progress-section">
+            <div class="progress-info">
+              <span class="progress-label">Progression:</span>
+              <span class="progress-value">{{tache.progression || 0}}%</span>
+            </div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="tache.progression || 0"
+              [color]="getProgressColor(tache.progression || 0)">
+            </mat-progress-bar>
+          </div>
+
+          <div class="time-tracking" *ngIf="tache.tempsEstime || tache.tempsPasse">
+            <div class="time-item" *ngIf="tache.tempsEstime">
+              <mat-icon>schedule</mat-icon>
+              <span class="time-label">Temps estimé:</span>
+              <span class="time-value">{{formatDuration(tache.tempsEstime)}}</span>
+            </div>
+            <div class="time-item" *ngIf="tache.tempsPasse">
+              <mat-icon>timer</mat-icon>
+              <span class="time-label">Temps passé:</span>
+              <span class="time-value" [class.over-estimate]="tache.tempsPasse > (tache.tempsEstime || 0)">
+                {{formatDuration(tache.tempsPasse)}}
+              </span>
+            </div>
+            <div class="time-item" *ngIf="tache.tempsEstime && tache.tempsPasse">
+              <mat-icon>compare_arrows</mat-icon>
+              <span class="time-label">Écart:</span>
+              <span class="time-value" [class.positive]="tache.tempsPasse <= tache.tempsEstime" [class.negative]="tache.tempsPasse > tache.tempsEstime">
+                {{formatDuration(Math.abs(tache.tempsPasse - tache.tempsEstime))}}
+                {{tache.tempsPasse > tache.tempsEstime ? 'de dépassement' : 'restant'}}
+              </span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Pièces jointes -->
+    <div class="content-section" *ngIf="tache.piecesJointes && tache.piecesJointes.length > 0">
+      <mat-card class="attachments-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>attach_file</mat-icon>
+            Pièces jointes ({{tache.piecesJointes.length}})
+          </mat-card-title>
+          <div class="card-actions">
+            <button mat-icon-button (click)="addAttachment()" [disabled]="!canEdit()">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="attachments-list">
+            <div class="attachment-item" *ngFor="let attachment of tache.piecesJointes">
+              <div class="attachment-icon">
+                <mat-icon>{{getFileIcon(attachment.type)}}</mat-icon>
+              </div>
+              <div class="attachment-info">
+                <h4>{{attachment.nom}}</h4>
+                <p>{{attachment.taille | fileSize}} • {{attachment.dateAjout | date:'dd/MM/yyyy'}}</p>
+              </div>
+              <div class="attachment-actions">
+                <button mat-icon-button (click)="downloadAttachment(attachment)">
+                  <mat-icon>download</mat-icon>
+                </button>
+                <button mat-icon-button (click)="viewAttachment(attachment)" *ngIf="canPreview(attachment.type)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="deleteAttachment(attachment)" [disabled]="!canEdit()" class="delete-action">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Commentaires et historique -->
+    <div class="content-section">
+      <mat-card class="comments-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>comment</mat-icon>
+            Commentaires et historique
+          </mat-card-title>
+          <div class="card-actions">
+            <mat-slide-toggle [(ngModel)]="showHistory">
+              Afficher l'historique
+            </mat-slide-toggle>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <!-- Nouveau commentaire -->
+          <div class="new-comment" *ngIf="canComment()">
+            <mat-form-field appearance="outline" class="comment-field">
+              <mat-label>Ajouter un commentaire</mat-label>
+              <textarea matInput
+                        [(ngModel)]="newComment"
+                        rows="3"
+                        placeholder="Votre commentaire..."></textarea>
+            </mat-form-field>
+            <div class="comment-actions">
+              <button mat-raised-button color="primary" (click)="addComment()" [disabled]="!newComment?.trim()">
+                <mat-icon>send</mat-icon>
+                Publier
+              </button>
+            </div>
+          </div>
+
+          <!-- Liste des commentaires et historique -->
+          <div class="activity-list">
+            <div class="activity-item"
+                 *ngFor="let activity of getFilteredActivities()"
+                 [class]="'activity-' + activity.type">
+              <div class="activity-avatar">
+                <mat-icon>{{getActivityIcon(activity.type)}}</mat-icon>
+              </div>
+              <div class="activity-content">
+                <div class="activity-header">
+                  <span class="activity-author">{{activity.auteurNom}}</span>
+                  <span class="activity-action">{{getActivityAction(activity.type)}}</span>
+                  <span class="activity-date">{{activity.date | date:'dd/MM/yyyy HH:mm'}}</span>
+                </div>
+                <div class="activity-body" *ngIf="activity.contenu">
+                  {{activity.contenu}}
+                </div>
+                <div class="activity-changes" *ngIf="activity.changements && activity.changements.length > 0">
+                  <div class="change-item" *ngFor="let change of activity.changements">
+                    <strong>{{change.champ}}:</strong>
+                    <span class="old-value">{{change.ancienneValeur}}</span>
+                    <mat-icon>arrow_forward</mat-icon>
+                    <span class="new-value">{{change.nouvelleValeur}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message si aucune activité -->
+          <div class="no-activity" *ngIf="getFilteredActivities().length === 0">
+            <mat-icon>info</mat-icon>
+            <p>Aucune activité pour cette tâche</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- État de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des détails de la tâche...</p>
+  </div>
+</div>
+
+<!-- Message d'erreur si tâche non trouvée -->
+<div class="error-container" *ngIf="!tache && !loading">
+  <mat-card class="error-card">
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon>error</mat-icon>
+        <h2>Tâche non trouvée</h2>
+        <p>La tâche demandée n'existe pas ou vous n'avez pas les permissions pour la consulter.</p>
+        <button mat-raised-button color="primary" routerLink="/taches">
+          <mat-icon>arrow_back</mat-icon>
+          Retour aux tâches
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

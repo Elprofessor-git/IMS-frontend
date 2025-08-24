@@ -1,0 +1,238 @@
+<div class="stock-form-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>inventory</mat-icon>
+      {{data.mode === 'add' ? 'Ajout de stock' : 'Ajustement de stock'}}
+    </h2>
+    <button mat-icon-button mat-dialog-close class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="stockForm" class="stock-form">
+      <!-- Informations article -->
+      <div class="article-info" *ngIf="data.article">
+        <div class="article-header">
+          <mat-icon>info</mat-icon>
+          <h3>Article sélectionné</h3>
+        </div>
+        <div class="article-details">
+          <div class="detail-item">
+            <span class="label">Nom:</span>
+            <span class="value">{{data.article.nom}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Référence:</span>
+            <span class="value">{{data.article.reference}}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Stock actuel:</span>
+            <span class="value stock-current">{{data.article.quantite}} unités</span>
+          </div>
+          <div class="detail-item" *ngIf="data.article.seuilMinimum">
+            <span class="label">Seuil minimum:</span>
+            <span class="value" [class.warning]="data.article.quantite <= data.article.seuilMinimum">
+              {{data.article.seuilMinimum}} unités
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire de mouvement -->
+      <div class="movement-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Type de mouvement</mat-label>
+            <mat-select formControlName="typeMouvement" (selectionChange)="onTypeChange()">
+              <mat-option value="ENTREE">
+                <mat-icon>add_circle</mat-icon>
+                Entrée de stock
+              </mat-option>
+              <mat-option value="SORTIE">
+                <mat-icon>remove_circle</mat-icon>
+                Sortie de stock
+              </mat-option>
+              <mat-option value="AJUSTEMENT">
+                <mat-icon>tune</mat-icon>
+                Ajustement
+              </mat-option>
+              <mat-option value="TRANSFERT">
+                <mat-icon>swap_horiz</mat-icon>
+                Transfert
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="stockForm.get('typeMouvement')?.hasError('required')">
+              Le type de mouvement est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>{{getQuantityLabel()}}</mat-label>
+            <input matInput
+                   type="number"
+                   formControlName="quantite"
+                   min="1"
+                   (input)="onQuantityChange()">
+            <span matSuffix>unités</span>
+            <mat-error *ngIf="stockForm.get('quantite')?.hasError('required')">
+              La quantité est requise
+            </mat-error>
+            <mat-error *ngIf="stockForm.get('quantite')?.hasError('min')">
+              La quantité doit être positive
+            </mat-error>
+            <mat-error *ngIf="stockForm.get('quantite')?.hasError('max')">
+              Quantité insuffisante en stock
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" *ngIf="showPriceField()">
+            <mat-label>Prix unitaire</mat-label>
+            <input matInput
+                   type="number"
+                   formControlName="prixUnitaire"
+                   min="0"
+                   step="0.01">
+            <span matPrefix>€</span>
+            <mat-error *ngIf="stockForm.get('prixUnitaire')?.hasError('min')">
+              Le prix doit être positif
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Emplacement pour transfert -->
+        <div class="form-row" *ngIf="stockForm.get('typeMouvement')?.value === 'TRANSFERT'">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Emplacement de destination</mat-label>
+            <mat-select formControlName="emplacementDestination">
+              <mat-option *ngFor="let emplacement of emplacements" [value]="emplacement.id">
+                <mat-icon>location_on</mat-icon>
+                {{emplacement.nom}} - {{emplacement.zone}}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="stockForm.get('emplacementDestination')?.hasError('required')">
+              L'emplacement de destination est requis pour un transfert
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Motif -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Motif</mat-label>
+            <mat-select formControlName="motif">
+              <mat-option value="RECEPTION">Réception marchandise</mat-option>
+              <mat-option value="VENTE">Vente</mat-option>
+              <mat-option value="RETOUR">Retour client</mat-option>
+              <mat-option value="PERTE">Perte/Casse</mat-option>
+              <mat-option value="INVENTAIRE">Ajustement inventaire</mat-option>
+              <mat-option value="TRANSFERT">Transfert d'emplacement</mat-option>
+              <mat-option value="AUTRE">Autre</mat-option>
+            </mat-select>
+            <mat-error *ngIf="stockForm.get('motif')?.hasError('required')">
+              Le motif est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Commentaire -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Commentaire (optionnel)</mat-label>
+            <textarea matInput
+                      formControlName="commentaire"
+                      rows="3"
+                      placeholder="Détails supplémentaires sur ce mouvement..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Référence document -->
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Référence document</mat-label>
+            <input matInput
+                   formControlName="referenceDocument"
+                   placeholder="N° bon de livraison, facture...">
+            <mat-icon matSuffix>description</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date du mouvement</mat-label>
+            <input matInput
+                   [matDatepicker]="datePicker"
+                   formControlName="dateMouvement">
+            <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+            <mat-datepicker #datePicker></mat-datepicker>
+            <mat-error *ngIf="stockForm.get('dateMouvement')?.hasError('required')">
+              La date est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Aperçu des modifications -->
+      <div class="preview-section" *ngIf="previewData">
+        <div class="preview-header">
+          <mat-icon>preview</mat-icon>
+          <h3>Aperçu des modifications</h3>
+        </div>
+        <div class="preview-content">
+          <div class="preview-item">
+            <span class="label">Stock actuel:</span>
+            <span class="value current">{{previewData.currentStock}} unités</span>
+          </div>
+          <div class="preview-item">
+            <span class="label">Mouvement:</span>
+            <span class="value movement" [class]="previewData.movementType">
+              {{previewData.movementSign}}{{previewData.quantity}} unités
+            </span>
+          </div>
+          <div class="preview-item">
+            <span class="label">Nouveau stock:</span>
+            <span class="value new" [class.warning]="previewData.newStock < 0" [class.low]="previewData.newStock <= (data.article?.seuilMinimum || 0)">
+              {{previewData.newStock}} unités
+            </span>
+          </div>
+          <div class="preview-item" *ngIf="previewData.totalValue">
+            <span class="label">Valeur du mouvement:</span>
+            <span class="value">{{previewData.totalValue | currency:'EUR':'symbol':'1.2-2'}}</span>
+          </div>
+        </div>
+
+        <!-- Alertes -->
+        <div class="alerts" *ngIf="previewData.alerts && previewData.alerts.length > 0">
+          <div class="alert" *ngFor="let alert of previewData.alerts" [class]="alert.type">
+            <mat-icon>{{alert.icon}}</mat-icon>
+            <span>{{alert.message}}</span>
+          </div>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <div class="action-info">
+      <span class="form-status" [class]="getFormStatus()">
+        <mat-icon>{{getFormStatusIcon()}}</mat-icon>
+        {{getFormStatusText()}}
+      </span>
+    </div>
+
+    <div class="action-buttons">
+      <button mat-stroked-button mat-dialog-close>
+        <mat-icon>cancel</mat-icon>
+        Annuler
+      </button>
+      <button mat-raised-button
+              color="primary"
+              (click)="onSubmit()"
+              [disabled]="stockForm.invalid || loading">
+        <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+        <mat-icon *ngIf="!loading">{{getSubmitIcon()}}</mat-icon>
+        {{getSubmitText()}}
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>

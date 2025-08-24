@@ -1,0 +1,284 @@
+<div class="articles-container">
+  <!-- Header avec actions -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1>
+        <mat-icon>inventory_2</mat-icon>
+        Gestion des Articles
+      </h1>
+      <p class="subtitle">Gérez votre catalogue d'articles et votre stock</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openArticleForm()">
+        <mat-icon>add</mat-icon>
+        Nouvel Article
+      </button>
+      <button mat-stroked-button (click)="exportArticles()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un article</mat-label>
+          <input matInput
+                 [(ngModel)]="searchTerm"
+                 (input)="onSearch()"
+                 placeholder="Nom, référence, code-barres...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Catégorie</mat-label>
+          <mat-select [(ngModel)]="selectedCategorie" (selectionChange)="onFilterChange()">
+            <mat-option value="">Toutes les catégories</mat-option>
+            <mat-option *ngFor="let cat of categories" [value]="cat.id">
+              {{ cat.nom }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut Stock</mat-label>
+          <mat-select [(ngModel)]="selectedStatutStock" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="EN_STOCK">En stock</mat-option>
+            <mat-option value="STOCK_FAIBLE">Stock faible</mat-option>
+            <mat-option value="RUPTURE">Rupture</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-row" *ngIf="stats">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">inventory</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.totalArticles }}</span>
+            <span class="stat-label">Total Articles</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon success">check_circle</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.articlesEnStock }}</span>
+            <span class="stat-label">En Stock</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon warning">warning</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.articlesStockFaible }}</span>
+            <span class="stat-label">Stock Faible</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon danger">error</mat-icon>
+          <div class="stat-info">
+            <span class="stat-number">{{ stats.articlesRupture }}</span>
+            <span class="stat-label">Rupture</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Table des articles -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>list</mat-icon>
+        Liste des Articles
+      </mat-card-title>
+      <div class="table-actions">
+        <mat-form-field appearance="outline" class="page-size-field">
+          <mat-label>Éléments par page</mat-label>
+          <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange()">
+            <mat-option value="10">10</mat-option>
+            <mat-option value="25">25</mat-option>
+            <mat-option value="50">50</mat-option>
+            <mat-option value="100">100</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container" *ngIf="!loading; else loadingTemplate">
+        <table mat-table [dataSource]="dataSource" matSort class="articles-table">
+
+          <!-- Colonne Image -->
+          <ng-container matColumnDef="image">
+            <th mat-header-cell *matHeaderCellDef>Image</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="article-image">
+                <img [src]="article.imageUrl || '/assets/images/no-image.png'"
+                     [alt]="article.nom"
+                     (error)="onImageError($event)">
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Article -->
+          <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Article</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="article-info">
+                <span class="article-name">{{ article.nom }}</span>
+                <span class="article-ref">Réf: {{ article.reference }}</span>
+                <span class="article-barcode" *ngIf="article.codeBarres">{{ article.codeBarres }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Catégorie -->
+          <ng-container matColumnDef="categorie">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Catégorie</th>
+            <td mat-cell *matCellDef="let article">
+              <mat-chip class="category-chip">
+                {{ article.categorie || 'Non définie' }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Stock -->
+          <ng-container matColumnDef="stock">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="stock-info">
+                <span class="stock-quantity" [ngClass]="getStockStatusClass(article)">
+                  {{ article.quantite || 0 }}
+                </span>
+                <span class="stock-unit">{{ article.unite }}</span>
+                <mat-icon class="stock-icon" [ngClass]="getStockStatusClass(article)">
+                  {{ getStockIcon(article) }}
+                </mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Prix -->
+          <ng-container matColumnDef="prix">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Prix</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="price-info">
+                <span class="price-value">{{ article.prix | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <span class="price-label">HT</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let article">
+              <mat-chip [color]="getStatutColor(article.statut)" selected>
+                {{ getStatutLabel(article.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let article">
+              <div class="action-buttons">
+                <button mat-icon-button (click)="viewArticle(article)" matTooltip="Voir détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editArticle(article)" matTooltip="Modifier">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button (click)="duplicateArticle(article)" matTooltip="Dupliquer">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="adjustStock(article)">
+                    <mat-icon>tune</mat-icon>
+                    Ajuster le stock
+                  </button>
+                  <button mat-menu-item (click)="viewMovements(article)">
+                    <mat-icon>history</mat-icon>
+                    Historique des mouvements
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteArticle(article)" class="danger-action">
+                    <mat-icon>delete</mat-icon>
+                    Supprimer
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              (click)="viewArticle(row)"
+              class="clickable-row"></tr>
+        </table>
+
+        <!-- Message si aucun résultat -->
+        <div class="no-data" *ngIf="dataSource.data.length === 0">
+          <mat-icon>inventory_2</mat-icon>
+          <h3>Aucun article trouvé</h3>
+          <p>Aucun article ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="openArticleForm()">
+            <mat-icon>add</mat-icon>
+            Créer le premier article
+          </button>
+        </div>
+      </div>
+
+      <!-- Template de chargement -->
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des articles...</p>
+        </div>
+      </ng-template>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageIndex]="currentPage"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

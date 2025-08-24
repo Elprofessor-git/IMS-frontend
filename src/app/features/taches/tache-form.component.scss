@@ -1,0 +1,518 @@
+@import '../../../styles/variables';
+
+.tache-form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+  position: relative;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    max-width: 100%;
+  }
+}
+
+// Header
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+
+  .header-content {
+    flex: 1;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--primary-color);
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+  }
+
+  .close-button {
+    color: var(--text-secondary);
+
+    &:hover {
+      color: var(--error-color);
+      background-color: rgba(var(--error-color-rgb), 0.1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+
+    .header-content h2 {
+      font-size: 24px;
+    }
+  }
+}
+
+// Formulaire
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Sections du formulaire
+.form-section {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  mat-card-header {
+    padding-bottom: 16px;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+
+      mat-icon {
+        color: var(--primary-color);
+      }
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+  }
+
+  mat-card-content {
+    padding-top: 0;
+  }
+}
+
+// Grille de formulaire
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// Champs de formulaire
+mat-form-field {
+  width: 100%;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  mat-label {
+    font-weight: 500;
+  }
+
+  // Icônes dans les options
+  mat-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// Priorités avec couleurs
+.priority-low {
+  color: var(--success-color);
+}
+
+.priority-medium {
+  color: var(--warning-color);
+}
+
+.priority-high {
+  color: var(--error-color);
+}
+
+.priority-critical {
+  color: var(--error-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+// Section de progression
+.progress-section {
+  padding: 20px;
+  background: var(--surface-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+
+  .progress-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .progress-label {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .progress-slider {
+      width: 100%;
+    }
+  }
+
+  mat-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+  }
+}
+
+// Tags et chips
+mat-chip-grid {
+  min-height: 48px;
+}
+
+mat-chip-row {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 500;
+
+  &:hover {
+    background-color: var(--primary-dark);
+  }
+
+  button[matChipRemove] {
+    color: white;
+    opacity: 0.8;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// Pièces jointes
+.attachments-section {
+  .selected-files,
+  .existing-attachments {
+    margin-bottom: 20px;
+
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  .file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: var(--hover-color);
+      border-color: var(--primary-color);
+    }
+
+    .file-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: var(--primary-light);
+      border-radius: 8px;
+
+      mat-icon {
+        color: var(--primary-color);
+        font-size: 20px;
+      }
+    }
+
+    .file-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .file-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        word-break: break-word;
+      }
+
+      .file-size {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .remove-file {
+      color: var(--error-color);
+
+      &:hover {
+        background-color: rgba(var(--error-color-rgb), 0.1);
+      }
+    }
+  }
+
+  .no-attachments {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    small {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  }
+}
+
+// Actions du formulaire
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-top: 32px;
+  position: sticky;
+  bottom: 24px;
+  z-index: 10;
+
+  .form-status {
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+
+      &.valid {
+        background: rgba(var(--success-color-rgb), 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(var(--success-color-rgb), 0.3);
+      }
+
+      &.invalid {
+        background: rgba(var(--error-color-rgb), 0.1);
+        color: var(--error-color);
+        border: 1px solid rgba(var(--error-color-rgb), 0.3);
+      }
+
+      &.pending {
+        background: rgba(var(--warning-color-rgb), 0.1);
+        color: var(--warning-color);
+        border: 1px solid rgba(var(--warning-color-rgb), 0.3);
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    button {
+      min-width: 120px;
+      height: 44px;
+      font-weight: 500;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      mat-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+    position: static;
+
+    .action-buttons {
+      width: 100%;
+      justify-content: stretch;
+
+      button {
+        flex: 1;
+        min-width: auto;
+      }
+    }
+  }
+}
+
+// Overlay de chargement
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+  border-radius: 12px;
+
+  p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+}
+
+// Mode sombre
+@media (prefers-color-scheme: dark) {
+  .tache-form-container {
+    .loading-overlay {
+      background: rgba(var(--background-color-rgb), 0.9);
+    }
+  }
+}
+
+// Animations
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.form-section:nth-child(2) { animation-delay: 0.1s; }
+.form-section:nth-child(3) { animation-delay: 0.2s; }
+.form-section:nth-child(4) { animation-delay: 0.3s; }
+.form-section:nth-child(5) { animation-delay: 0.4s; }
+
+// États de focus améliorés
+mat-form-field.mat-focused {
+  .mat-mdc-form-field-outline {
+    border-color: var(--primary-color);
+    border-width: 2px;
+  }
+}
+
+// Amélioration de l'accessibilité
+button:focus-visible,
+mat-form-field:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+// Impression
+@media print {
+  .tache-form-container {
+    .form-actions,
+    .close-button,
+    button {
+      display: none !important;
+    }
+
+    .form-section {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      break-inside: avoid;
+      margin-bottom: 20px;
+    }
+
+    .loading-overlay {
+      display: none !important;
+    }
+  }
+}

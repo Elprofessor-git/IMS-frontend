@@ -1,0 +1,264 @@
+.utilisateurs-container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding: 24px;
+    background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);
+    border-radius: 12px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .header-content {
+      h1 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        font-weight: 600;
+
+        mat-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+          font-size: 2rem;
+          width: 2rem;
+          height: 2rem;
+        }
+      }
+
+      .subtitle {
+        margin: 0;
+        color: #666;
+        font-size: 1.1rem;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      button {
+        min-width: 140px;
+      }
+    }
+  }
+
+  .filters-card {
+    margin-bottom: 24px;
+
+    .filters-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+
+      .search-field {
+        flex: 1;
+        min-width: 250px;
+      }
+
+      mat-form-field {
+        min-width: 150px;
+      }
+    }
+  }
+
+  .table-card {
+    mat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+      }
+    }
+
+    .table-container {
+      overflow-x: auto;
+
+      .users-table {
+        width: 100%;
+        min-width: 800px;
+
+        .mat-mdc-header-cell {
+          font-weight: 600;
+          color: #333;
+        }
+
+        .mat-mdc-cell {
+          padding: 12px 8px;
+        }
+
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+              color: #1976d2;
+            }
+          }
+
+          .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .user-name {
+              font-weight: 500;
+              color: #333;
+            }
+
+            .user-email {
+              font-size: 0.85rem;
+              color: #666;
+            }
+          }
+        }
+
+        .connexion-info {
+          .never-connected {
+            color: #999;
+            font-style: italic;
+          }
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 4px;
+
+          button {
+            &:hover {
+              background-color: rgba(0, 0, 0, 0.04);
+            }
+          }
+        }
+
+        .clickable-row {
+          cursor: pointer;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+          }
+        }
+      }
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 48px 24px;
+      color: #666;
+
+      mat-icon {
+        font-size: 4rem;
+        width: 4rem;
+        height: 4rem;
+        color: #ccc;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        margin: 0 0 8px 0;
+        font-weight: 500;
+      }
+
+      p {
+        margin: 0 0 24px 0;
+      }
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      gap: 16px;
+
+      p {
+        margin: 0;
+        color: #666;
+      }
+    }
+  }
+}
+
+// Menu d'actions avec style danger
+::ng-deep .mat-mdc-menu-panel {
+  .danger-action {
+    color: #d32f2f;
+
+    mat-icon {
+      color: #d32f2f;
+    }
+
+    &:hover {
+      background-color: rgba(211, 47, 47, 0.04);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .utilisateurs-container {
+    padding: 16px;
+
+    .header-section {
+      flex-direction: column;
+      align-items: stretch;
+
+      .header-actions {
+        justify-content: stretch;
+
+        button {
+          flex: 1;
+        }
+      }
+    }
+
+    .filters-card .filters-row {
+      flex-direction: column;
+      align-items: stretch;
+
+      mat-form-field {
+        width: 100%;
+      }
+    }
+
+    .table-card {
+      .table-container {
+        .users-table {
+          min-width: 600px;
+        }
+      }
+    }
+  }
+}

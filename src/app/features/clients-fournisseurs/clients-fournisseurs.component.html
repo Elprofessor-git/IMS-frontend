@@ -1,0 +1,353 @@
+<div class="clients-fournisseurs-container">
+  <mat-card class="main-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>people</mat-icon>
+      </div>
+      <mat-card-title>Gestion Clients & Fournisseurs</mat-card-title>
+      <mat-card-subtitle>Gérez vos relations commerciales</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Onglets principaux -->
+      <mat-tab-group class="main-tabs" [(selectedIndex)]="selectedTabIndex">
+        <!-- Onglet Clients -->
+        <mat-tab label="Clients">
+          <div class="tab-content">
+            <!-- Statistiques Clients -->
+            <div class="stats-row">
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon">people</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ clientStats.total }}</span>
+                      <span class="stat-label">Total Clients</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon active">person</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ clientStats.active }}</span>
+                      <span class="stat-label">Clients Actifs</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon revenue">euro</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ clientStats.revenue | currency:'EUR':'symbol':'1.0-0' }}</span>
+                      <span class="stat-label">CA Total</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon orders">shopping_cart</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ clientStats.orders }}</span>
+                      <span class="stat-label">Commandes</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Actions Clients -->
+            <div class="actions-row">
+              <button mat-raised-button color="primary" (click)="openNewClientDialog()">
+                <mat-icon>person_add</mat-icon>
+                Nouveau Client
+              </button>
+              <button mat-stroked-button (click)="exportClients()">
+                <mat-icon>download</mat-icon>
+                Exporter
+              </button>
+              <button mat-stroked-button (click)="importClients()">
+                <mat-icon>upload</mat-icon>
+                Importer
+              </button>
+            </div>
+
+            <!-- Filtres Clients -->
+            <div class="filters-section">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Rechercher un client</mat-label>
+                <input matInput [(ngModel)]="clientSearchTerm" (input)="filterClients()" placeholder="Nom, email, téléphone...">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Type</mat-label>
+                <mat-select [(ngModel)]="clientTypeFilter" (selectionChange)="filterClients()">
+                  <mat-option value="">Tous</mat-option>
+                  <mat-option value="Particulier">Particulier</mat-option>
+                  <mat-option value="Entreprise">Entreprise</mat-option>
+                  <mat-option value="Professionnel">Professionnel</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Statut</mat-label>
+                <mat-select [(ngModel)]="clientStatusFilter" (selectionChange)="filterClients()">
+                  <mat-option value="">Tous</mat-option>
+                  <mat-option value="true">Actif</mat-option>
+                  <mat-option value="false">Inactif</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-icon-button (click)="clearClientFilters()" matTooltip="Effacer les filtres">
+                <mat-icon>clear</mat-icon>
+              </button>
+            </div>
+
+            <!-- Liste des Clients -->
+            <div class="table-container">
+              <table mat-table [dataSource]="filteredClients" matSort class="clients-table">
+                <ng-container matColumnDef="nom">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+                  <td mat-cell *matCellDef="let client">
+                    <div class="client-info">
+                      <strong>{{ client.nom }}</strong>
+                      <span class="client-type">{{ client.typeClient }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="contact">
+                  <th mat-header-cell *matHeaderCellDef>Contact</th>
+                  <td mat-cell *matCellDef="let client">
+                    <div class="contact-info">
+                      <div>{{ client.email }}</div>
+                      <div class="phone">{{ client.telephone }}</div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="adresse">
+                  <th mat-header-cell *matHeaderCellDef>Adresse</th>
+                  <td mat-cell *matCellDef="let client">
+                    <div class="address-info">
+                      <div>{{ client.ville }}</div>
+                      <div class="postal">{{ client.codePostal }}</div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="statut">
+                  <th mat-header-cell *matHeaderCellDef>Statut</th>
+                  <td mat-cell *matCellDef="let client">
+                    <mat-chip [class]="client.clientActif ? 'status-active' : 'status-inactive'">
+                      {{ client.clientActif ? 'Actif' : 'Inactif' }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let client">
+                    <button mat-icon-button [matMenuTriggerFor]="clientMenu">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #clientMenu="matMenu">
+                      <button mat-menu-item (click)="viewClient(client)">
+                        <mat-icon>visibility</mat-icon>
+                        <span>Voir</span>
+                      </button>
+                      <button mat-menu-item (click)="editClient(client)">
+                        <mat-icon>edit</mat-icon>
+                        <span>Modifier</span>
+                      </button>
+                      <button mat-menu-item (click)="deleteClient(client)">
+                        <mat-icon>delete</mat-icon>
+                        <span>Supprimer</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="clientColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: clientColumns;"></tr>
+              </table>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Onglet Fournisseurs -->
+        <mat-tab label="Fournisseurs">
+          <div class="tab-content">
+            <!-- Statistiques Fournisseurs -->
+            <div class="stats-row">
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon">business</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ fournisseurStats.total }}</span>
+                      <span class="stat-label">Total Fournisseurs</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon active">verified</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ fournisseurStats.active }}</span>
+                      <span class="stat-label">Fournisseurs Actifs</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon purchases">shopping_bag</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ fournisseurStats.purchases | currency:'EUR':'symbol':'1.0-0' }}</span>
+                      <span class="stat-label">Achats Total</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="stat-card">
+                <mat-card-content>
+                  <div class="stat-content">
+                    <mat-icon class="stat-icon orders">local_shipping</mat-icon>
+                    <div class="stat-info">
+                      <span class="stat-value">{{ fournisseurStats.orders }}</span>
+                      <span class="stat-label">Commandes</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Actions Fournisseurs -->
+            <div class="actions-row">
+              <button mat-raised-button color="primary" (click)="openNewFournisseurDialog()">
+                <mat-icon>business</mat-icon>
+                Nouveau Fournisseur
+              </button>
+              <button mat-stroked-button (click)="exportFournisseurs()">
+                <mat-icon>download</mat-icon>
+                Exporter
+              </button>
+              <button mat-stroked-button (click)="importFournisseurs()">
+                <mat-icon>upload</mat-icon>
+                Importer
+              </button>
+            </div>
+
+            <!-- Filtres Fournisseurs -->
+            <div class="filters-section">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Rechercher un fournisseur</mat-label>
+                <input matInput [(ngModel)]="fournisseurSearchTerm" (input)="filterFournisseurs()" placeholder="Nom, email, téléphone...">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Pays</mat-label>
+                <mat-select [(ngModel)]="fournisseurCountryFilter" (selectionChange)="filterFournisseurs()">
+                  <mat-option value="">Tous</mat-option>
+                  <mat-option value="France">France</mat-option>
+                  <mat-option value="Belgique">Belgique</mat-option>
+                  <mat-option value="Suisse">Suisse</mat-option>
+                  <mat-option value="Autre">Autre</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-icon-button (click)="clearFournisseurFilters()" matTooltip="Effacer les filtres">
+                <mat-icon>clear</mat-icon>
+              </button>
+            </div>
+
+            <!-- Liste des Fournisseurs -->
+            <div class="table-container">
+              <table mat-table [dataSource]="filteredFournisseurs" matSort class="fournisseurs-table">
+                <ng-container matColumnDef="nom">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+                  <td mat-cell *matCellDef="let fournisseur">
+                    <div class="fournisseur-info">
+                      <strong>{{ fournisseur.nom }}</strong>
+                      <span class="fournisseur-code">{{ fournisseur.codeFournisseur }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="contact">
+                  <th mat-header-cell *matHeaderCellDef>Contact</th>
+                  <td mat-cell *matCellDef="let fournisseur">
+                    <div class="contact-info">
+                      <div>{{ fournisseur.email }}</div>
+                      <div class="phone">{{ fournisseur.telephone }}</div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="adresse">
+                  <th mat-header-cell *matHeaderCellDef>Adresse</th>
+                  <td mat-cell *matCellDef="let fournisseur">
+                    <div class="address-info">
+                      <div>{{ fournisseur.ville }}</div>
+                      <div class="country">{{ fournisseur.pays }}</div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let fournisseur">
+                    <button mat-icon-button [matMenuTriggerFor]="fournisseurMenu">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #fournisseurMenu="matMenu">
+                      <button mat-menu-item (click)="viewFournisseur(fournisseur)">
+                        <mat-icon>visibility</mat-icon>
+                        <span>Voir</span>
+                      </button>
+                      <button mat-menu-item (click)="editFournisseur(fournisseur)">
+                        <mat-icon>edit</mat-icon>
+                        <span>Modifier</span>
+                      </button>
+                      <button mat-menu-item (click)="deleteFournisseur(fournisseur)">
+                        <mat-icon>delete</mat-icon>
+                        <span>Supprimer</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="fournisseurColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: fournisseurColumns;"></tr>
+              </table>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des données...</p>
+  </div>
+</div>

@@ -1,0 +1,251 @@
+<div class="client-form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+      </div>
+      <mat-card-title>{{ isEditMode ? 'Modifier le Client' : 'Nouveau Client' }}</mat-card-title>
+      <mat-card-subtitle>{{ isEditMode ? 'Modification des informations client' : 'Création d\'un nouveau client' }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="client-form">
+        <!-- Informations générales -->
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Type de client</mat-label>
+              <mat-select formControlName="typeClient">
+                <mat-option value="Particulier">Particulier</mat-option>
+                <mat-option value="Entreprise">Entreprise</mat-option>
+                <mat-option value="Professionnel">Professionnel</mat-option>
+              </mat-select>
+              <mat-error *ngIf="clientForm.get('typeClient')?.hasError('required')">
+                Le type de client est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Code client</mat-label>
+              <input matInput formControlName="codeClient" placeholder="CLI-001">
+              <mat-error *ngIf="clientForm.get('codeClient')?.hasError('required')">
+                Le code client est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Nom / Raison sociale</mat-label>
+              <input matInput formControlName="nom" placeholder="Nom du client ou entreprise">
+              <mat-error *ngIf="clientForm.get('nom')?.hasError('required')">
+                Le nom est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Prénom / Contact</mat-label>
+              <input matInput formControlName="prenom" placeholder="Prénom ou nom du contact">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row" *ngIf="clientForm.get('typeClient')?.value === 'Entreprise'">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>SIRET</mat-label>
+              <input matInput formControlName="siret" placeholder="12345678901234">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>TVA Intracommunautaire</mat-label>
+              <input matInput formControlName="numeroTVA" placeholder="FR12345678901">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Coordonnées -->
+        <div class="form-section">
+          <h3>Coordonnées</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="client@example.com">
+              <mat-error *ngIf="clientForm.get('email')?.hasError('email')">
+                Format d'email invalide
+              </mat-error>
+              <mat-error *ngIf="clientForm.get('email')?.hasError('required')">
+                L'email est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Téléphone</mat-label>
+              <input matInput formControlName="telephone" placeholder="+33 1 23 45 67 89">
+              <mat-error *ngIf="clientForm.get('telephone')?.hasError('required')">
+                Le téléphone est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Téléphone mobile</mat-label>
+              <input matInput formControlName="telephoneMobile" placeholder="+33 6 12 34 56 78">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Fax</mat-label>
+              <input matInput formControlName="fax" placeholder="+33 1 23 45 67 90">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Adresse -->
+        <div class="form-section">
+          <h3>Adresse</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Adresse ligne 1</mat-label>
+              <input matInput formControlName="adresse" placeholder="123 Rue de la Paix">
+              <mat-error *ngIf="clientForm.get('adresse')?.hasError('required')">
+                L'adresse est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Adresse ligne 2</mat-label>
+              <input matInput formControlName="adresseComplement" placeholder="Bâtiment A, 2ème étage">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Code postal</mat-label>
+              <input matInput formControlName="codePostal" placeholder="75001">
+              <mat-error *ngIf="clientForm.get('codePostal')?.hasError('required')">
+                Le code postal est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Ville</mat-label>
+              <input matInput formControlName="ville" placeholder="Paris">
+              <mat-error *ngIf="clientForm.get('ville')?.hasError('required')">
+                La ville est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Pays</mat-label>
+              <mat-select formControlName="pays">
+                <mat-option value="France">France</mat-option>
+                <mat-option value="Belgique">Belgique</mat-option>
+                <mat-option value="Suisse">Suisse</mat-option>
+                <mat-option value="Luxembourg">Luxembourg</mat-option>
+                <mat-option value="Autre">Autre</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Paramètres commerciaux -->
+        <div class="form-section">
+          <h3>Paramètres Commerciaux</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Remise par défaut (%)</mat-label>
+              <input matInput type="number" formControlName="remiseDefaut" min="0" max="100" step="0.1">
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Limite de crédit</mat-label>
+              <input matInput type="number" formControlName="limiteCredit" min="0" step="0.01">
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Délai de paiement (jours)</mat-label>
+              <input matInput type="number" formControlName="delaiPaiement" min="0">
+              <span matTextSuffix> jours</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Mode de paiement</mat-label>
+              <mat-select formControlName="modePaiement">
+                <mat-option value="Virement">Virement bancaire</mat-option>
+                <mat-option value="Cheque">Chèque</mat-option>
+                <mat-option value="Especes">Espèces</mat-option>
+                <mat-option value="CB">Carte bancaire</mat-option>
+                <mat-option value="Prelevement">Prélèvement</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="clientActif">
+              Client actif
+            </mat-checkbox>
+          </div>
+
+          <div class="form-row">
+            <mat-checkbox formControlName="acceptePublicite">
+              Accepte la publicité
+            </mat-checkbox>
+          </div>
+        </div>
+
+        <!-- Informations bancaires -->
+        <div class="form-section">
+          <h3>Informations Bancaires</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>IBAN</mat-label>
+              <input matInput formControlName="iban" placeholder="FR76 1234 5678 9012 3456 7890 123">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>BIC/SWIFT</mat-label>
+              <input matInput formControlName="bic" placeholder="BNPAFRPPXXX">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de la banque</mat-label>
+              <input matInput formControlName="nomBanque" placeholder="BNP Paribas">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section">
+          <h3>Notes et Commentaires</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes internes</mat-label>
+              <textarea matInput formControlName="notes" rows="4"
+                        placeholder="Informations complémentaires sur ce client..."></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button (click)="onCancel()">
+            Annuler
+          </button>
+          <button type="submit" mat-raised-button color="primary"
+                  [disabled]="clientForm.invalid || loading">
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

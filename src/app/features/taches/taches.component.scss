@@ -1,0 +1,359 @@
+.taches-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    .header-content {
+      h1 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 8px 0;
+        font-size: 2rem;
+        font-weight: 500;
+        color: #1976d2;
+
+        mat-icon {
+          font-size: 2rem;
+          width: 2rem;
+          height: 2rem;
+        }
+      }
+
+      .subtitle {
+        margin: 0;
+        color: #666;
+        font-size: 1.1rem;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      button {
+        min-width: 140px;
+      }
+    }
+  }
+
+  .filters-card {
+    margin-bottom: 24px;
+
+    .filters-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+
+      .search-field {
+        flex: 1;
+        min-width: 250px;
+      }
+
+      mat-form-field {
+        min-width: 150px;
+      }
+    }
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .stat-card {
+      .stat-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .stat-icon {
+          font-size: 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &.primary {
+            background-color: rgba(25, 118, 210, 0.1);
+            color: #1976d2;
+          }
+
+          &.success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+          }
+
+          &.warning {
+            background-color: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+          }
+
+          &.accent {
+            background-color: rgba(156, 39, 176, 0.1);
+            color: #9c27b0;
+          }
+        }
+
+        .stat-info {
+          display: flex;
+          flex-direction: column;
+
+          .stat-number {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+          }
+
+          .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+
+  .table-card {
+    mat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+      }
+    }
+
+    .table-container {
+      overflow-x: auto;
+
+      .tasks-table {
+        width: 100%;
+        min-width: 1000px;
+
+        .mat-mdc-header-cell {
+          font-weight: 600;
+          color: #333;
+        }
+
+        .mat-mdc-cell {
+          padding: 12px 8px;
+        }
+
+        .task-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .task-name {
+            font-weight: 500;
+            color: #333;
+          }
+
+          .task-description {
+            font-size: 0.85rem;
+            color: #666;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        .assignee-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .assignee-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            mat-icon {
+              color: #1976d2;
+              font-size: 1.2rem;
+            }
+          }
+
+          .assignee-name {
+            font-size: 0.9rem;
+          }
+        }
+
+        .unassigned {
+          color: #999;
+          font-style: italic;
+        }
+
+        .progress-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          mat-progress-bar {
+            width: 80px;
+          }
+
+          .progress-text {
+            font-size: 0.8rem;
+            color: #666;
+          }
+        }
+
+        .deadline-info {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          .deadline-date {
+            &.overdue {
+              color: #d32f2f;
+              font-weight: 500;
+            }
+          }
+
+          .overdue-icon {
+            color: #d32f2f;
+            font-size: 1.2rem;
+          }
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 4px;
+
+          button {
+            &:hover {
+              background-color: rgba(0, 0, 0, 0.04);
+            }
+          }
+        }
+
+        .clickable-row {
+          cursor: pointer;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+          }
+        }
+      }
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 48px 24px;
+      color: #666;
+
+      mat-icon {
+        font-size: 4rem;
+        width: 4rem;
+        height: 4rem;
+        color: #ccc;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        margin: 0 0 8px 0;
+        font-weight: 500;
+      }
+
+      p {
+        margin: 0 0 24px 0;
+      }
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      gap: 16px;
+
+      p {
+        margin: 0;
+        color: #666;
+      }
+    }
+  }
+}
+
+// Menu d'actions avec style danger
+::ng-deep .mat-mdc-menu-panel {
+  .danger-action {
+    color: #d32f2f;
+
+    mat-icon {
+      color: #d32f2f;
+    }
+
+    &:hover {
+      background-color: rgba(211, 47, 47, 0.04);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .taches-container {
+    padding: 16px;
+
+    .header-section {
+      flex-direction: column;
+      align-items: stretch;
+
+      .header-actions {
+        justify-content: stretch;
+
+        button {
+          flex: 1;
+        }
+      }
+    }
+
+    .filters-card .filters-row {
+      flex-direction: column;
+      align-items: stretch;
+
+      mat-form-field {
+        width: 100%;
+      }
+    }
+
+    .stats-row {
+      grid-template-columns: 1fr;
+    }
+
+    .table-card {
+      .table-container {
+        .tasks-table {
+          min-width: 800px;
+        }
+      }
+    }
+  }
+}

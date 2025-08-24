@@ -1,0 +1,362 @@
+<div class="importation-details-container">
+  <div class="header-section">
+    <div class="breadcrumb">
+      <a mat-button routerLink="/importations">
+        <mat-icon>arrow_back</mat-icon>
+        Retour aux importations
+      </a>
+    </div>
+
+    <div class="title-section">
+      <h1>Détails de l'Importation</h1>
+      <div class="status-badge" [ngClass]="'status-' + importation?.statut?.toLowerCase()">
+        {{ importation?.statut }}
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid" *ngIf="importation">
+    <!-- Informations générales -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <div mat-card-avatar class="info-icon">
+          <mat-icon>info</mat-icon>
+        </div>
+        <mat-card-title>Informations Générales</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Numéro d'importation:</label>
+            <span class="value">{{ importation.numeroImportation }}</span>
+          </div>
+          <div class="info-item">
+            <label>Date d'importation:</label>
+            <span class="value">{{ importation.dateImportation | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Fournisseur:</label>
+            <span class="value">{{ importation.fournisseur?.nom }}</span>
+          </div>
+          <div class="info-item">
+            <label>Pays d'origine:</label>
+            <span class="value">{{ importation.paysOrigine }}</span>
+          </div>
+          <div class="info-item">
+            <label>Port de départ:</label>
+            <span class="value">{{ importation.portDepart }}</span>
+          </div>
+          <div class="info-item">
+            <label>Port d'arrivée:</label>
+            <span class="value">{{ importation.portArrivee }}</span>
+          </div>
+          <div class="info-item">
+            <label>Date d'expédition:</label>
+            <span class="value">{{ importation.dateExpedition ? (importation.dateExpedition | date:'dd/MM/yyyy') : 'Non définie' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Date d'arrivée prévue:</label>
+            <span class="value">{{ importation.dateArriveePrevue ? (importation.dateArriveePrevue | date:'dd/MM/yyyy') : 'Non définie' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Documents douaniers -->
+    <mat-card class="documents-card">
+      <mat-card-header>
+        <div mat-card-avatar class="documents-icon">
+          <mat-icon>description</mat-icon>
+        </div>
+        <mat-card-title>Documents Douaniers</mat-card-title>
+        <div class="card-actions">
+          <button mat-icon-button (click)="uploadDocument()">
+            <mat-icon>upload_file</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="documents-grid">
+          <div class="document-item">
+            <label>Facture commerciale:</label>
+            <div class="document-status">
+              <mat-icon [color]="importation.factureCommerciale ? 'primary' : 'warn'">
+                {{ importation.factureCommerciale ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <span>{{ importation.factureCommerciale ? 'Disponible' : 'Manquant' }}</span>
+              <button mat-icon-button *ngIf="importation.factureCommerciale" (click)="viewDocument('facture')">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="document-item">
+            <label>Connaissement:</label>
+            <div class="document-status">
+              <mat-icon [color]="importation.connaissement ? 'primary' : 'warn'">
+                {{ importation.connaissement ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <span>{{ importation.connaissement ? 'Disponible' : 'Manquant' }}</span>
+              <button mat-icon-button *ngIf="importation.connaissement" (click)="viewDocument('connaissement')">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="document-item">
+            <label>Certificat d'origine:</label>
+            <div class="document-status">
+              <mat-icon [color]="importation.certificatOrigine ? 'primary' : 'warn'">
+                {{ importation.certificatOrigine ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <span>{{ importation.certificatOrigine ? 'Disponible' : 'Manquant' }}</span>
+              <button mat-icon-button *ngIf="importation.certificatOrigine" (click)="viewDocument('certificat')">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="document-item">
+            <label>Liste de colisage:</label>
+            <div class="document-status">
+              <mat-icon [color]="importation.listeColisage ? 'primary' : 'warn'">
+                {{ importation.listeColisage ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <span>{{ importation.listeColisage ? 'Disponible' : 'Manquant' }}</span>
+              <button mat-icon-button *ngIf="importation.listeColisage" (click)="viewDocument('colisage')">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Progression -->
+    <mat-card class="progress-card">
+      <mat-card-header>
+        <div mat-card-avatar class="progress-icon">
+          <mat-icon>timeline</mat-icon>
+        </div>
+        <mat-card-title>Progression</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="progress-timeline">
+          <div class="timeline-item" [ngClass]="{'completed': isStepCompleted('commande')}">
+            <div class="timeline-icon">
+              <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Commande passée</h4>
+              <p>{{ importation.dateCommande ? (importation.dateCommande | date:'dd/MM/yyyy') : 'En attente' }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" [ngClass]="{'completed': isStepCompleted('expedition')}">
+            <div class="timeline-icon">
+              <mat-icon>local_shipping</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Expédition</h4>
+              <p>{{ importation.dateExpedition ? (importation.dateExpedition | date:'dd/MM/yyyy') : 'En attente' }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" [ngClass]="{'completed': isStepCompleted('transit')}">
+            <div class="timeline-icon">
+              <mat-icon>flight</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>En transit</h4>
+              <p>{{ getTransitStatus() }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" [ngClass]="{'completed': isStepCompleted('douane')}">
+            <div class="timeline-icon">
+              <mat-icon>gavel</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Dédouanement</h4>
+              <p>{{ importation.dateDedouanement ? (importation.dateDedouanement | date:'dd/MM/yyyy') : 'En attente' }}</p>
+            </div>
+          </div>
+          <div class="timeline-item" [ngClass]="{'completed': isStepCompleted('reception')}">
+            <div class="timeline-icon">
+              <mat-icon>inventory</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <h4>Réception</h4>
+              <p>{{ importation.dateReception ? (importation.dateReception | date:'dd/MM/yyyy') : 'En attente' }}</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Coûts et finances -->
+    <mat-card class="costs-card">
+      <mat-card-header>
+        <div mat-card-avatar class="costs-icon">
+          <mat-icon>euro</mat-icon>
+        </div>
+        <mat-card-title>Coûts et Finances</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="costs-grid">
+          <div class="cost-item">
+            <label>Valeur marchandises:</label>
+            <span class="amount">{{ importation.valeurMarchandises | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="cost-item">
+            <label>Frais de transport:</label>
+            <span class="amount">{{ importation.fraisTransport | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="cost-item">
+            <label>Droits de douane:</label>
+            <span class="amount">{{ importation.droitsDouane | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="cost-item">
+            <label>TVA:</label>
+            <span class="amount">{{ importation.tva | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="cost-item">
+            <label>Autres frais:</label>
+            <span class="amount">{{ importation.autresFrais | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="cost-item total">
+            <label>Coût total:</label>
+            <span class="amount">{{ getTotalCost() | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Articles importés -->
+  <mat-card class="articles-card" *ngIf="importation">
+    <mat-card-header>
+      <div mat-card-avatar class="articles-icon">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <mat-card-title>Articles Importés ({{ importation.lignesImportation?.length || 0 }})</mat-card-title>
+      <div class="card-actions">
+        <button mat-raised-button color="primary" (click)="addArticle()">
+          <mat-icon>add</mat-icon>
+          Ajouter un article
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="articlesDataSource" class="articles-table">
+          <!-- Article -->
+          <ng-container matColumnDef="article">
+            <th mat-header-cell *matHeaderCellDef>Article</th>
+            <td mat-cell *matCellDef="let ligne">
+              <div class="article-info">
+                <strong>{{ ligne.article?.nom }}</strong>
+                <span class="reference">{{ ligne.article?.reference }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Quantité -->
+          <ng-container matColumnDef="quantite">
+            <th mat-header-cell *matHeaderCellDef>Quantité</th>
+            <td mat-cell *matCellDef="let ligne">{{ ligne.quantite }}</td>
+          </ng-container>
+
+          <!-- Prix unitaire -->
+          <ng-container matColumnDef="prixUnitaire">
+            <th mat-header-cell *matHeaderCellDef>Prix unitaire</th>
+            <td mat-cell *matCellDef="let ligne">{{ ligne.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Total -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let ligne">
+              <strong>{{ (ligne.quantite * ligne.prixUnitaire) | currency:'EUR':'symbol':'1.2-2' }}</strong>
+            </td>
+          </ng-container>
+
+          <!-- Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let ligne">
+              <span class="status-chip" [ngClass]="'status-' + ligne.statut?.toLowerCase()">
+                {{ ligne.statut }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let ligne">
+              <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #actionMenu="matMenu">
+                <button mat-menu-item (click)="editLigne(ligne)">
+                  <mat-icon>edit</mat-icon>
+                  Modifier
+                </button>
+                <button mat-menu-item (click)="deleteLigne(ligne)">
+                  <mat-icon>delete</mat-icon>
+                  Supprimer
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Notes et commentaires -->
+  <mat-card class="notes-card" *ngIf="importation">
+    <mat-card-header>
+      <div mat-card-avatar class="notes-icon">
+        <mat-icon>note</mat-icon>
+      </div>
+      <mat-card-title>Notes et Commentaires</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="notes-section">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes internes</mat-label>
+          <textarea matInput [(ngModel)]="importation.notes" rows="3"
+                    placeholder="Ajoutez vos notes sur cette importation..."></textarea>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="saveNotes()">
+          Enregistrer les notes
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Actions principales -->
+  <div class="main-actions">
+    <button mat-raised-button color="primary" (click)="editImportation()">
+      <mat-icon>edit</mat-icon>
+      Modifier
+    </button>
+    <button mat-raised-button color="accent" (click)="generateReport()">
+      <mat-icon>description</mat-icon>
+      Générer rapport
+    </button>
+    <button mat-stroked-button (click)="duplicateImportation()">
+      <mat-icon>content_copy</mat-icon>
+      Dupliquer
+    </button>
+    <button mat-stroked-button color="warn" (click)="deleteImportation()">
+      <mat-icon>delete</mat-icon>
+      Supprimer
+    </button>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des détails...</p>
+  </div>
+</div>

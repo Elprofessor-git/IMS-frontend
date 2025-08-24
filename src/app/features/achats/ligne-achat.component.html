@@ -1,0 +1,128 @@
+<div class="ligne-achat-container">
+  <mat-expansion-panel class="ligne-panel" [expanded]="expanded">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="panel-title-content">
+          <mat-icon class="article-icon">inventory_2</mat-icon>
+          <span class="article-name">{{ ligne?.article?.nom || 'Article non défini' }}</span>
+          <mat-chip class="quantity-chip" color="primary">
+            {{ ligne?.quantite || 0 }} unités
+          </mat-chip>
+        </div>
+      </mat-panel-title>
+      <mat-panel-description>
+        <div class="panel-description-content">
+          <span class="price">{{ (ligne?.prixUnitaire || 0) | currency:'EUR':'symbol':'1.2-2' }} / unité</span>
+          <span class="total">Total: {{ ((ligne?.quantite || 0) * (ligne?.prixUnitaire || 0)) | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <div class="ligne-details">
+      <div class="details-grid">
+        <!-- Informations article -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>Informations Article</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-row">
+              <span class="label">Nom:</span>
+              <span class="value">{{ ligne?.article?.nom || 'N/A' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Référence:</span>
+              <span class="value">{{ ligne?.article?.reference || 'N/A' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Catégorie:</span>
+              <span class="value">{{ ligne?.article?.categorie || 'N/A' }}</span>
+            </div>
+            <div class="info-row" *ngIf="ligne?.article?.description">
+              <span class="label">Description:</span>
+              <span class="value">{{ ligne.article.description }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Détails quantité et prix -->
+        <mat-card class="quantity-card">
+          <mat-card-header>
+            <mat-card-title>Détails Commande</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-row">
+              <span class="label">Quantité commandée:</span>
+              <span class="value quantity">{{ ligne?.quantite || 0 }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Prix unitaire:</span>
+              <span class="value price">{{ (ligne?.prixUnitaire || 0) | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Unité:</span>
+              <span class="value">{{ ligne?.article?.unite || 'pièce' }}</span>
+            </div>
+            <div class="info-row total-row">
+              <span class="label">Montant total:</span>
+              <span class="value total-amount">{{ ((ligne?.quantite || 0) * (ligne?.prixUnitaire || 0)) | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Stock actuel -->
+      <mat-card class="stock-card" *ngIf="ligne?.article">
+        <mat-card-header>
+          <mat-card-title>Stock Actuel</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="stock-info">
+            <div class="stock-item">
+              <span class="stock-label">Stock disponible:</span>
+              <span class="stock-value" [class.low-stock]="isLowStock()">
+                {{ ligne.article.quantiteStock || 0 }}
+              </span>
+            </div>
+            <div class="stock-item">
+              <span class="stock-label">Seuil minimum:</span>
+              <span class="stock-value">{{ ligne.article.seuilMinimum || 0 }}</span>
+            </div>
+            <div class="stock-item" *ngIf="ligne.article.seuilCritique">
+              <span class="stock-label">Seuil critique:</span>
+              <span class="stock-value critical">{{ ligne.article.seuilCritique }}</span>
+            </div>
+          </div>
+
+          <!-- Alerte stock -->
+          <div class="stock-alert" *ngIf="isLowStock()">
+            <mat-icon color="warn">warning</mat-icon>
+            <span>Stock faible - Réapprovisionnement recommandé</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Actions -->
+      <div class="ligne-actions" *ngIf="editable">
+        <button mat-raised-button color="primary" (click)="editLigne()">
+          <mat-icon>edit</mat-icon>
+          Modifier
+        </button>
+        <button mat-raised-button color="warn" (click)="deleteLigne()">
+          <mat-icon>delete</mat-icon>
+          Supprimer
+        </button>
+      </div>
+
+      <!-- Notes -->
+      <mat-card class="notes-card" *ngIf="ligne?.notes">
+        <mat-card-header>
+          <mat-card-title>Notes</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ ligne.notes }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </mat-expansion-panel>
+</div>

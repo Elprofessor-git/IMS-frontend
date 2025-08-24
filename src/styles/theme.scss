@@ -1,0 +1,98 @@
+@use '@angular/material' as mat;
+@import 'variables';
+
+// Définir les palettes de couleurs
+$primary-palette: mat.m2-define-palette(mat.$m2-blue-palette, 700);
+$accent-palette: mat.m2-define-palette(mat.$m2-pink-palette, A200);
+$warn-palette: mat.m2-define-palette(mat.$m2-red-palette);
+
+// Créer le thème
+$theme: mat.m2-define-light-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+    warn: $warn-palette,
+  ),
+  typography: mat.m2-define-typography-config(),
+  density: 0,
+));
+
+// Inclure les styles du thème
+@include mat.all-component-themes($theme);
+
+// Styles personnalisés globaux
+.mat-toolbar {
+  background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+  color: white;
+  box-shadow: $shadow-medium;
+}
+
+.mat-card {
+  box-shadow: $shadow-light;
+  border-radius: $border-radius-lg;
+  margin-bottom: $spacing-md;
+
+  &:hover {
+    box-shadow: $shadow-medium;
+    transition: $transition-normal;
+  }
+}
+
+.mat-button, .mat-raised-button, .mat-fab, .mat-mini-fab {
+  border-radius: $border-radius;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.mat-form-field {
+  width: 100%;
+  margin-bottom: $spacing-sm;
+}
+
+.mat-table {
+  background: $surface-color;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-light;
+}
+
+.mat-header-cell {
+  background-color: lighten($primary-color, 45%);
+  color: $primary-color;
+  font-weight: 600;
+}
+
+.mat-row:hover {
+  background-color: lighten($primary-color, 48%);
+}
+
+// Classes utilitaires
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.mt-xs { margin-top: $spacing-xs; }
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+
+.mb-xs { margin-bottom: $spacing-xs; }
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+
+.p-xs { padding: $spacing-xs; }
+.p-sm { padding: $spacing-sm; }
+.p-md { padding: $spacing-md; }
+.p-lg { padding: $spacing-lg; }
+
+.full-width { width: 100%; }
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.status-active { color: $success-color; }
+.status-inactive { color: $warn-color; }
+.status-pending { color: $accent-color; }
