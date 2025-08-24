@@ -1,0 +1,306 @@
+<div class="mouvement-details-container">
+  <div class="header-section">
+    <div class="breadcrumb">
+      <a mat-button routerLink="/mouvements">
+        <mat-icon>arrow_back</mat-icon>
+        Retour aux mouvements
+      </a>
+    </div>
+
+    <div class="title-section">
+      <h1>Détails du Mouvement</h1>
+      <div class="type-badge" [ngClass]="'type-' + mouvement?.type?.toLowerCase()">
+        {{ mouvement?.type }}
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid" *ngIf="mouvement">
+    <!-- Informations générales -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <div mat-card-avatar class="info-icon">
+          <mat-icon>info</mat-icon>
+        </div>
+        <mat-card-title>Informations Générales</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Numéro de mouvement:</label>
+            <span class="value">{{ mouvement.numeroMouvement }}</span>
+          </div>
+          <div class="info-item">
+            <label>Type de mouvement:</label>
+            <span class="value type-badge" [ngClass]="'type-' + mouvement.type?.toLowerCase()">
+              {{ mouvement.type }}
+            </span>
+          </div>
+          <div class="info-item">
+            <label>Date du mouvement:</label>
+            <span class="value">{{ mouvement.dateMouvement | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Utilisateur:</label>
+            <span class="value">{{ mouvement.utilisateur?.nom || 'Système' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Statut:</label>
+            <span class="status-chip" [ngClass]="'status-' + mouvement.statut?.toLowerCase()">
+              {{ mouvement.statut }}
+            </span>
+          </div>
+          <div class="info-item">
+            <label>Référence externe:</label>
+            <span class="value">{{ mouvement.referenceExterne || 'Aucune' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Article concerné -->
+    <mat-card class="article-card">
+      <mat-card-header>
+        <div mat-card-avatar class="article-icon">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+        <mat-card-title>Article Concerné</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="article-info">
+          <div class="article-header">
+            <h3>{{ mouvement.article?.nom }}</h3>
+            <span class="reference">{{ mouvement.article?.reference }}</span>
+          </div>
+          <div class="article-details">
+            <div class="detail-row">
+              <span class="label">Catégorie:</span>
+              <span class="value">{{ mouvement.article?.categorie }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Couleur:</span>
+              <span class="value">{{ mouvement.article?.couleur || 'Non définie' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Taille:</span>
+              <span class="value">{{ mouvement.article?.taille || 'Non définie' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Prix unitaire:</span>
+              <span class="value">{{ mouvement.article?.prix | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Quantités et emplacements -->
+    <mat-card class="quantities-card">
+      <mat-card-header>
+        <div mat-card-avatar class="quantities-icon">
+          <mat-icon>swap_horiz</mat-icon>
+        </div>
+        <mat-card-title>Quantités et Emplacements</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="quantities-grid">
+          <div class="quantity-item">
+            <div class="quantity-header">
+              <mat-icon [color]="mouvement.type === 'Entree' ? 'primary' : 'warn'">
+                {{ mouvement.type === 'Entree' ? 'add_circle' : 'remove_circle' }}
+              </mat-icon>
+              <span class="quantity-label">Quantité {{ mouvement.type === 'Entree' ? 'ajoutée' : 'retirée' }}</span>
+            </div>
+            <div class="quantity-value">
+              <span class="value">{{ mouvement.quantite }}</span>
+              <span class="unit">{{ mouvement.article?.unite || 'pcs' }}</span>
+            </div>
+          </div>
+
+          <div class="location-item" *ngIf="mouvement.emplacementSource">
+            <div class="location-header">
+              <mat-icon>location_on</mat-icon>
+              <span class="location-label">Emplacement source</span>
+            </div>
+            <div class="location-info">
+              <span class="location-name">{{ mouvement.emplacementSource.nom }}</span>
+              <span class="location-details">{{ mouvement.emplacementSource.zone }} - {{ mouvement.emplacementSource.rangee }}</span>
+            </div>
+          </div>
+
+          <div class="location-item" *ngIf="mouvement.emplacementDestination">
+            <div class="location-header">
+              <mat-icon>location_on</mat-icon>
+              <span class="location-label">Emplacement destination</span>
+            </div>
+            <div class="location-info">
+              <span class="location-name">{{ mouvement.emplacementDestination.nom }}</span>
+              <span class="location-details">{{ mouvement.emplacementDestination.zone }} - {{ mouvement.emplacementDestination.rangee }}</span>
+            </div>
+          </div>
+
+          <div class="stock-impact">
+            <div class="impact-header">
+              <mat-icon>trending_up</mat-icon>
+              <span class="impact-label">Impact sur le stock</span>
+            </div>
+            <div class="impact-details">
+              <div class="impact-row">
+                <span class="before-label">Stock avant:</span>
+                <span class="before-value">{{ mouvement.stockAvant || 0 }}</span>
+              </div>
+              <div class="impact-row">
+                <span class="after-label">Stock après:</span>
+                <span class="after-value">{{ mouvement.stockApres || 0 }}</span>
+              </div>
+              <div class="impact-row difference">
+                <span class="diff-label">Différence:</span>
+                <span class="diff-value" [ngClass]="getDifferenceClass()">
+                  {{ getDifferenceValue() }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Traçabilité -->
+    <mat-card class="traceability-card">
+      <mat-card-header>
+        <div mat-card-avatar class="traceability-icon">
+          <mat-icon>timeline</mat-icon>
+        </div>
+        <mat-card-title>Traçabilité</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="traceability-info">
+          <div class="trace-item">
+            <mat-icon>person</mat-icon>
+            <div class="trace-content">
+              <label>Créé par:</label>
+              <span>{{ mouvement.creeParUtilisateur?.nom || 'Système' }}</span>
+              <small>{{ mouvement.dateCreation | date:'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+          </div>
+          <div class="trace-item" *ngIf="mouvement.valideParUtilisateur">
+            <mat-icon>verified</mat-icon>
+            <div class="trace-content">
+              <label>Validé par:</label>
+              <span>{{ mouvement.valideParUtilisateur.nom }}</span>
+              <small>{{ mouvement.dateValidation | date:'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+          </div>
+          <div class="trace-item" *ngIf="mouvement.numeroLot">
+            <mat-icon>qr_code</mat-icon>
+            <div class="trace-content">
+              <label>Numéro de lot:</label>
+              <span>{{ mouvement.numeroLot }}</span>
+            </div>
+          </div>
+          <div class="trace-item" *ngIf="mouvement.numeroSerie">
+            <mat-icon>confirmation_number</mat-icon>
+            <div class="trace-content">
+              <label>Numéro de série:</label>
+              <span>{{ mouvement.numeroSerie }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Documents associés -->
+  <mat-card class="documents-card" *ngIf="mouvement && hasDocuments()">
+    <mat-card-header>
+      <div mat-card-avatar class="documents-icon">
+        <mat-icon>attach_file</mat-icon>
+      </div>
+      <mat-card-title>Documents Associés</mat-card-title>
+      <div class="card-actions">
+        <button mat-icon-button (click)="uploadDocument()">
+          <mat-icon>upload_file</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="documents-list">
+        <div class="document-item" *ngFor="let document of mouvement.documents">
+          <div class="document-info">
+            <mat-icon>{{ getDocumentIcon(document.type) }}</mat-icon>
+            <div class="document-details">
+              <span class="document-name">{{ document.nom }}</span>
+              <small class="document-meta">{{ document.taille | fileSize }} - {{ document.dateAjout | date:'dd/MM/yyyy' }}</small>
+            </div>
+          </div>
+          <div class="document-actions">
+            <button mat-icon-button (click)="viewDocument(document)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button (click)="downloadDocument(document)">
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Notes et commentaires -->
+  <mat-card class="notes-card" *ngIf="mouvement">
+    <mat-card-header>
+      <div mat-card-avatar class="notes-icon">
+        <mat-icon>note</mat-icon>
+      </div>
+      <mat-card-title>Notes et Commentaires</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="notes-section">
+        <div class="existing-notes" *ngIf="mouvement.notes">
+          <h4>Notes existantes:</h4>
+          <p>{{ mouvement.notes }}</p>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Ajouter une note</mat-label>
+          <textarea matInput [(ngModel)]="newNote" rows="3"
+                    placeholder="Ajoutez une note sur ce mouvement..."></textarea>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="addNote()" [disabled]="!newNote?.trim()">
+          Ajouter la note
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Actions principales -->
+  <div class="main-actions">
+    <button mat-raised-button color="primary" (click)="editMouvement()"
+            [disabled]="!canEdit()">
+      <mat-icon>edit</mat-icon>
+      Modifier
+    </button>
+    <button mat-raised-button color="accent" (click)="generateReport()">
+      <mat-icon>description</mat-icon>
+      Générer rapport
+    </button>
+    <button mat-stroked-button (click)="duplicateMouvement()">
+      <mat-icon>content_copy</mat-icon>
+      Dupliquer
+    </button>
+    <button mat-stroked-button (click)="printMouvement()">
+      <mat-icon>print</mat-icon>
+      Imprimer
+    </button>
+    <button mat-stroked-button color="warn" (click)="cancelMouvement()"
+            [disabled]="!canCancel()">
+      <mat-icon>cancel</mat-icon>
+      Annuler
+    </button>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des détails...</p>
+  </div>
+</div>

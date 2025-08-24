@@ -1,0 +1,427 @@
+<div class="role-form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <h2>
+        <mat-icon>{{isEditMode ? 'edit' : 'add_circle'}}</mat-icon>
+        {{isEditMode ? 'Modifier le rôle' : 'Nouveau rôle'}}
+      </h2>
+      <p class="subtitle" *ngIf="!isEditMode">Créez un nouveau rôle avec des permissions spécifiques</p>
+      <p class="subtitle" *ngIf="isEditMode">Modifiez les informations et permissions du rôle</p>
+    </div>
+
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulaire -->
+  <form [formGroup]="roleForm" (ngSubmit)="onSubmit()" class="role-form">
+
+    <!-- Informations de base -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Informations générales
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Nom du rôle -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom du rôle *</mat-label>
+            <input matInput
+                   formControlName="nom"
+                   placeholder="Entrez le nom du rôle"
+                   maxlength="100">
+            <mat-hint align="end">{{roleForm.get('nom')?.value?.length || 0}}/100</mat-hint>
+            <mat-error *ngIf="roleForm.get('nom')?.hasError('required')">
+              Le nom du rôle est requis
+            </mat-error>
+            <mat-error *ngIf="roleForm.get('nom')?.hasError('minlength')">
+              Le nom doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput
+                      formControlName="description"
+                      rows="3"
+                      placeholder="Décrivez le rôle et ses responsabilités..."
+                      maxlength="500"></textarea>
+            <mat-hint align="end">{{roleForm.get('description')?.value?.length || 0}}/500</mat-hint>
+          </mat-form-field>
+
+          <!-- Niveau de priorité -->
+          <mat-form-field appearance="outline">
+            <mat-label>Niveau de priorité</mat-label>
+            <mat-select formControlName="niveau">
+              <mat-option value="1">
+                <mat-icon class="level-admin">admin_panel_settings</mat-icon>
+                Niveau 1 - Administrateur
+              </mat-option>
+              <mat-option value="2">
+                <mat-icon class="level-manager">supervisor_account</mat-icon>
+                Niveau 2 - Manager
+              </mat-option>
+              <mat-option value="3">
+                <mat-icon class="level-supervisor">person_pin</mat-icon>
+                Niveau 3 - Superviseur
+              </mat-option>
+              <mat-option value="4">
+                <mat-icon class="level-user">person</mat-icon>
+                Niveau 4 - Utilisateur
+              </mat-option>
+              <mat-option value="5">
+                <mat-icon class="level-guest">person_outline</mat-icon>
+                Niveau 5 - Invité
+              </mat-option>
+            </mat-select>
+            <mat-hint>Plus le niveau est bas, plus les privilèges sont élevés</mat-hint>
+          </mat-form-field>
+
+          <!-- Couleur du rôle -->
+          <mat-form-field appearance="outline">
+            <mat-label>Couleur du rôle</mat-label>
+            <mat-select formControlName="couleur">
+              <mat-option value="#1976d2">
+                <div class="color-option">
+                  <div class="color-circle" style="background-color: #1976d2;"></div>
+                  Bleu
+                </div>
+              </mat-option>
+              <mat-option value="#388e3c">
+                <div class="color-option">
+                  <div class="color-circle" style="background-color: #388e3c;"></div>
+                  Vert
+                </div>
+              </mat-option>
+              <mat-option value="#f57c00">
+                <div class="color-option">
+                  <div class="color-circle" style="background-color: #f57c00;"></div>
+                  Orange
+                </div>
+              </mat-option>
+              <mat-option value="#d32f2f">
+                <div class="color-option">
+                  <div class="color-circle" style="background-color: #d32f2f;"></div>
+                  Rouge
+                </div>
+              </mat-option>
+              <mat-option value="#7b1fa2">
+                <div class="color-option">
+                  <div class="color-circle" style="background-color: #7b1fa2;"></div>
+                  Violet
+                </div>
+              </mat-option>
+              <mat-option value="#455a64">
+                <div class="color-option">
+                  <div class="color-circle" style="background-color: #455a64;"></div>
+                  Gris
+                </div>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Statut -->
+          <div class="status-section">
+            <mat-slide-toggle formControlName="actif" color="primary">
+              <span class="toggle-label">
+                <mat-icon>{{roleForm.get('actif')?.value ? 'check_circle' : 'cancel'}}</mat-icon>
+                Rôle {{roleForm.get('actif')?.value ? 'actif' : 'inactif'}}
+              </span>
+            </mat-slide-toggle>
+            <mat-hint>Les rôles inactifs ne peuvent pas être assignés aux utilisateurs</mat-hint>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Permissions -->
+    <mat-card class="form-section permissions-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>security</mat-icon>
+          Permissions
+        </mat-card-title>
+        <div class="card-actions">
+          <button type="button" mat-button (click)="selectAllPermissions()">
+            <mat-icon>select_all</mat-icon>
+            Tout sélectionner
+          </button>
+          <button type="button" mat-button (click)="deselectAllPermissions()">
+            <mat-icon>deselect</mat-icon>
+            Tout désélectionner
+          </button>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+
+        <!-- Recherche de permissions -->
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher une permission</mat-label>
+          <input matInput
+                 [(ngModel)]="permissionFilter"
+                 [ngModelOptions]="{standalone: true}"
+                 placeholder="Tapez pour filtrer les permissions...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <!-- Groupes de permissions -->
+        <div class="permissions-groups">
+          <mat-accordion multi="true">
+
+            <!-- Gestion des utilisateurs -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>people</mat-icon>
+                  Gestion des utilisateurs
+                  <mat-chip class="permission-count">{{getPermissionCount('users')}}</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="permissions-list">
+                <mat-checkbox *ngFor="let permission of getFilteredPermissions('users')"
+                              [formControlName]="'permission_' + permission.code"
+                              [color]="'primary'">
+                  <div class="permission-item">
+                    <div class="permission-info">
+                      <span class="permission-name">{{permission.nom}}</span>
+                      <span class="permission-description">{{permission.description}}</span>
+                    </div>
+                    <mat-chip [class]="'level-' + permission.niveau">
+                      Niveau {{permission.niveau}}
+                    </mat-chip>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Gestion du stock -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>inventory</mat-icon>
+                  Gestion du stock
+                  <mat-chip class="permission-count">{{getPermissionCount('stock')}}</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="permissions-list">
+                <mat-checkbox *ngFor="let permission of getFilteredPermissions('stock')"
+                              [formControlName]="'permission_' + permission.code"
+                              [color]="'primary'">
+                  <div class="permission-item">
+                    <div class="permission-info">
+                      <span class="permission-name">{{permission.nom}}</span>
+                      <span class="permission-description">{{permission.description}}</span>
+                    </div>
+                    <mat-chip [class]="'level-' + permission.niveau">
+                      Niveau {{permission.niveau}}
+                    </mat-chip>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Commandes et ventes -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>shopping_cart</mat-icon>
+                  Commandes et ventes
+                  <mat-chip class="permission-count">{{getPermissionCount('orders')}}</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="permissions-list">
+                <mat-checkbox *ngFor="let permission of getFilteredPermissions('orders')"
+                              [formControlName]="'permission_' + permission.code"
+                              [color]="'primary'">
+                  <div class="permission-item">
+                    <div class="permission-info">
+                      <span class="permission-name">{{permission.nom}}</span>
+                      <span class="permission-description">{{permission.description}}</span>
+                    </div>
+                    <mat-chip [class]="'level-' + permission.niveau">
+                      Niveau {{permission.niveau}}
+                    </mat-chip>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Production -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>precision_manufacturing</mat-icon>
+                  Production
+                  <mat-chip class="permission-count">{{getPermissionCount('production')}}</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="permissions-list">
+                <mat-checkbox *ngFor="let permission of getFilteredPermissions('production')"
+                              [formControlName]="'permission_' + permission.code"
+                              [color]="'primary'">
+                  <div class="permission-item">
+                    <div class="permission-info">
+                      <span class="permission-name">{{permission.nom}}</span>
+                      <span class="permission-description">{{permission.description}}</span>
+                    </div>
+                    <mat-chip [class]="'level-' + permission.niveau">
+                      Niveau {{permission.niveau}}
+                    </mat-chip>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Rapports -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>assessment</mat-icon>
+                  Rapports et analyses
+                  <mat-chip class="permission-count">{{getPermissionCount('reports')}}</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="permissions-list">
+                <mat-checkbox *ngFor="let permission of getFilteredPermissions('reports')"
+                              [formControlName]="'permission_' + permission.code"
+                              [color]="'primary'">
+                  <div class="permission-item">
+                    <div class="permission-info">
+                      <span class="permission-name">{{permission.nom}}</span>
+                      <span class="permission-description">{{permission.description}}</span>
+                    </div>
+                    <mat-chip [class]="'level-' + permission.niveau">
+                      Niveau {{permission.niveau}}
+                    </mat-chip>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+
+            <!-- Administration -->
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  Administration
+                  <mat-chip class="permission-count">{{getPermissionCount('admin')}}</mat-chip>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="permissions-list">
+                <mat-checkbox *ngFor="let permission of getFilteredPermissions('admin')"
+                              [formControlName]="'permission_' + permission.code"
+                              [color]="'primary'">
+                  <div class="permission-item">
+                    <div class="permission-info">
+                      <span class="permission-name">{{permission.nom}}</span>
+                      <span class="permission-description">{{permission.description}}</span>
+                    </div>
+                    <mat-chip [class]="'level-' + permission.niveau">
+                      Niveau {{permission.niveau}}
+                    </mat-chip>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+
+          </mat-accordion>
+        </div>
+
+        <!-- Résumé des permissions sélectionnées -->
+        <div class="permissions-summary" *ngIf="getSelectedPermissionsCount() > 0">
+          <h4>
+            <mat-icon>check_circle</mat-icon>
+            Permissions sélectionnées ({{getSelectedPermissionsCount()}})
+          </h4>
+          <div class="selected-permissions">
+            <mat-chip-set>
+              <mat-chip *ngFor="let permission of getSelectedPermissions()"
+                        [removable]="true"
+                        (removed)="removePermission(permission)">
+                {{permission.nom}}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Utilisateurs assignés (en mode édition) -->
+    <mat-card class="form-section" *ngIf="isEditMode && assignedUsers.length > 0">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>group</mat-icon>
+          Utilisateurs assignés ({{assignedUsers.length}})
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="users-list">
+          <div class="user-item" *ngFor="let user of assignedUsers">
+            <div class="user-avatar">
+              <mat-icon *ngIf="!user.avatar">person</mat-icon>
+              <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.prenom + ' ' + user.nom">
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{user.prenom}} {{user.nom}}</span>
+              <span class="user-email">{{user.email}}</span>
+            </div>
+            <div class="user-status">
+              <mat-chip [class]="user.actif ? 'status-active' : 'status-inactive'">
+                {{user.actif ? 'Actif' : 'Inactif'}}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions du formulaire -->
+    <div class="form-actions">
+      <div class="form-status">
+        <span class="status-indicator" [class]="getFormStatus()">
+          <mat-icon>{{getFormStatusIcon()}}</mat-icon>
+          {{getFormStatusText()}}
+        </span>
+        <div class="permissions-count" *ngIf="getSelectedPermissionsCount() > 0">
+          <mat-icon>security</mat-icon>
+          {{getSelectedPermissionsCount()}} permission(s) sélectionnée(s)
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" mat-stroked-button (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Annuler
+        </button>
+        <button type="button"
+                mat-stroked-button
+                (click)="previewRole()"
+                [disabled]="roleForm.invalid">
+          <mat-icon>visibility</mat-icon>
+          Aperçu
+        </button>
+        <button type="submit"
+                mat-raised-button
+                color="primary"
+                [disabled]="roleForm.invalid || loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">{{isEditMode ? 'save' : 'add_circle'}}</mat-icon>
+          {{isEditMode ? 'Mettre à jour' : 'Créer le rôle'}}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- État de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>{{isEditMode ? 'Mise à jour du rôle...' : 'Création du rôle...'}}</p>
+  </div>
+</div>

@@ -1,0 +1,299 @@
+<div class="emplacements-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h1>
+        <mat-icon>location_on</mat-icon>
+        Gestion des Emplacements
+      </h1>
+      <p class="subtitle">Gérez les emplacements de stockage et leur utilisation</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openEmplacementForm()">
+        <mat-icon>add</mat-icon>
+        Nouvel Emplacement
+      </button>
+      <button mat-stroked-button (click)="exportEmplacements()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+      <button mat-stroked-button color="accent" (click)="optimiserEmplacements()">
+        <mat-icon>tune</mat-icon>
+        Optimiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section" *ngIf="stats">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">location_on</mat-icon>
+          <div class="stat-details">
+            <div class="stat-value">{{ stats.totalEmplacements }}</div>
+            <div class="stat-label">Total Emplacements</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon accent">check_circle</mat-icon>
+          <div class="stat-details">
+            <div class="stat-value">{{ stats.emplacementsActifs }}</div>
+            <div class="stat-label">Actifs</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon warn">storage</mat-icon>
+          <div class="stat-details">
+            <div class="stat-value">{{ stats.capaciteTotale | number }}</div>
+            <div class="stat-label">Capacité Totale</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon primary">trending_up</mat-icon>
+          <div class="stat-details">
+            <div class="stat-value">{{ stats.tauxOccupation | percent:'1.1-1' }}</div>
+            <div class="stat-label">Taux d'Utilisation</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-section">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput
+                 [(ngModel)]="searchTerm"
+                 (input)="onSearch()"
+                 placeholder="Code, nom, zone...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Type</mat-label>
+          <mat-select [(value)]="selectedType" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les types</mat-option>
+            <mat-option value="ETAGERE">Étagère</mat-option>
+            <mat-option value="RACK">Rack</mat-option>
+            <mat-option value="ZONE_STOCKAGE">Zone de Stockage</mat-option>
+            <mat-option value="CONTENEUR">Conteneur</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(value)]="selectedStatut" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="ACTIF">Actif</mat-option>
+            <mat-option value="INACTIF">Inactif</mat-option>
+            <mat-option value="MAINTENANCE">Maintenance</mat-option>
+            <mat-option value="PLEIN">Plein</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Zone</mat-label>
+          <mat-select [(value)]="selectedZone" (selectionChange)="onFilterChange()">
+            <mat-option value="">Toutes les zones</mat-option>
+            <mat-option value="A">Zone A</mat-option>
+            <mat-option value="B">Zone B</mat-option>
+            <mat-option value="C">Zone C</mat-option>
+            <mat-option value="D">Zone D</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Effacer
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Data Table -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-header">
+        <h3>Liste des Emplacements</h3>
+        <div class="table-actions">
+          <mat-form-field appearance="outline" class="page-size-field">
+            <mat-label>Éléments par page</mat-label>
+            <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange()">
+              <mat-option value="10">10</mat-option>
+              <mat-option value="25">25</mat-option>
+              <mat-option value="50">50</mat-option>
+              <mat-option value="100">100</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="table-container" [class.loading]="loading">
+        <mat-progress-bar mode="indeterminate" *ngIf="loading"></mat-progress-bar>
+
+        <table mat-table [dataSource]="dataSource" matSort class="emplacements-table">
+          <!-- Code Column -->
+          <ng-container matColumnDef="code">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Code</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <div class="code-cell">
+                <mat-icon [color]="getTypeColor(emplacement.typeEmplacement)">
+                  {{ getTypeIcon(emplacement.typeEmplacement) }}
+                </mat-icon>
+                <span class="code-text">{{ emplacement.code }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Nom Column -->
+          <ng-container matColumnDef="nom">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <div class="nom-cell">
+                <span class="nom-primary">{{ emplacement.nom }}</span>
+                <span class="nom-secondary" *ngIf="emplacement.chemin">{{ emplacement.chemin }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Type Column -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <mat-chip [color]="getTypeColor(emplacement.typeEmplacement)" selected>
+                <mat-icon matChipAvatar>{{ getTypeIcon(emplacement.typeEmplacement) }}</mat-icon>
+                {{ getTypeLabel(emplacement.typeEmplacement) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Capacité Column -->
+          <ng-container matColumnDef="capacite">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Capacité</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <div class="capacite-cell">
+                <span class="capacite-value">{{ emplacement.capaciteMax | number }}</span>
+                <span class="capacite-unit">unités</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Utilisation Column -->
+          <ng-container matColumnDef="utilisation">
+            <th mat-header-cell *matHeaderCellDef>Utilisation</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <div class="utilisation-cell">
+                <mat-progress-bar
+                  [value]="getUtilisationPercentage(emplacement)"
+                  [color]="getUtilisationColor(getUtilisationPercentage(emplacement))"
+                  class="utilisation-bar">
+                </mat-progress-bar>
+                <span class="utilisation-text">
+                  {{ getUtilisationPercentage(emplacement) | percent:'1.0-0' }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Statut Column -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <mat-chip [color]="getStatutColor(emplacement.statut)" selected>
+                <mat-icon matChipAvatar>{{ getStatutIcon(emplacement.statut) }}</mat-icon>
+                {{ getStatutLabel(emplacement.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let emplacement">
+              <div class="actions-cell">
+                <button mat-icon-button
+                        [matMenuTriggerFor]="actionsMenu"
+                        matTooltip="Actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item (click)="viewEmplacement(emplacement)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>Voir détails</span>
+                  </button>
+                  <button mat-menu-item (click)="editEmplacement(emplacement)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Modifier</span>
+                  </button>
+                  <button mat-menu-item (click)="duplicateEmplacement(emplacement)">
+                    <mat-icon>content_copy</mat-icon>
+                    <span>Dupliquer</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="toggleStatut(emplacement)">
+                    <mat-icon>{{ emplacement.statut === 'ACTIF' ? 'pause' : 'play_arrow' }}</mat-icon>
+                    <span>{{ emplacement.statut === 'ACTIF' ? 'Désactiver' : 'Activer' }}</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item
+                          (click)="deleteEmplacement(emplacement)"
+                          class="delete-action">
+                    <mat-icon>delete</mat-icon>
+                    <span>Supprimer</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- No Data Message -->
+        <div class="no-data" *ngIf="!loading && dataSource.data.length === 0">
+          <mat-icon>location_off</mat-icon>
+          <h3>Aucun emplacement trouvé</h3>
+          <p>{{ searchTerm || selectedType || selectedStatut || selectedZone ?
+              'Aucun emplacement ne correspond aux critères de recherche.' :
+              'Commencez par créer votre premier emplacement.' }}</p>
+          <button mat-raised-button color="primary" (click)="openEmplacementForm()" *ngIf="!searchTerm && !selectedType && !selectedStatut && !selectedZone">
+            <mat-icon>add</mat-icon>
+            Créer un emplacement
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageIndex]="currentPage"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

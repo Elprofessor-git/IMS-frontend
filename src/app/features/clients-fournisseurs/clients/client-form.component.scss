@@ -1,0 +1,269 @@
+.client-form-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .form-card {
+    mat-card-header {
+      .header-icon {
+        background-color: var(--primary-color);
+        color: white;
+      }
+    }
+  }
+
+  .client-form {
+    .form-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+
+      h3 {
+        margin: 0 0 20px 0;
+        color: var(--primary-color);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &::before {
+          content: '';
+          width: 4px;
+          height: 20px;
+          background-color: var(--primary-color);
+          border-radius: 2px;
+        }
+      }
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      mat-checkbox {
+        margin-bottom: 8px;
+        align-self: center;
+
+        @media (max-width: 768px) {
+          align-self: flex-start;
+        }
+      }
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .half-width {
+      flex: 1;
+    }
+
+    .third-width {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    // Actions
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+
+      button {
+        min-width: 120px;
+
+        mat-spinner {
+          margin-right: 8px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  // Form field customizations
+  mat-form-field {
+    &.mat-form-field-appearance-outline {
+      .mat-form-field-outline {
+        color: #e0e0e0;
+      }
+
+      &.mat-focused .mat-form-field-outline-thick {
+        color: var(--primary-color);
+      }
+    }
+
+    // Error states
+    &.mat-form-field-invalid {
+      .mat-form-field-outline-thick {
+        color: #d32f2f;
+      }
+    }
+  }
+
+  // Checkbox customization
+  mat-checkbox {
+    .mat-checkbox-checked .mat-checkbox-background {
+      background-color: var(--primary-color);
+    }
+
+    .mat-checkbox-label {
+      font-weight: 400;
+      color: #333;
+    }
+  }
+
+  // Select customization
+  mat-select {
+    .mat-select-value {
+      color: #333;
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 10px;
+
+    .form-section {
+      padding: 15px;
+    }
+
+    .third-width {
+      min-width: unset;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 5px;
+
+    .form-card {
+      mat-card-header {
+        padding: 16px 16px 0 16px;
+      }
+
+      mat-card-content {
+        padding: 8px;
+      }
+    }
+
+    .form-section {
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+  }
+
+  // Loading state
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  // Validation styles
+  mat-error {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  // Animation for form sections
+  .form-section {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // Hover effects
+  .form-section:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+
+  // Focus states
+  mat-form-field.mat-focused {
+    .mat-form-field-label {
+      color: var(--primary-color);
+    }
+  }
+
+  // Special styling for business fields
+  .form-section:has([formControlName="siret"]) {
+    border-left: 4px solid var(--accent-color);
+  }
+
+  // Required field indicators
+  mat-form-field.mat-form-field-required {
+    .mat-form-field-label::after {
+      content: ' *';
+      color: #d32f2f;
+    }
+  }
+
+  // Success states
+  .form-section.success {
+    border-color: #4caf50;
+    background-color: #f1f8e9;
+  }
+
+  // Input group styling
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      color: var(--primary-color);
+    }
+  }
+
+  // Conditional field animations
+  .conditional-field {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      max-height: 200px;
+      transform: translateY(0);
+    }
+  }
+}

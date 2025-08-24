@@ -1,0 +1,308 @@
+<div class="rapport-ventes-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1>
+        <mat-icon>trending_up</mat-icon>
+        Rapport des Ventes
+      </h1>
+      <p class="subtitle">Analysez les performances de vente et les tendances</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="exportReport()">
+        <mat-icon>download</mat-icon>
+        Exporter PDF
+      </button>
+      <button mat-stroked-button (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres de période -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Période</mat-label>
+          <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+            <mat-option value="TODAY">Aujourd'hui</mat-option>
+            <mat-option value="WEEK">Cette semaine</mat-option>
+            <mat-option value="MONTH">Ce mois</mat-option>
+            <mat-option value="QUARTER">Ce trimestre</mat-option>
+            <mat-option value="YEAR">Cette année</mat-option>
+            <mat-option value="CUSTOM">Période personnalisée</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="selectedPeriod === 'CUSTOM'">
+          <mat-label>Date de début</mat-label>
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="onDateChange()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="selectedPeriod === 'CUSTOM'">
+          <mat-label>Date de fin</mat-label>
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onDateChange()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Client</mat-label>
+          <mat-select [(ngModel)]="selectedClient" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les clients</mat-option>
+            <mat-option *ngFor="let client of clients" [value]="client.id">
+              {{client.nom}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Produit</mat-label>
+          <mat-select [(ngModel)]="selectedProduct" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les produits</mat-option>
+            <mat-option *ngFor="let product of products" [value]="product.id">
+              {{product.nom}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Indicateurs clés -->
+  <div class="kpi-section" *ngIf="salesStats">
+    <mat-card class="kpi-card revenue">
+      <mat-card-content>
+        <div class="kpi-icon">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <h3>{{salesStats.totalRevenue | currency:'EUR':'symbol':'1.0-0'}}</h3>
+          <p>Chiffre d'affaires</p>
+          <span class="kpi-trend" [class.positive]="salesStats.revenueGrowth > 0" [class.negative]="salesStats.revenueGrowth < 0">
+            <mat-icon>{{salesStats.revenueGrowth > 0 ? 'trending_up' : 'trending_down'}}</mat-icon>
+            {{salesStats.revenueGrowth | number:'1.1-1'}}%
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card orders">
+      <mat-card-content>
+        <div class="kpi-icon">
+          <mat-icon>shopping_cart</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <h3>{{salesStats.totalOrders}}</h3>
+          <p>Commandes</p>
+          <span class="kpi-trend" [class.positive]="salesStats.ordersGrowth > 0" [class.negative]="salesStats.ordersGrowth < 0">
+            <mat-icon>{{salesStats.ordersGrowth > 0 ? 'trending_up' : 'trending_down'}}</mat-icon>
+            {{salesStats.ordersGrowth | number:'1.1-1'}}%
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card average">
+      <mat-card-content>
+        <div class="kpi-icon">
+          <mat-icon>calculate</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <h3>{{salesStats.averageOrderValue | currency:'EUR':'symbol':'1.0-0'}}</h3>
+          <p>Panier moyen</p>
+          <span class="kpi-trend" [class.positive]="salesStats.avgOrderGrowth > 0" [class.negative]="salesStats.avgOrderGrowth < 0">
+            <mat-icon>{{salesStats.avgOrderGrowth > 0 ? 'trending_up' : 'trending_down'}}</mat-icon>
+            {{salesStats.avgOrderGrowth | number:'1.1-1'}}%
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="kpi-card customers">
+      <mat-card-content>
+        <div class="kpi-icon">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <h3>{{salesStats.uniqueCustomers}}</h3>
+          <p>Clients uniques</p>
+          <span class="kpi-trend" [class.positive]="salesStats.customersGrowth > 0" [class.negative]="salesStats.customersGrowth < 0">
+            <mat-icon>{{salesStats.customersGrowth > 0 ? 'trending_up' : 'trending_down'}}</mat-icon>
+            {{salesStats.customersGrowth | number:'1.1-1'}}%
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Graphiques et analyses -->
+  <div class="charts-section">
+    <div class="charts-row">
+      <!-- Graphique des ventes dans le temps -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>show_chart</mat-icon>
+            Évolution des ventes
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <!-- Placeholder pour graphique -->
+            <div class="chart-placeholder">
+              <mat-icon>insert_chart</mat-icon>
+              <p>Graphique des ventes dans le temps</p>
+              <small>Intégration Chart.js à venir</small>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Top produits -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>star</mat-icon>
+            Top 10 Produits
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="top-products" *ngIf="topProducts && topProducts.length > 0">
+            <div class="product-item" *ngFor="let product of topProducts; let i = index">
+              <div class="product-rank">{{i + 1}}</div>
+              <div class="product-info">
+                <h4>{{product.name}}</h4>
+                <p>{{product.sales}} ventes</p>
+              </div>
+              <div class="product-revenue">
+                {{product.revenue | currency:'EUR':'symbol':'1.0-0'}}
+              </div>
+            </div>
+          </div>
+          <div class="no-data" *ngIf="!topProducts || topProducts.length === 0">
+            <mat-icon>info</mat-icon>
+            <p>Aucune donnée disponible</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="charts-row">
+      <!-- Répartition par client -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>pie_chart</mat-icon>
+            Répartition par client
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <div class="chart-placeholder">
+              <mat-icon>donut_large</mat-icon>
+              <p>Graphique en secteurs</p>
+              <small>Répartition du CA par client</small>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Analyse des tendances -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>analytics</mat-icon>
+            Analyse des tendances
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="trends-analysis">
+            <div class="trend-item" *ngFor="let trend of trends">
+              <div class="trend-icon" [class]="trend.type">
+                <mat-icon>{{trend.icon}}</mat-icon>
+              </div>
+              <div class="trend-content">
+                <h4>{{trend.title}}</h4>
+                <p>{{trend.description}}</p>
+                <span class="trend-value" [class]="trend.type">{{trend.value}}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Tableau détaillé des ventes -->
+  <mat-card class="sales-table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>table_view</mat-icon>
+        Détail des ventes
+      </mat-card-title>
+      <div class="table-actions">
+        <button mat-icon-button (click)="toggleTableView()">
+          <mat-icon>{{showDetailedTable ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content *ngIf="showDetailedTable">
+      <div class="table-container">
+        <table mat-table [dataSource]="salesDataSource" class="sales-table" matSort>
+          <!-- Date -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+            <td mat-cell *matCellDef="let sale">{{sale.date | date:'dd/MM/yyyy'}}</td>
+          </ng-container>
+
+          <!-- Client -->
+          <ng-container matColumnDef="client">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+            <td mat-cell *matCellDef="let sale">{{sale.clientName}}</td>
+          </ng-container>
+
+          <!-- Produit -->
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Produit</th>
+            <td mat-cell *matCellDef="let sale">{{sale.productName}}</td>
+          </ng-container>
+
+          <!-- Quantité -->
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Quantité</th>
+            <td mat-cell *matCellDef="let sale">{{sale.quantity}}</td>
+          </ng-container>
+
+          <!-- Prix unitaire -->
+          <ng-container matColumnDef="unitPrice">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Prix unitaire</th>
+            <td mat-cell *matCellDef="let sale">{{sale.unitPrice | currency:'EUR':'symbol':'1.2-2'}}</td>
+          </ng-container>
+
+          <!-- Total -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
+            <td mat-cell *matCellDef="let sale">{{sale.total | currency:'EUR':'symbol':'1.2-2'}}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- État de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des données de vente...</p>
+  </div>
+</div>

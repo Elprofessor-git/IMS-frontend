@@ -1,0 +1,204 @@
+<div class="ligne-importation-container">
+  <mat-expansion-panel class="ligne-panel" [expanded]="isExpanded">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div class="panel-title-content">
+          <div class="article-info">
+            <strong>{{ ligne?.article?.nom || 'Article non défini' }}</strong>
+            <span class="reference">{{ ligne?.article?.reference }}</span>
+          </div>
+          <div class="quantity-info">
+            <span class="quantity">Qté: {{ ligne?.quantite || 0 }}</span>
+            <span class="price">{{ ligne?.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </mat-panel-title>
+      <mat-panel-description>
+        <div class="status-info">
+          <span class="status-badge" [ngClass]="'status-' + ligne?.statut?.toLowerCase()">
+            {{ ligne?.statut || 'Non défini' }}
+          </span>
+          <span class="total-amount">
+            Total: {{ getTotalAmount() | currency:'EUR':'symbol':'1.2-2' }}
+          </span>
+        </div>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <div class="panel-content">
+      <!-- Informations détaillées de l'article -->
+      <div class="details-section">
+        <h4>Détails de l'Article</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Nom de l'article:</label>
+            <span>{{ ligne?.article?.nom || 'Non défini' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Référence:</label>
+            <span>{{ ligne?.article?.reference || 'Non définie' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Catégorie:</label>
+            <span>{{ ligne?.article?.categorie || 'Non définie' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Unité:</label>
+            <span>{{ ligne?.article?.unite || 'Pièce' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Couleur:</label>
+            <span>{{ ligne?.article?.couleur || 'Non définie' }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Taille:</label>
+            <span>{{ ligne?.article?.taille || 'Non définie' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations de quantité et prix -->
+      <div class="quantity-price-section">
+        <h4>Quantité et Prix</h4>
+        <div class="quantity-price-grid">
+          <div class="info-card">
+            <mat-icon>inventory</mat-icon>
+            <div class="info-content">
+              <label>Quantité commandée</label>
+              <span class="value">{{ ligne?.quantite || 0 }}</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <mat-icon>euro</mat-icon>
+            <div class="info-content">
+              <label>Prix unitaire</label>
+              <span class="value">{{ ligne?.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <mat-icon>percent</mat-icon>
+            <div class="info-content">
+              <label>Remise</label>
+              <span class="value">{{ ligne?.remise || 0 }}%</span>
+            </div>
+          </div>
+          <div class="info-card total-card">
+            <mat-icon>calculate</mat-icon>
+            <div class="info-content">
+              <label>Total ligne</label>
+              <span class="value total">{{ getTotalAmount() | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statut et suivi -->
+      <div class="status-section">
+        <h4>Statut et Suivi</h4>
+        <div class="status-timeline">
+          <div class="timeline-item" [ngClass]="{'active': isStatusActive('commande')}">
+            <div class="timeline-icon">
+              <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <span class="status-label">Commandé</span>
+              <span class="status-date">{{ ligne?.dateCommande | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+          <div class="timeline-item" [ngClass]="{'active': isStatusActive('expedition')}">
+            <div class="timeline-icon">
+              <mat-icon>local_shipping</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <span class="status-label">Expédié</span>
+              <span class="status-date">{{ ligne?.dateExpedition ? (ligne.dateExpedition | date:'dd/MM/yyyy') : 'En attente' }}</span>
+            </div>
+          </div>
+          <div class="timeline-item" [ngClass]="{'active': isStatusActive('reception')}">
+            <div class="timeline-icon">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="timeline-content">
+              <span class="status-label">Reçu</span>
+              <span class="status-date">{{ ligne?.dateReception ? (ligne.dateReception | date:'dd/MM/yyyy') : 'En attente' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations douanières -->
+      <div class="customs-section" *ngIf="ligne?.informationsDouanieres">
+        <h4>Informations Douanières</h4>
+        <div class="customs-grid">
+          <div class="customs-item">
+            <label>Code HS:</label>
+            <span>{{ ligne?.informationsDouanieres?.codeHS || 'Non défini' }}</span>
+          </div>
+          <div class="customs-item">
+            <label>Pays d'origine:</label>
+            <span>{{ ligne?.informationsDouanieres?.paysOrigine || 'Non défini' }}</span>
+          </div>
+          <div class="customs-item">
+            <label>Valeur douanière:</label>
+            <span>{{ ligne?.informationsDouanieres?.valeurDouaniere | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="customs-item">
+            <label>Droits de douane:</label>
+            <span>{{ ligne?.informationsDouanieres?.droitsDouane | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes et commentaires -->
+      <div class="notes-section" *ngIf="ligne?.notes || ligne?.commentaires">
+        <h4>Notes et Commentaires</h4>
+        <div class="notes-content">
+          <div class="note-item" *ngIf="ligne?.notes">
+            <label>Notes internes:</label>
+            <p>{{ ligne.notes }}</p>
+          </div>
+          <div class="note-item" *ngIf="ligne?.commentaires">
+            <label>Commentaires:</label>
+            <p>{{ ligne.commentaires }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-section">
+        <button mat-raised-button color="primary" (click)="editLigne()">
+          <mat-icon>edit</mat-icon>
+          Modifier
+        </button>
+        <button mat-stroked-button (click)="viewDetails()">
+          <mat-icon>visibility</mat-icon>
+          Voir détails
+        </button>
+        <button mat-stroked-button (click)="duplicateLigne()">
+          <mat-icon>content_copy</mat-icon>
+          Dupliquer
+        </button>
+        <button mat-stroked-button color="warn" (click)="deleteLigne()">
+          <mat-icon>delete</mat-icon>
+          Supprimer
+        </button>
+      </div>
+
+      <!-- Alertes -->
+      <div class="alerts-section" *ngIf="hasAlerts()">
+        <div class="alert" *ngIf="isQuantityAlert()" [ngClass]="'alert-warning'">
+          <mat-icon>warning</mat-icon>
+          <span>Quantité importante - Vérifier la capacité de stockage</span>
+        </div>
+        <div class="alert" *ngIf="isPriceAlert()" [ngClass]="'alert-info'">
+          <mat-icon>info</mat-icon>
+          <span>Prix différent du prix habituel pour cet article</span>
+        </div>
+        <div class="alert" *ngIf="isDelayAlert()" [ngClass]="'alert-error'">
+          <mat-icon>error</mat-icon>
+          <span>Retard de livraison détecté</span>
+        </div>
+      </div>
+    </div>
+  </mat-expansion-panel>
+</div>

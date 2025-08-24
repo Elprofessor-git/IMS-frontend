@@ -1,0 +1,191 @@
+<div class="chatbot-container">
+  <mat-card class="chat-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>smart_toy</mat-icon>
+      </div>
+      <mat-card-title>Assistant IA</mat-card-title>
+      <mat-card-subtitle>Votre assistant intelligent pour la gestion textile</mat-card-subtitle>
+      <div class="header-actions">
+        <button mat-icon-button (click)="clearChat()" matTooltip="Effacer la conversation">
+          <mat-icon>clear_all</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Options">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="exportChat()">
+            <mat-icon>download</mat-icon>
+            <span>Exporter la conversation</span>
+          </button>
+          <button mat-menu-item (click)="toggleSuggestions()">
+            <mat-icon>lightbulb</mat-icon>
+            <span>{{ showSuggestions ? 'Masquer' : 'Afficher' }} les suggestions</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content class="chat-content">
+      <!-- Messages de chat -->
+      <div class="messages-container" #messagesContainer>
+        <div *ngIf="messages.length === 0" class="welcome-message">
+          <div class="welcome-content">
+            <mat-icon class="welcome-icon">waving_hand</mat-icon>
+            <h3>Bonjour ! Je suis votre assistant IA</h3>
+            <p>Je peux vous aider avec :</p>
+            <ul>
+              <li>Gestion des stocks et inventaires</li>
+              <li>Analyse des données de vente</li>
+              <li>Recommandations d'approvisionnement</li>
+              <li>Questions sur les commandes et fournisseurs</li>
+              <li>Optimisation des processus</li>
+            </ul>
+            <p>Posez-moi une question pour commencer !</p>
+          </div>
+        </div>
+
+        <div *ngFor="let message of messages; trackBy: trackByMessage"
+             class="message"
+             [ngClass]="{'user-message': message.isUser, 'bot-message': !message.isUser}">
+
+          <div class="message-avatar">
+            <mat-icon *ngIf="message.isUser">person</mat-icon>
+            <mat-icon *ngIf="!message.isUser">smart_toy</mat-icon>
+          </div>
+
+          <div class="message-content">
+            <div class="message-header">
+              <span class="sender">{{ message.isUser ? 'Vous' : 'Assistant IA' }}</span>
+              <span class="timestamp">{{ message.timestamp | date:'HH:mm' }}</span>
+            </div>
+
+            <div class="message-text" [innerHTML]="formatMessage(message.content)"></div>
+
+            <!-- Actions pour les messages du bot -->
+            <div class="message-actions" *ngIf="!message.isUser">
+              <button mat-icon-button (click)="copyMessage(message.content)" matTooltip="Copier">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              <button mat-icon-button (click)="likeMessage(message)" matTooltip="Utile">
+                <mat-icon [class.liked]="message.liked">thumb_up</mat-icon>
+              </button>
+              <button mat-icon-button (click)="dislikeMessage(message)" matTooltip="Pas utile">
+                <mat-icon [class.disliked]="message.disliked">thumb_down</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Indicateur de frappe -->
+        <div *ngIf="isTyping" class="typing-indicator">
+          <div class="message bot-message">
+            <div class="message-avatar">
+              <mat-icon>smart_toy</mat-icon>
+            </div>
+            <div class="message-content">
+              <div class="typing-animation">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggestions rapides -->
+      <div class="suggestions-container" *ngIf="showSuggestions && suggestions.length > 0">
+        <h4>Suggestions :</h4>
+        <div class="suggestions-grid">
+          <button *ngFor="let suggestion of suggestions"
+                  mat-stroked-button
+                  class="suggestion-chip"
+                  (click)="selectSuggestion(suggestion)">
+            <mat-icon>{{ suggestion.icon }}</mat-icon>
+            {{ suggestion.text }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Zone de saisie -->
+      <div class="input-container">
+        <mat-form-field appearance="outline" class="message-input">
+          <mat-label>Tapez votre message...</mat-label>
+          <input matInput
+                 [(ngModel)]="currentMessage"
+                 (keydown.enter)="sendMessage()"
+                 [disabled]="isLoading"
+                 #messageInput>
+          <button matSuffix
+                  mat-icon-button
+                  (click)="sendMessage()"
+                  [disabled]="!currentMessage.trim() || isLoading">
+            <mat-icon *ngIf="!isLoading">send</mat-icon>
+            <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+          </button>
+        </mat-form-field>
+
+        <div class="input-actions">
+          <button mat-icon-button (click)="attachFile()" matTooltip="Joindre un fichier">
+            <mat-icon>attach_file</mat-icon>
+          </button>
+          <button mat-icon-button (click)="toggleVoiceInput()" matTooltip="Saisie vocale">
+            <mat-icon [class.recording]="isRecording">{{ isRecording ? 'mic' : 'mic_none' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Indicateur de statut -->
+      <div class="status-indicator" *ngIf="connectionStatus !== 'connected'">
+        <mat-icon color="warn">wifi_off</mat-icon>
+        <span>Connexion interrompue - Tentative de reconnexion...</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Panneau latéral d'informations -->
+  <mat-card class="info-panel" *ngIf="showInfoPanel">
+    <mat-card-header>
+      <mat-card-title>Informations Contextuelles</mat-card-title>
+      <button mat-icon-button (click)="toggleInfoPanel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="context-info">
+        <h4>Données récentes :</h4>
+        <ul>
+          <li>Stock total : {{ contextData?.totalStock || 0 }} articles</li>
+          <li>Commandes actives : {{ contextData?.activeOrders || 0 }}</li>
+          <li>Alertes stock : {{ contextData?.stockAlerts || 0 }}</li>
+          <li>Dernière mise à jour : {{ contextData?.lastUpdate | date:'dd/MM/yyyy HH:mm' }}</li>
+        </ul>
+      </div>
+
+      <div class="quick-stats">
+        <h4>Statistiques rapides :</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <mat-icon>inventory</mat-icon>
+            <span class="stat-value">{{ contextData?.lowStockItems || 0 }}</span>
+            <span class="stat-label">Stock faible</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon>trending_up</mat-icon>
+            <span class="stat-value">{{ contextData?.salesTrend || '+0%' }}</span>
+            <span class="stat-label">Tendance</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- File upload dialog -->
+<input type="file"
+       #fileInput
+       style="display: none"
+       (change)="onFileSelected($event)"
+       accept=".pdf,.doc,.docx,.txt,.csv,.xlsx">

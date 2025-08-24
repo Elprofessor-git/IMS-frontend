@@ -1,0 +1,343 @@
+<div class="commandes-container">
+  <div class="header-section">
+    <div class="title-section">
+      <h1 class="page-title">
+        <mat-icon>shopping_cart</mat-icon>
+        Gestion des Commandes
+      </h1>
+      <p class="page-subtitle">Gérez et suivez toutes vos commandes clients</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openNewOrderDialog()">
+        <mat-icon>add</mat-icon>
+        Nouvelle Commande
+      </button>
+
+      <button mat-stroked-button (click)="exportOrders()" [disabled]="loading">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <!-- Search -->
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput
+                 [(ngModel)]="searchTerm"
+                 (input)="onSearch()"
+                 placeholder="Numéro, client, produit...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <!-- Status Filter -->
+        <mat-form-field appearance="outline">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="En_Attente">En Attente</mat-option>
+            <mat-option value="Confirmee">Confirmée</mat-option>
+            <mat-option value="En_Preparation">En Préparation</mat-option>
+            <mat-option value="Expediee">Expédiée</mat-option>
+            <mat-option value="Livree">Livrée</mat-option>
+            <mat-option value="Annulee">Annulée</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Date Range -->
+        <mat-form-field appearance="outline">
+          <mat-label>Date de début</mat-label>
+          <input matInput
+                 [matDatepicker]="startPicker"
+                 [(ngModel)]="dateRange.start"
+                 (dateChange)="onFilterChange()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Date de fin</mat-label>
+          <input matInput
+                 [matDatepicker]="endPicker"
+                 [(ngModel)]="dateRange.end"
+                 (dateChange)="onFilterChange()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Clear Filters -->
+        <button mat-icon-button
+                matTooltip="Effacer les filtres"
+                (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistics Cards -->
+  <div class="stats-row">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon pending">
+            <mat-icon>hourglass_empty</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ statistics.pending }}</h3>
+            <p>En Attente</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon confirmed">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ statistics.confirmed }}</h3>
+            <p>Confirmées</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon shipped">
+            <mat-icon>local_shipping</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ statistics.shipped }}</h3>
+            <p>Expédiées</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon revenue">
+            <mat-icon>euro</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ statistics.totalRevenue | currency:'EUR':'symbol':'1.2-2' }}</h3>
+            <p>CA Total</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Orders Table -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>
+        Liste des Commandes
+        <span class="orders-count">({{ totalOrders }} commandes)</span>
+      </mat-card-title>
+
+      <div class="table-actions">
+        <mat-form-field appearance="outline" class="page-size-field">
+          <mat-label>Éléments par page</mat-label>
+          <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange()">
+            <mat-option value="10">10</mat-option>
+            <mat-option value="25">25</mat-option>
+            <mat-option value="50">50</mat-option>
+            <mat-option value="100">100</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" class="orders-table" matSort>
+
+          <!-- Selection Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="selection.hasValue() && !isAllSelected()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let order">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? selection.toggle(order) : null"
+                            [checked]="selection.isSelected(order)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
+          <!-- Order Number Column -->
+          <ng-container matColumnDef="numeroCommande">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Commande</th>
+            <td mat-cell *matCellDef="let order">
+              <span class="order-number">{{ order.numeroCommande }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Client Column -->
+          <ng-container matColumnDef="client">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+            <td mat-cell *matCellDef="let order">
+              <div class="client-info">
+                <span class="client-name">{{ order.client?.nom || 'N/A' }}</span>
+                <span class="client-email">{{ order.client?.email || '' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Date Column -->
+          <ng-container matColumnDef="dateCommande">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+            <td mat-cell *matCellDef="let order">
+              {{ order.dateCommande | date:'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+            <td mat-cell *matCellDef="let order">
+              <mat-chip [ngClass]="getStatusClass(order.statut)">
+                <mat-icon>{{ getStatusIcon(order.statut) }}</mat-icon>
+                {{ getStatusLabel(order.statut) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Total Column -->
+          <ng-container matColumnDef="montantTotal">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
+            <td mat-cell *matCellDef="let order">
+              <span class="amount">{{ order.montantTotal | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Items Count Column -->
+          <ng-container matColumnDef="itemsCount">
+            <th mat-header-cell *matHeaderCellDef>Articles</th>
+            <td mat-cell *matCellDef="let order">
+              <span class="items-count">{{ order.detailsCommande?.length || 0 }} articles</span>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let order">
+              <div class="action-buttons">
+                <button mat-icon-button
+                        matTooltip="Voir détails"
+                        (click)="viewOrder(order); $event.stopPropagation()">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        matTooltip="Modifier"
+                        (click)="editOrder(order); $event.stopPropagation()"
+                        [disabled]="order.statut === 'Livree' || order.statut === 'Annulee'">
+                  <mat-icon>edit</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        matTooltip="Imprimer"
+                        (click)="printOrder(order); $event.stopPropagation()">
+                  <mat-icon>print</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        matTooltip="Supprimer"
+                        (click)="deleteOrder(order); $event.stopPropagation()"
+                        [disabled]="order.statut !== 'En_Attente'"
+                        color="warn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let order; columns: displayedColumns;"
+              (click)="viewOrder(order)"
+              class="order-row">
+          </tr>
+        </table>
+
+        <!-- No Data -->
+        <div *ngIf="!loading && dataSource.data.length === 0" class="no-data">
+          <mat-icon>inbox</mat-icon>
+          <h3>Aucune commande trouvée</h3>
+          <p>{{ searchTerm ? 'Aucun résultat pour votre recherche' : 'Commencez par créer votre première commande' }}</p>
+          <button mat-raised-button color="primary" (click)="openNewOrderDialog()">
+            <mat-icon>add</mat-icon>
+            Nouvelle Commande
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="loading" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des commandes...</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator [length]="totalOrders"
+                     [pageSize]="pageSize"
+                     [pageSizeOptions]="[10, 25, 50, 100]"
+                     [pageIndex]="currentPage"
+                     (page)="onPageChange($event)"
+                     showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Bulk Actions Bar -->
+  <div class="bulk-actions-bar" *ngIf="selection.hasValue()">
+    <div class="bulk-info">
+      <span>{{ selection.selected.length }} commande(s) sélectionnée(s)</span>
+    </div>
+
+    <div class="bulk-buttons">
+      <button mat-stroked-button (click)="bulkUpdateStatus()">
+        <mat-icon>update</mat-icon>
+        Changer le statut
+      </button>
+
+      <button mat-stroked-button (click)="bulkExport()">
+        <mat-icon>download</mat-icon>
+        Exporter sélection
+      </button>
+
+      <button mat-stroked-button (click)="bulkPrint()">
+        <mat-icon>print</mat-icon>
+        Imprimer
+      </button>
+
+      <button mat-stroked-button
+              color="warn"
+              (click)="bulkDelete()"
+              [disabled]="!canBulkDelete()">
+        <mat-icon>delete</mat-icon>
+        Supprimer
+      </button>
+
+      <button mat-icon-button (click)="selection.clear()" matTooltip="Désélectionner tout">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

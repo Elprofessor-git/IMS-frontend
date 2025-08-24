@@ -1,0 +1,358 @@
+<div class="importation-form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <div mat-card-avatar class="header-icon">
+        <mat-icon>{{ isEditMode ? 'edit' : 'add_box' }}</mat-icon>
+      </div>
+      <mat-card-title>{{ isEditMode ? 'Modifier l\'Importation' : 'Nouvelle Importation' }}</mat-card-title>
+      <mat-card-subtitle>{{ isEditMode ? 'Modification des détails d\'importation' : 'Création d\'une nouvelle importation' }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="importationForm" (ngSubmit)="onSubmit()" class="importation-form">
+        <!-- Informations générales -->
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Numéro d'importation</mat-label>
+              <input matInput formControlName="numeroImportation" placeholder="IMP-2024-001">
+              <mat-error *ngIf="importationForm.get('numeroImportation')?.hasError('required')">
+                Le numéro d'importation est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date d'importation</mat-label>
+              <input matInput [matDatepicker]="dateImportationPicker" formControlName="dateImportation">
+              <mat-datepicker-toggle matIconSuffix [for]="dateImportationPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateImportationPicker></mat-datepicker>
+              <mat-error *ngIf="importationForm.get('dateImportation')?.hasError('required')">
+                La date d'importation est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Fournisseur</mat-label>
+              <mat-select formControlName="fournisseurId" (selectionChange)="onFournisseurChange($event.value)">
+                <mat-option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
+                  {{ fournisseur.nom }} - {{ fournisseur.pays }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="importationForm.get('fournisseurId')?.hasError('required')">
+                Le fournisseur est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Statut</mat-label>
+              <mat-select formControlName="statut">
+                <mat-option value="En_Attente">En Attente</mat-option>
+                <mat-option value="En_Transit">En Transit</mat-option>
+                <mat-option value="Arrivee">Arrivée</mat-option>
+                <mat-option value="Dedouanee">Dédouanée</mat-option>
+                <mat-option value="Receptionnee">Réceptionnée</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Pays d'origine</mat-label>
+              <mat-select formControlName="paysOrigine">
+                <mat-option value="Chine">Chine</mat-option>
+                <mat-option value="Inde">Inde</mat-option>
+                <mat-option value="Bangladesh">Bangladesh</mat-option>
+                <mat-option value="Vietnam">Vietnam</mat-option>
+                <mat-option value="Turquie">Turquie</mat-option>
+                <mat-option value="Pakistan">Pakistan</mat-option>
+                <mat-option value="Autre">Autre</mat-option>
+              </mat-select>
+              <mat-error *ngIf="importationForm.get('paysOrigine')?.hasError('required')">
+                Le pays d'origine est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Port de départ</mat-label>
+              <input matInput formControlName="portDepart" placeholder="Shanghai">
+              <mat-error *ngIf="importationForm.get('portDepart')?.hasError('required')">
+                Le port de départ est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="third-width">
+              <mat-label>Port d'arrivée</mat-label>
+              <input matInput formControlName="portArrivee" placeholder="Le Havre">
+              <mat-error *ngIf="importationForm.get('portArrivee')?.hasError('required')">
+                Le port d'arrivée est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Informations fournisseur sélectionné -->
+        <div class="form-section" *ngIf="selectedFournisseur">
+          <h3>Informations Fournisseur</h3>
+          <div class="fournisseur-info">
+            <div class="fournisseur-details">
+              <div class="info-item">
+                <strong>{{ selectedFournisseur.nom }}</strong>
+                <span class="fournisseur-type">{{ selectedFournisseur.typeFournisseur }}</span>
+              </div>
+              <div class="info-item">
+                <mat-icon>email</mat-icon>
+                <span>{{ selectedFournisseur.email }}</span>
+              </div>
+              <div class="info-item">
+                <mat-icon>phone</mat-icon>
+                <span>{{ selectedFournisseur.telephone }}</span>
+              </div>
+              <div class="info-item">
+                <mat-icon>location_on</mat-icon>
+                <span>{{ selectedFournisseur.adresse }}, {{ selectedFournisseur.ville }}, {{ selectedFournisseur.pays }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates importantes -->
+        <div class="form-section">
+          <h3>Dates Importantes</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date d'expédition</mat-label>
+              <input matInput [matDatepicker]="dateExpeditionPicker" formControlName="dateExpedition">
+              <mat-datepicker-toggle matIconSuffix [for]="dateExpeditionPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateExpeditionPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date d'arrivée prévue</mat-label>
+              <input matInput [matDatepicker]="dateArriveePicker" formControlName="dateArriveePrevue">
+              <mat-datepicker-toggle matIconSuffix [for]="dateArriveePicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateArriveePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date de dédouanement</mat-label>
+              <input matInput [matDatepicker]="dateDedouanementPicker" formControlName="dateDedouanement">
+              <mat-datepicker-toggle matIconSuffix [for]="dateDedouanementPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateDedouanementPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date de réception</mat-label>
+              <input matInput [matDatepicker]="dateReceptionPicker" formControlName="dateReception">
+              <mat-datepicker-toggle matIconSuffix [for]="dateReceptionPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dateReceptionPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Articles à importer -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Articles à Importer</h3>
+            <button type="button" mat-raised-button color="primary" (click)="addLigneImportation()">
+              <mat-icon>add</mat-icon>
+              Ajouter un article
+            </button>
+          </div>
+
+          <div formArrayName="lignesImportation" class="lignes-container">
+            <mat-card *ngFor="let ligne of lignesImportationArray.controls; let i = index" [formGroupName]="i" class="ligne-card">
+              <mat-card-header>
+                <mat-card-title>Article {{ i + 1 }}</mat-card-title>
+                <div class="ligne-actions">
+                  <button type="button" mat-icon-button color="warn" (click)="removeLigneImportation(i)"
+                          [disabled]="lignesImportationArray.length === 1">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </mat-card-header>
+
+              <mat-card-content>
+                <div class="ligne-form">
+                  <mat-form-field appearance="outline" class="article-field">
+                    <mat-label>Article</mat-label>
+                    <mat-select formControlName="articleId" (selectionChange)="onArticleChange(i, $event.value)">
+                      <mat-option *ngFor="let article of articles" [value]="article.id">
+                        {{ article.nom }} - {{ article.reference }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="ligne.get('articleId')?.hasError('required')">
+                      L'article est obligatoire
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="quantity-field">
+                    <mat-label>Quantité</mat-label>
+                    <input matInput type="number" formControlName="quantite" min="1"
+                           (input)="calculateLigneTotal(i)">
+                    <mat-error *ngIf="ligne.get('quantite')?.hasError('required')">
+                      La quantité est obligatoire
+                    </mat-error>
+                    <mat-error *ngIf="ligne.get('quantite')?.hasError('min')">
+                      La quantité doit être supérieure à 0
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="price-field">
+                    <mat-label>Prix unitaire</mat-label>
+                    <input matInput type="number" formControlName="prixUnitaire" min="0" step="0.01"
+                           (input)="calculateLigneTotal(i)">
+                    <span matTextPrefix>€ </span>
+                    <mat-error *ngIf="ligne.get('prixUnitaire')?.hasError('required')">
+                      Le prix unitaire est obligatoire
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="status-field">
+                    <mat-label>Statut</mat-label>
+                    <mat-select formControlName="statut">
+                      <mat-option value="En_Attente">En Attente</mat-option>
+                      <mat-option value="Recu">Reçu</mat-option>
+                      <mat-option value="Partiel">Partiel</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <div class="total-field">
+                    <strong>Total: {{ getLigneTotal(i) | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- Coûts et finances -->
+        <div class="form-section">
+          <h3>Coûts et Finances</h3>
+          <div class="costs-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Valeur des marchandises</mat-label>
+              <input matInput type="number" formControlName="valeurMarchandises" min="0" step="0.01"
+                     (input)="calculateTotalCosts()">
+              <span matTextPrefix>€ </span>
+              <mat-error *ngIf="importationForm.get('valeurMarchandises')?.hasError('required')">
+                La valeur des marchandises est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Frais de transport</mat-label>
+              <input matInput type="number" formControlName="fraisTransport" min="0" step="0.01"
+                     (input)="calculateTotalCosts()">
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Droits de douane</mat-label>
+              <input matInput type="number" formControlName="droitsDouane" min="0" step="0.01"
+                     (input)="calculateTotalCosts()">
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>TVA</mat-label>
+              <input matInput type="number" formControlName="tva" min="0" step="0.01"
+                     (input)="calculateTotalCosts()">
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Autres frais</mat-label>
+              <input matInput type="number" formControlName="autresFrais" min="0" step="0.01"
+                     (input)="calculateTotalCosts()">
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="total-field">
+              <mat-label>Coût total</mat-label>
+              <input matInput type="number" [value]="getTotalCost()" readonly>
+              <span matTextPrefix>€ </span>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Documents douaniers -->
+        <div class="form-section">
+          <h3>Documents Douaniers</h3>
+          <div class="documents-grid">
+            <div class="document-checkbox">
+              <mat-checkbox formControlName="factureCommerciale">
+                Facture commerciale
+              </mat-checkbox>
+              <button type="button" mat-icon-button (click)="uploadDocument('facture')"
+                      *ngIf="importationForm.get('factureCommerciale')?.value">
+                <mat-icon>upload_file</mat-icon>
+              </button>
+            </div>
+
+            <div class="document-checkbox">
+              <mat-checkbox formControlName="connaissement">
+                Connaissement
+              </mat-checkbox>
+              <button type="button" mat-icon-button (click)="uploadDocument('connaissement')"
+                      *ngIf="importationForm.get('connaissement')?.value">
+                <mat-icon>upload_file</mat-icon>
+              </button>
+            </div>
+
+            <div class="document-checkbox">
+              <mat-checkbox formControlName="certificatOrigine">
+                Certificat d'origine
+              </mat-checkbox>
+              <button type="button" mat-icon-button (click)="uploadDocument('certificat')"
+                      *ngIf="importationForm.get('certificatOrigine')?.value">
+                <mat-icon>upload_file</mat-icon>
+              </button>
+            </div>
+
+            <div class="document-checkbox">
+              <mat-checkbox formControlName="listeColisage">
+                Liste de colisage
+              </mat-checkbox>
+              <button type="button" mat-icon-button (click)="uploadDocument('colisage')"
+                      *ngIf="importationForm.get('listeColisage')?.value">
+                <mat-icon>upload_file</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section">
+          <h3>Notes et Commentaires</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes internes</mat-label>
+              <textarea matInput formControlName="notes" rows="4"
+                        placeholder="Notes internes sur cette importation..."></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button (click)="onCancel()">
+            Annuler
+          </button>
+          <button type="button" mat-stroked-button (click)="saveDraft()" [disabled]="loading">
+            Enregistrer comme brouillon
+          </button>
+          <button type="submit" mat-raised-button color="primary"
+                  [disabled]="importationForm.invalid || loading">
+            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <span *ngIf="!loading">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

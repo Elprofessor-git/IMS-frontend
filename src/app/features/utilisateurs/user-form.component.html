@@ -1,0 +1,473 @@
+<div class="user-form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <h2>
+      <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+      {{ isEditMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form">
+
+    <!-- Personal Information Section -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Informations personnelles
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Avatar Upload -->
+          <div class="avatar-section">
+            <div class="avatar-preview">
+              <img *ngIf="avatarPreview; else defaultAvatar"
+                   [src]="avatarPreview"
+                   alt="Avatar preview">
+              <ng-template #defaultAvatar>
+                <mat-icon>person</mat-icon>
+              </ng-template>
+            </div>
+            <div class="avatar-actions">
+              <input #fileInput type="file" accept="image/*"
+                     (change)="onAvatarChange($event)" hidden>
+              <button type="button" mat-stroked-button (click)="fileInput.click()">
+                <mat-icon>camera_alt</mat-icon>
+                Changer la photo
+              </button>
+              <button type="button" mat-icon-button (click)="removeAvatar()"
+                      *ngIf="avatarPreview" matTooltip="Supprimer la photo">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Name Fields -->
+          <div class="name-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>Prénom *</mat-label>
+              <input matInput formControlName="prenom" placeholder="Entrez le prénom">
+              <mat-error *ngIf="userForm.get('prenom')?.hasError('required')">
+                Le prénom est requis
+              </mat-error>
+              <mat-error *ngIf="userForm.get('prenom')?.hasError('minlength')">
+                Le prénom doit contenir au moins 2 caractères
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nom *</mat-label>
+              <input matInput formControlName="nom" placeholder="Entrez le nom">
+              <mat-error *ngIf="userForm.get('nom')?.hasError('required')">
+                Le nom est requis
+              </mat-error>
+              <mat-error *ngIf="userForm.get('nom')?.hasError('minlength')">
+                Le nom doit contenir au moins 2 caractères
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Contact Fields -->
+          <mat-form-field appearance="outline">
+            <mat-label>Email *</mat-label>
+            <input matInput type="email" formControlName="email"
+                   placeholder="utilisateur@exemple.com">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error *ngIf="userForm.get('email')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+            <mat-error *ngIf="userForm.get('email')?.hasError('emailExists')">
+              Cet email est déjà utilisé
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput type="tel" formControlName="telephone"
+                   placeholder="+33 1 23 45 67 89">
+            <mat-icon matSuffix>phone</mat-icon>
+            <mat-error *ngIf="userForm.get('telephone')?.hasError('pattern')">
+              Format de téléphone invalide
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Date of Birth -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date de naissance</mat-label>
+            <input matInput [matDatepicker]="birthDatePicker"
+                   formControlName="dateNaissance">
+            <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #birthDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Gender -->
+          <mat-form-field appearance="outline">
+            <mat-label>Genre</mat-label>
+            <mat-select formControlName="genre">
+              <mat-option value="">Non spécifié</mat-option>
+              <mat-option value="M">Masculin</mat-option>
+              <mat-option value="F">Féminin</mat-option>
+              <mat-option value="AUTRE">Autre</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Professional Information Section -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>work</mat-icon>
+          Informations professionnelles
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Role -->
+          <mat-form-field appearance="outline">
+            <mat-label>Rôle *</mat-label>
+            <mat-select formControlName="role" (selectionChange)="onRoleChange($event)">
+              <mat-option value="ADMIN">
+                <mat-icon>admin_panel_settings</mat-icon>
+                Administrateur
+              </mat-option>
+              <mat-option value="MANAGER">
+                <mat-icon>supervisor_account</mat-icon>
+                Manager
+              </mat-option>
+              <mat-option value="EMPLOYEE">
+                <mat-icon>person</mat-icon>
+                Employé
+              </mat-option>
+              <mat-option value="VIEWER">
+                <mat-icon>visibility</mat-icon>
+                Lecteur
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+              Le rôle est requis
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Department -->
+          <mat-form-field appearance="outline">
+            <mat-label>Département *</mat-label>
+            <mat-select formControlName="departement">
+              <mat-option value="PRODUCTION">
+                <mat-icon>precision_manufacturing</mat-icon>
+                Production
+              </mat-option>
+              <mat-option value="LOGISTIQUE">
+                <mat-icon>local_shipping</mat-icon>
+                Logistique
+              </mat-option>
+              <mat-option value="COMMERCIAL">
+                <mat-icon>business</mat-icon>
+                Commercial
+              </mat-option>
+              <mat-option value="ADMINISTRATION">
+                <mat-icon>admin_panel_settings</mat-icon>
+                Administration
+              </mat-option>
+              <mat-option value="QUALITE">
+                <mat-icon>verified</mat-icon>
+                Qualité
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.get('departement')?.hasError('required')">
+              Le département est requis
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Job Title -->
+          <mat-form-field appearance="outline">
+            <mat-label>Poste</mat-label>
+            <input matInput formControlName="poste"
+                   placeholder="Titre du poste">
+            <mat-icon matSuffix>badge</mat-icon>
+          </mat-form-field>
+
+          <!-- Manager -->
+          <mat-form-field appearance="outline">
+            <mat-label>Manager</mat-label>
+            <mat-select formControlName="managerId">
+              <mat-option value="">Aucun manager</mat-option>
+              <mat-option *ngFor="let manager of availableManagers" [value]="manager.id">
+                {{ manager.prenom }} {{ manager.nom }} - {{ manager.poste }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Hire Date -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date d'embauche</mat-label>
+            <input matInput [matDatepicker]="hireDatePicker"
+                   formControlName="dateEmbauche">
+            <mat-datepicker-toggle matIconSuffix [for]="hireDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #hireDatePicker></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Salary -->
+          <mat-form-field appearance="outline">
+            <mat-label>Salaire</mat-label>
+            <input matInput type="number" formControlName="salaire"
+                   placeholder="0">
+            <span matTextPrefix>€&nbsp;</span>
+            <span matTextSuffix>&nbsp;/mois</span>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Account Settings Section -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Paramètres du compte
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Username -->
+          <mat-form-field appearance="outline">
+            <mat-label>Nom d'utilisateur *</mat-label>
+            <input matInput formControlName="username"
+                   placeholder="nom.utilisateur">
+            <mat-icon matSuffix>account_circle</mat-icon>
+            <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+              Le nom d'utilisateur est requis
+            </mat-error>
+            <mat-error *ngIf="userForm.get('username')?.hasError('minlength')">
+              Le nom d'utilisateur doit contenir au moins 3 caractères
+            </mat-error>
+            <mat-error *ngIf="userForm.get('username')?.hasError('usernameExists')">
+              Ce nom d'utilisateur est déjà pris
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Password (only for new users) -->
+          <mat-form-field appearance="outline" *ngIf="!isEditMode">
+            <mat-label>Mot de passe *</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'"
+                   formControlName="password" placeholder="Mot de passe">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hidePassword = !hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+              Le mot de passe est requis
+            </mat-error>
+            <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+              Le mot de passe doit contenir au moins 8 caractères
+            </mat-error>
+            <mat-error *ngIf="userForm.get('password')?.hasError('pattern')">
+              Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Confirm Password (only for new users) -->
+          <mat-form-field appearance="outline" *ngIf="!isEditMode">
+            <mat-label>Confirmer le mot de passe *</mat-label>
+            <input matInput [type]="hideConfirmPassword ? 'password' : 'text'"
+                   formControlName="confirmPassword" placeholder="Confirmer le mot de passe">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hideConfirmPassword = !hideConfirmPassword">
+              <mat-icon>{{ hideConfirmPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('required')">
+              La confirmation du mot de passe est requise
+            </mat-error>
+            <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('mismatch')">
+              Les mots de passe ne correspondent pas
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Status -->
+          <mat-form-field appearance="outline">
+            <mat-label>Statut</mat-label>
+            <mat-select formControlName="statut">
+              <mat-option value="ACTIF">
+                <mat-icon>check_circle</mat-icon>
+                Actif
+              </mat-option>
+              <mat-option value="INACTIF">
+                <mat-icon>cancel</mat-icon>
+                Inactif
+              </mat-option>
+              <mat-option value="SUSPENDU">
+                <mat-icon>pause_circle</mat-icon>
+                Suspendu
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Language -->
+          <mat-form-field appearance="outline">
+            <mat-label>Langue</mat-label>
+            <mat-select formControlName="langue">
+              <mat-option value="fr">Français</mat-option>
+              <mat-option value="en">English</mat-option>
+              <mat-option value="es">Español</mat-option>
+              <mat-option value="de">Deutsch</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Account Options -->
+        <div class="account-options">
+          <mat-checkbox formControlName="mustChangePassword">
+            Forcer le changement de mot de passe à la prochaine connexion
+          </mat-checkbox>
+
+          <mat-checkbox formControlName="emailNotifications">
+            Recevoir les notifications par email
+          </mat-checkbox>
+
+          <mat-checkbox formControlName="smsNotifications">
+            Recevoir les notifications par SMS
+          </mat-checkbox>
+
+          <mat-checkbox formControlName="twoFactorAuth">
+            Activer l'authentification à deux facteurs
+          </mat-checkbox>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Permissions Section (only for admins) -->
+    <mat-card class="form-section" *ngIf="canManagePermissions">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>security</mat-icon>
+          Permissions spéciales
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="permissions-grid">
+          <div class="permission-category" *ngFor="let category of permissionCategories">
+            <h4>{{ category.name }}</h4>
+            <div class="permission-list">
+              <mat-checkbox *ngFor="let permission of category.permissions"
+                           [formControlName]="'permission_' + permission.key"
+                           [disabled]="!canEditPermission(permission)">
+                {{ permission.label }}
+                <span class="permission-description">{{ permission.description }}</span>
+              </mat-checkbox>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Address Section -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>location_on</mat-icon>
+          Adresse
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Adresse</mat-label>
+            <input matInput formControlName="adresse"
+                   placeholder="Numéro et nom de rue">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Code postal</mat-label>
+            <input matInput formControlName="codePostal"
+                   placeholder="75000">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Ville</mat-label>
+            <input matInput formControlName="ville"
+                   placeholder="Paris">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Pays</mat-label>
+            <mat-select formControlName="pays">
+              <mat-option value="FR">France</mat-option>
+              <mat-option value="BE">Belgique</mat-option>
+              <mat-option value="CH">Suisse</mat-option>
+              <mat-option value="CA">Canada</mat-option>
+              <mat-option value="US">États-Unis</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Notes Section -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>note</mat-icon>
+          Notes et commentaires
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes"
+                    rows="4"
+                    placeholder="Notes internes sur l'utilisateur..."></textarea>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <div class="action-buttons">
+        <button type="button" mat-stroked-button (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Annuler
+        </button>
+
+        <button type="button" mat-stroked-button (click)="onReset()"
+                [disabled]="!userForm.dirty">
+          <mat-icon>refresh</mat-icon>
+          Réinitialiser
+        </button>
+
+        <button type="submit" mat-raised-button color="primary"
+                [disabled]="userForm.invalid || loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'person_add' }}</mat-icon>
+          {{ isEditMode ? 'Modifier' : 'Créer' }}
+        </button>
+      </div>
+
+      <!-- Form Status -->
+      <div class="form-status" *ngIf="userForm.dirty">
+        <mat-icon class="status-icon"
+                  [class.valid]="userForm.valid"
+                  [class.invalid]="userForm.invalid">
+          {{ userForm.valid ? 'check_circle' : 'error' }}
+        </mat-icon>
+        <span class="status-text">
+          {{ userForm.valid ? 'Formulaire valide' : 'Veuillez corriger les erreurs' }}
+        </span>
+      </div>
+    </div>
+  </form>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>{{ isEditMode ? 'Modification en cours...' : 'Création en cours...' }}</p>
+  </div>
+</div>

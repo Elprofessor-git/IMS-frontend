@@ -1,0 +1,439 @@
+<div class="tache-form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <h2>
+        <mat-icon>{{isEditMode ? 'edit' : 'add_task'}}</mat-icon>
+        {{isEditMode ? 'Modifier la tâche' : 'Nouvelle tâche'}}
+      </h2>
+      <p class="subtitle" *ngIf="!isEditMode">Créez une nouvelle tâche pour organiser votre travail</p>
+      <p class="subtitle" *ngIf="isEditMode">Modifiez les informations de la tâche</p>
+    </div>
+
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulaire -->
+  <form [formGroup]="tacheForm" (ngSubmit)="onSubmit()" class="task-form">
+
+    <!-- Informations de base -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Informations générales
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Titre -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Titre de la tâche *</mat-label>
+            <input matInput
+                   formControlName="titre"
+                   placeholder="Entrez le titre de la tâche"
+                   maxlength="200">
+            <mat-hint align="end">{{tacheForm.get('titre')?.value?.length || 0}}/200</mat-hint>
+            <mat-error *ngIf="tacheForm.get('titre')?.hasError('required')">
+              Le titre est requis
+            </mat-error>
+            <mat-error *ngIf="tacheForm.get('titre')?.hasError('minlength')">
+              Le titre doit contenir au moins 3 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput
+                      formControlName="description"
+                      rows="4"
+                      placeholder="Décrivez la tâche en détail..."
+                      maxlength="1000"></textarea>
+            <mat-hint align="end">{{tacheForm.get('description')?.value?.length || 0}}/1000</mat-hint>
+          </mat-form-field>
+
+          <!-- Type de tâche -->
+          <mat-form-field appearance="outline">
+            <mat-label>Type de tâche</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="PRODUCTION">
+                <mat-icon>precision_manufacturing</mat-icon>
+                Production
+              </mat-option>
+              <mat-option value="MAINTENANCE">
+                <mat-icon>build</mat-icon>
+                Maintenance
+              </mat-option>
+              <mat-option value="QUALITE">
+                <mat-icon>verified</mat-icon>
+                Contrôle qualité
+              </mat-option>
+              <mat-option value="LOGISTIQUE">
+                <mat-icon>local_shipping</mat-icon>
+                Logistique
+              </mat-option>
+              <mat-option value="ADMINISTRATIF">
+                <mat-icon>description</mat-icon>
+                Administratif
+              </mat-option>
+              <mat-option value="AUTRE">
+                <mat-icon>more_horiz</mat-icon>
+                Autre
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Priorité -->
+          <mat-form-field appearance="outline">
+            <mat-label>Priorité *</mat-label>
+            <mat-select formControlName="priorite">
+              <mat-option value="BASSE">
+                <mat-icon class="priority-low">keyboard_arrow_down</mat-icon>
+                Basse
+              </mat-option>
+              <mat-option value="MOYENNE">
+                <mat-icon class="priority-medium">remove</mat-icon>
+                Moyenne
+              </mat-option>
+              <mat-option value="HAUTE">
+                <mat-icon class="priority-high">keyboard_arrow_up</mat-icon>
+                Haute
+              </mat-option>
+              <mat-option value="CRITIQUE">
+                <mat-icon class="priority-critical">priority_high</mat-icon>
+                Critique
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="tacheForm.get('priorite')?.hasError('required')">
+              La priorité est requise
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Statut (en mode édition) -->
+          <mat-form-field appearance="outline" *ngIf="isEditMode">
+            <mat-label>Statut</mat-label>
+            <mat-select formControlName="statut">
+              <mat-option value="EN_ATTENTE">
+                <mat-icon>schedule</mat-icon>
+                En attente
+              </mat-option>
+              <mat-option value="EN_COURS">
+                <mat-icon>play_arrow</mat-icon>
+                En cours
+              </mat-option>
+              <mat-option value="EN_PAUSE">
+                <mat-icon>pause</mat-icon>
+                En pause
+              </mat-option>
+              <mat-option value="TERMINEE">
+                <mat-icon>check_circle</mat-icon>
+                Terminée
+              </mat-option>
+              <mat-option value="ANNULEE">
+                <mat-icon>cancel</mat-icon>
+                Annulée
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Assignation et dates -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>schedule</mat-icon>
+          Assignation et planification
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Assigné à -->
+          <mat-form-field appearance="outline">
+            <mat-label>Assigné à</mat-label>
+            <mat-select formControlName="assigneId">
+              <mat-option value="">
+                <mat-icon>person_off</mat-icon>
+                Non assigné
+              </mat-option>
+              <mat-option *ngFor="let user of users" [value]="user.id">
+                <mat-icon>person</mat-icon>
+                {{user.prenom}} {{user.nom}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Date d'échéance -->
+          <mat-form-field appearance="outline">
+            <mat-label>Date d'échéance</mat-label>
+            <input matInput
+                   [matDatepicker]="datePicker"
+                   formControlName="dateEcheance"
+                   [min]="minDate">
+            <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+            <mat-datepicker #datePicker></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Heure d'échéance -->
+          <mat-form-field appearance="outline" *ngIf="tacheForm.get('dateEcheance')?.value">
+            <mat-label>Heure d'échéance</mat-label>
+            <input matInput
+                   type="time"
+                   formControlName="heureEcheance">
+          </mat-form-field>
+
+          <!-- Temps estimé -->
+          <mat-form-field appearance="outline">
+            <mat-label>Temps estimé (heures)</mat-label>
+            <input matInput
+                   type="number"
+                   formControlName="tempsEstime"
+                   min="0"
+                   step="0.5"
+                   placeholder="0">
+            <span matSuffix>h</span>
+            <mat-error *ngIf="tacheForm.get('tempsEstime')?.hasError('min')">
+              Le temps doit être positif
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Progression (en mode édition) -->
+    <mat-card class="form-section" *ngIf="isEditMode">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>trending_up</mat-icon>
+          Progression et suivi
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Progression -->
+          <div class="progress-section full-width">
+            <div class="progress-header">
+              <span class="progress-label">Progression: {{tacheForm.get('progression')?.value || 0}}%</span>
+              <mat-slider class="progress-slider"
+                          formControlName="progression"
+                          min="0"
+                          max="100"
+                          step="5"
+                          discrete
+                          [displayWith]="formatSliderLabel">
+                <input matSliderThumb>
+              </mat-slider>
+            </div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="tacheForm.get('progression')?.value || 0"
+              [color]="getProgressColor(tacheForm.get('progression')?.value || 0)">
+            </mat-progress-bar>
+          </div>
+
+          <!-- Temps passé -->
+          <mat-form-field appearance="outline">
+            <mat-label>Temps passé (heures)</mat-label>
+            <input matInput
+                   type="number"
+                   formControlName="tempsPasse"
+                   min="0"
+                   step="0.25"
+                   placeholder="0">
+            <span matSuffix>h</span>
+            <mat-error *ngIf="tacheForm.get('tempsPasse')?.hasError('min')">
+              Le temps doit être positif
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Commentaire de progression -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Commentaire sur l'avancement</mat-label>
+            <textarea matInput
+                      formControlName="commentaireProgression"
+                      rows="3"
+                      placeholder="Décrivez l'avancement de la tâche..."
+                      maxlength="500"></textarea>
+            <mat-hint align="end">{{tacheForm.get('commentaireProgression')?.value?.length || 0}}/500</mat-hint>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Dépendances et relations -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>link</mat-icon>
+          Relations et dépendances
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <!-- Tâche parente -->
+          <mat-form-field appearance="outline">
+            <mat-label>Tâche parente</mat-label>
+            <mat-select formControlName="tacheParenteId">
+              <mat-option value="">
+                <mat-icon>remove</mat-icon>
+                Aucune
+              </mat-option>
+              <mat-option *ngFor="let task of availableParentTasks" [value]="task.id">
+                <mat-icon>{{getPriorityIcon(task.priorite)}}</mat-icon>
+                {{task.titre}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Projet associé -->
+          <mat-form-field appearance="outline">
+            <mat-label>Projet associé</mat-label>
+            <mat-select formControlName="projetId">
+              <mat-option value="">
+                <mat-icon>remove</mat-icon>
+                Aucun projet
+              </mat-option>
+              <mat-option *ngFor="let project of projects" [value]="project.id">
+                <mat-icon>folder</mat-icon>
+                {{project.nom}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Tags -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tags</mat-label>
+            <mat-chip-grid #chipGrid formControlName="tags">
+              <mat-chip-row *ngFor="let tag of selectedTags"
+                            (removed)="removeTag(tag)"
+                            [removable]="true">
+                {{tag}}
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            </mat-chip-grid>
+            <input placeholder="Ajouter un tag..."
+                   [matChipInputFor]="chipGrid"
+                   [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                   (matChipInputTokenEnd)="addTag($event)">
+            <mat-hint>Appuyez sur Entrée ou virgule pour ajouter un tag</mat-hint>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Pièces jointes -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>attach_file</mat-icon>
+          Pièces jointes
+        </mat-card-title>
+        <div class="card-actions">
+          <button type="button" mat-icon-button (click)="fileInput.click()">
+            <mat-icon>add</mat-icon>
+          </button>
+          <input #fileInput
+                 type="file"
+                 multiple
+                 style="display: none"
+                 (change)="onFilesSelected($event)"
+                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="attachments-section">
+          <!-- Fichiers sélectionnés -->
+          <div class="selected-files" *ngIf="selectedFiles.length > 0">
+            <h4>Nouveaux fichiers:</h4>
+            <div class="file-list">
+              <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+                <div class="file-icon">
+                  <mat-icon>{{getFileIcon(file.type)}}</mat-icon>
+                </div>
+                <div class="file-info">
+                  <span class="file-name">{{file.name}}</span>
+                  <span class="file-size">{{formatFileSize(file.size)}}</span>
+                </div>
+                <button type="button" mat-icon-button (click)="removeFile(i)" class="remove-file">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pièces jointes existantes (en mode édition) -->
+          <div class="existing-attachments" *ngIf="isEditMode && existingAttachments.length > 0">
+            <h4>Pièces jointes existantes:</h4>
+            <div class="file-list">
+              <div class="file-item" *ngFor="let attachment of existingAttachments">
+                <div class="file-icon">
+                  <mat-icon>{{getFileIcon(attachment.type)}}</mat-icon>
+                </div>
+                <div class="file-info">
+                  <span class="file-name">{{attachment.nom}}</span>
+                  <span class="file-size">{{formatFileSize(attachment.taille)}}</span>
+                </div>
+                <div class="file-actions">
+                  <button type="button" mat-icon-button (click)="downloadAttachment(attachment)">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                  <button type="button" mat-icon-button (click)="removeAttachment(attachment)" class="remove-file">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Message si aucune pièce jointe -->
+          <div class="no-attachments" *ngIf="selectedFiles.length === 0 && (!isEditMode || existingAttachments.length === 0)">
+            <mat-icon>attach_file</mat-icon>
+            <p>Aucune pièce jointe</p>
+            <small>Cliquez sur le bouton + pour ajouter des fichiers</small>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions du formulaire -->
+    <div class="form-actions">
+      <div class="form-status">
+        <span class="status-indicator" [class]="getFormStatus()">
+          <mat-icon>{{getFormStatusIcon()}}</mat-icon>
+          {{getFormStatusText()}}
+        </span>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" mat-stroked-button (click)="onCancel()">
+          <mat-icon>cancel</mat-icon>
+          Annuler
+        </button>
+        <button type="button" mat-stroked-button (click)="saveDraft()" [disabled]="loading">
+          <mat-icon>save</mat-icon>
+          Sauvegarder brouillon
+        </button>
+        <button type="submit"
+                mat-raised-button
+                color="primary"
+                [disabled]="tacheForm.invalid || loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">{{isEditMode ? 'save' : 'add_task'}}</mat-icon>
+          {{isEditMode ? 'Mettre à jour' : 'Créer la tâche'}}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- État de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>{{isEditMode ? 'Mise à jour de la tâche...' : 'Création de la tâche...'}}</p>
+  </div>
+</div>

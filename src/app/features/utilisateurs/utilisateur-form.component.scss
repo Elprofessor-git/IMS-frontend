@@ -1,0 +1,635 @@
+@import '../../../styles/variables';
+
+.utilisateur-form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+  position: relative;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    max-width: 100%;
+  }
+}
+
+// Header
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+
+  .header-content {
+    flex: 1;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--primary-color);
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+  }
+
+  .close-button {
+    color: var(--text-secondary);
+
+    &:hover {
+      color: var(--error-color);
+      background-color: rgba(var(--error-color-rgb), 0.1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+
+    .header-content h2 {
+      font-size: 24px;
+    }
+  }
+}
+
+// Formulaire
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Section profil
+.profile-section {
+  .profile-upload {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 20px 0;
+
+    .avatar-section {
+      .avatar-container {
+        position: relative;
+        display: inline-block;
+
+        .avatar {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          background: var(--primary-light);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border: 4px solid var(--border-color);
+          transition: all 0.3s ease;
+
+          &.has-image {
+            border-color: var(--primary-color);
+          }
+
+          mat-icon {
+            font-size: 48px;
+            width: 48px;
+            height: 48px;
+            color: var(--primary-color);
+          }
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+
+        .upload-button {
+          position: absolute;
+          bottom: 8px;
+          right: 8px;
+          width: 40px;
+          height: 40px;
+          min-height: 40px;
+
+          mat-icon {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+
+    .profile-info {
+      flex: 1;
+
+      h3 {
+        margin: 0 0 8px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      p {
+        margin: 0 0 16px 0;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      .upload-actions {
+        display: flex;
+        gap: 12px;
+
+        button {
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+    }
+  }
+}
+
+// Sections du formulaire
+.form-section {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  mat-card-header {
+    padding-bottom: 16px;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+
+      mat-icon {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  mat-card-content {
+    padding-top: 0;
+  }
+}
+
+// Grille de formulaire
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// Champs de formulaire
+mat-form-field {
+  width: 100%;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  mat-label {
+    font-weight: 500;
+  }
+}
+
+// Options de rôle
+.role-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  .role-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
+
+  .role-name {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .role-level {
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--text-secondary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+}
+
+// Options de sécurité
+.security-options {
+  padding: 20px;
+  background: var(--surface-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+
+  h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .security-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    mat-slide-toggle {
+      .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+
+        mat-icon {
+          font-size: 18px;
+          color: var(--text-secondary);
+        }
+      }
+    }
+  }
+}
+
+// Section de statut
+.status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+
+    mat-icon {
+      font-size: 20px;
+    }
+  }
+
+  mat-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .account-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+
+      mat-icon {
+        font-size: 16px;
+        color: var(--text-secondary);
+      }
+    }
+  }
+}
+
+// Actions du formulaire
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-top: 32px;
+  position: sticky;
+  bottom: 24px;
+  z-index: 10;
+
+  .form-status {
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+
+      &.valid {
+        background: rgba(var(--success-color-rgb), 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(var(--success-color-rgb), 0.3);
+      }
+
+      &.invalid {
+        background: rgba(var(--error-color-rgb), 0.1);
+        color: var(--error-color);
+        border: 1px solid rgba(var(--error-color-rgb), 0.3);
+      }
+
+      &.pending {
+        background: rgba(var(--warning-color-rgb), 0.1);
+        color: var(--warning-color);
+        border: 1px solid rgba(var(--warning-color-rgb), 0.3);
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    button {
+      min-width: 120px;
+      height: 44px;
+      font-weight: 500;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      mat-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+    position: static;
+
+    .action-buttons {
+      width: 100%;
+      justify-content: stretch;
+
+      button {
+        flex: 1;
+        min-width: auto;
+      }
+    }
+  }
+}
+
+// Overlay de chargement
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+  border-radius: 12px;
+
+  p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+}
+
+// Mode sombre
+@media (prefers-color-scheme: dark) {
+  .utilisateur-form-container {
+    .loading-overlay {
+      background: rgba(var(--background-color-rgb), 0.9);
+    }
+  }
+}
+
+// Animations
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.form-section:nth-child(2) { animation-delay: 0.1s; }
+.form-section:nth-child(3) { animation-delay: 0.2s; }
+.form-section:nth-child(4) { animation-delay: 0.3s; }
+.form-section:nth-child(5) { animation-delay: 0.4s; }
+.form-section:nth-child(6) { animation-delay: 0.5s; }
+.form-section:nth-child(7) { animation-delay: 0.6s; }
+
+// Animation de l'avatar
+.avatar-container .avatar {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.upload-button {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// États de focus améliorés
+mat-form-field.mat-focused {
+  .mat-mdc-form-field-outline {
+    border-color: var(--primary-color);
+    border-width: 2px;
+  }
+}
+
+// Amélioration de l'accessibilité
+button:focus-visible,
+mat-form-field:focus-within,
+mat-slide-toggle:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+// Validation visuelle
+mat-form-field {
+  &.ng-invalid.ng-touched {
+    .mat-mdc-form-field-outline {
+      border-color: var(--error-color);
+    }
+  }
+
+  &.ng-valid.ng-touched {
+    .mat-mdc-form-field-outline {
+      border-color: var(--success-color);
+    }
+  }
+}
+
+// Responsive pour les petits écrans
+@media (max-width: 480px) {
+  .utilisateur-form-container {
+    padding: 12px;
+
+    .form-header {
+      .header-content h2 {
+        font-size: 20px;
+      }
+    }
+
+    .profile-section .profile-upload {
+      .avatar-section .avatar-container .avatar {
+        width: 80px;
+        height: 80px;
+
+        mat-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+        }
+      }
+
+      .upload-button {
+        width: 32px;
+        height: 32px;
+        min-height: 32px;
+
+        mat-icon {
+          font-size: 16px;
+        }
+      }
+    }
+
+    .form-actions {
+      padding: 16px;
+
+      .action-buttons button {
+        min-width: auto;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Impression
+@media print {
+  .utilisateur-form-container {
+    .form-actions,
+    .close-button,
+    button,
+    .upload-button {
+      display: none !important;
+    }
+
+    .form-section {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      break-inside: avoid;
+      margin-bottom: 20px;
+    }
+
+    .loading-overlay {
+      display: none !important;
+    }
+
+    .profile-section .profile-upload {
+      .profile-info .upload-actions {
+        display: none;
+      }
+    }
+  }
+}
+
+// Styles pour les champs de mot de passe
+.password-strength {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+
+  &.weak {
+    background: rgba(var(--error-color-rgb), 0.1);
+    color: var(--error-color);
+  }
+
+  &.medium {
+    background: rgba(var(--warning-color-rgb), 0.1);
+    color: var(--warning-color);
+  }
+
+  &.strong {
+    background: rgba(var(--success-color-rgb), 0.1);
+    color: var(--success-color);
+  }
+}
