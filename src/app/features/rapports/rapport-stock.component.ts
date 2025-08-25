@@ -141,15 +141,15 @@ export class RapportStockComponent implements OnInit {
   getStockStatusClass(item: Stock): string {
     if (!item || !item.article) return '';
     if (item.quantite === 0) return 'stock-out';
-    if (item.quantite <= item.article.seuilAlerte) return 'stock-low';
+    if (item.quantite <= (item.article.seuilAlerte || 0)) return 'stock-low';
     return 'stock-ok';
   }
 
   getStockStatusLabel(item: Stock): string {
     if (!item || !item.article) return 'N/A';
     if (item.quantite === 0) return 'Rupture';
-    if (item.quantite <= item.article.seuilCritique) return 'Critique';
-    if (item.quantite <= item.article.seuilAlerte) return 'Bas';
+    if (item.quantite <= (item.article.seuilCritique || 0)) return 'Critique';
+    if (item.quantite <= (item.article.seuilAlerte || 0)) return 'Bas';
     return 'Normal';
   }
 
