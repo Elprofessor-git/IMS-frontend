@@ -5,7 +5,7 @@ export interface Article {
   imageUrl?: string;
   designation: string;
   description?: string;
-  categorie: string;
+  categorie?: string;
   sousCategorie?: string;
   unite: string;
   reference: string;
