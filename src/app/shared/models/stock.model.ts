@@ -33,7 +33,7 @@ export interface Stock {
   typeStock: TypeStock;
   emplacementPhysique?: string;
   prixUnitaire: number;
-  devise: string;
+  devise?: string;
   dateEntree: Date;
   estValide: boolean;
   validePar?: string;
