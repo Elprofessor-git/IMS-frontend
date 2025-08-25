@@ -195,7 +195,7 @@ export class DashboardComponent implements OnInit {
         this.dashboardCards[0].loading = false;
 
         // Calculer la valeur totale du stock
-        const totalValue = stocks.reduce((sum, stock) => sum + (stock.prix * stock.quantite), 0);
+        const totalValue = stocks.reduce((sum, stock) => sum + (stock.prixUnitaire * stock.quantite), 0);
         this.dashboardCards[3].value = totalValue;
         this.dashboardCards[3].loading = false;
       },

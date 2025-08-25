@@ -2,6 +2,7 @@ import { TacheProduction } from './tache.model';
 
 export interface Article {
   id: number;
+  imageUrl?: string;
   designation: string;
   description?: string;
   categorie: string;
