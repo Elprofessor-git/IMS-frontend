@@ -9,11 +9,11 @@ export interface Article {
   sousCategorie?: string;
   unite: string;
   reference: string;
-  seuilAlerte: number;
-  seuilCritique: number;
+  seuilAlerte?: number;
+  seuilCritique?: number;
   prixUnitaireMoyen: number;
   estActif: boolean;
-  dateCreation: Date;
+  dateCreation?: Date;
   stocks?: Stock[];
   besoinsCommande?: any[];
   lignesAchat?: any[];
