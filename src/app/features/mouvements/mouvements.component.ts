@@ -124,8 +124,14 @@ export class MouvementsComponent implements OnInit {
 
     // Load articles for filter
     this.stockService.getAll().subscribe({
-      next: (articles) => {
-        this.articles = articles;
+      next: (stocks) => {
+        const articleMap = new Map<number, Article>();
+        stocks.forEach(stock => {
+          if (stock.article && !articleMap.has(stock.article.id)) {
+            articleMap.set(stock.article.id, stock.article);
+          }
+        });
+        this.articles = Array.from(articleMap.values());
       },
       error: (error) => {
         console.error('Erreur lors du chargement des articles:', error);
@@ -173,7 +179,7 @@ export class MouvementsComponent implements OnInit {
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filteredData = filteredData.filter(mouvement =>
-        (mouvement.article?.nom && mouvement.article.nom.toLowerCase().includes(term)) ||
+        (mouvement.article?.designation && mouvement.article.designation.toLowerCase().includes(term)) ||
         (mouvement.article?.reference && mouvement.article.reference.toLowerCase().includes(term)) ||
         mouvement.motif.toLowerCase().includes(term) ||
         (mouvement.referenceDocument && mouvement.referenceDocument.toLowerCase().includes(term))

@@ -19,7 +19,8 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { StockService, Article } from '../../core/services/stock.service';
+import { StockService } from '../../core/services/stock.service';
+import { Stock, Article } from '../../shared/models/stock.model';
 
 interface ArticleStats {
   totalArticles: number;
@@ -65,7 +66,7 @@ export class ArticlesComponent implements OnInit {
 
   // Table configuration
   displayedColumns: string[] = ['image', 'article', 'categorie', 'stock', 'prix', 'statut', 'actions'];
-  dataSource = new MatTableDataSource<Article>([]);
+  dataSource = new MatTableDataSource<Stock>([]);
 
   // Pagination
   totalItems = 0;
@@ -78,7 +79,7 @@ export class ArticlesComponent implements OnInit {
   selectedStatutStock = '';
 
   // Data
-  articles: Article[] = [];
+  stocks: Stock[] = [];
   categories: Categorie[] = [];
   stats: ArticleStats | null = null;
 
@@ -106,10 +107,10 @@ export class ArticlesComponent implements OnInit {
 
     // Load articles
     this.stockService.getAll().subscribe({
-      next: (articles) => {
-        this.articles = articles;
-        this.dataSource.data = articles;
-        this.totalItems = articles.length;
+      next: (stocks) => {
+        this.stocks = stocks;
+        this.dataSource.data = stocks;
+        this.totalItems = stocks.length;
         this.calculateStats();
         this.loading = false;
       },
@@ -130,14 +131,14 @@ export class ArticlesComponent implements OnInit {
   }
 
   calculateStats(): void {
-    const total = this.articles.length;
-    const enStock = this.articles.filter(a => (a.quantite || 0) > (a.seuilMinimum || 10)).length;
-    const stockFaible = this.articles.filter(a => {
-      const qty = a.quantite || 0;
-      const seuil = a.seuilMinimum || 10;
+    const total = this.stocks.length;
+    const enStock = this.stocks.filter(s => s.quantite > (s.article?.seuilAlerte || 0)).length;
+    const stockFaible = this.stocks.filter(s => {
+      const qty = s.quantite;
+      const seuil = s.article?.seuilAlerte || 0;
       return qty > 0 && qty <= seuil;
     }).length;
-    const rupture = this.articles.filter(a => (a.quantite || 0) === 0).length;
+    const rupture = this.stocks.filter(s => s.quantite === 0).length;
 
     this.stats = {
       totalArticles: total,
@@ -157,30 +158,29 @@ export class ArticlesComponent implements OnInit {
   }
 
   applyFilters(): void {
-    let filteredData = [...this.articles];
+    let filteredData = [...this.stocks];
 
     // Search filter
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
-      filteredData = filteredData.filter(article =>
-        article.nom.toLowerCase().includes(term) ||
-        article.reference.toLowerCase().includes(term) ||
-        (article.codeBarres && article.codeBarres.toLowerCase().includes(term))
+      filteredData = filteredData.filter(stock =>
+        (stock.article?.designation && stock.article.designation.toLowerCase().includes(term)) ||
+        (stock.article?.reference && stock.article.reference.toLowerCase().includes(term))
       );
     }
 
     // Category filter
     if (this.selectedCategorie) {
-      filteredData = filteredData.filter(article =>
-        article.categorie === this.selectedCategorie
+      filteredData = filteredData.filter(stock =>
+        stock.article?.categorie === this.selectedCategorie
       );
     }
 
     // Stock status filter
     if (this.selectedStatutStock) {
-      filteredData = filteredData.filter(article => {
-        const qty = article.quantite || 0;
-        const seuil = article.seuilMinimum || 10;
+      filteredData = filteredData.filter(stock => {
+        const qty = stock.quantite;
+        const seuil = stock.article?.seuilAlerte || 0;
 
         switch (this.selectedStatutStock) {
           case 'EN_STOCK':
@@ -203,8 +203,8 @@ export class ArticlesComponent implements OnInit {
     this.searchTerm = '';
     this.selectedCategorie = '';
     this.selectedStatutStock = '';
-    this.dataSource.data = this.articles;
-    this.totalItems = this.articles.length;
+    this.dataSource.data = this.stocks;
+    this.totalItems = this.stocks.length;
   }
 
   // Pagination
@@ -221,18 +221,18 @@ export class ArticlesComponent implements OnInit {
   }
 
   // Stock status helpers
-  getStockStatusClass(article: Article): string {
-    const qty = article.quantite || 0;
-    const seuil = article.seuilMinimum || 10;
+  getStockStatusClass(stock: Stock): string {
+    const qty = stock.quantite;
+    const seuil = stock.article?.seuilAlerte || 0;
 
     if (qty === 0) return 'stock-out';
     if (qty <= seuil) return 'stock-low';
     return 'stock-ok';
   }
 
-  getStockIcon(article: Article): string {
-    const qty = article.quantite || 0;
-    const seuil = article.seuilMinimum || 10;
+  getStockIcon(stock: Stock): string {
+    const qty = stock.quantite;
+    const seuil = stock.article?.seuilAlerte || 0;
 
     if (qty === 0) return 'error';
     if (qty <= seuil) return 'warning';
@@ -265,33 +265,39 @@ export class ArticlesComponent implements OnInit {
     this.router.navigate(['/stock/articles/nouveau']);
   }
 
-  viewArticle(article: Article): void {
-    this.router.navigate(['/stock/articles', article.id]);
+  viewArticle(stock: Stock): void {
+    if (stock.article) {
+      this.router.navigate(['/stock/articles', stock.article.id]);
+    }
   }
 
-  editArticle(article: Article): void {
-    this.router.navigate(['/stock/articles', article.id, 'modifier']);
+  editArticle(stock: Stock): void {
+    if (stock.article) {
+      this.router.navigate(['/stock/articles', stock.article.id, 'modifier']);
+    }
   }
 
-  duplicateArticle(article: Article): void {
+  duplicateArticle(stock: Stock): void {
     // Implementation for duplicating article
     this.snackBar.open('Fonctionnalité de duplication en cours de développement', 'Fermer', { duration: 3000 });
   }
 
-  adjustStock(article: Article): void {
+  adjustStock(stock: Stock): void {
     // Implementation for stock adjustment
     this.snackBar.open('Fonctionnalité d\'ajustement de stock en cours de développement', 'Fermer', { duration: 3000 });
   }
 
-  viewMovements(article: Article): void {
-    this.router.navigate(['/mouvements'], { queryParams: { articleId: article.id } });
+  viewMovements(stock: Stock): void {
+    if (stock.article) {
+      this.router.navigate(['/mouvements'], { queryParams: { articleId: stock.article.id } });
+    }
   }
 
-  deleteArticle(article: Article): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'article "${article.nom}" ?`)) {
-      this.stockService.delete(article.id!).subscribe({
+  deleteArticle(stock: Stock): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer cette entrée de stock pour "${stock.article?.designation}" ?`)) {
+      this.stockService.delete(stock.id).subscribe({
         next: () => {
-          this.snackBar.open('Article supprimé avec succès', 'Fermer', { duration: 3000 });
+          this.snackBar.open('Entrée de stock supprimée avec succès', 'Fermer', { duration: 3000 });
           this.loadData();
         },
         error: (error) => {

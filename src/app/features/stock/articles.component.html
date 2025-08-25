@@ -139,10 +139,10 @@
           <!-- Colonne Image -->
           <ng-container matColumnDef="image">
             <th mat-header-cell *matHeaderCellDef>Image</th>
-            <td mat-cell *matCellDef="let article">
+            <td mat-cell *matCellDef="let stock">
               <div class="article-image">
-                <img [src]="article.imageUrl || '/assets/images/no-image.png'"
-                     [alt]="article.nom"
+                <img [src]="stock.article?.imageUrl || '/assets/images/no-image.png'"
+                     [alt]="stock.article?.designation"
                      (error)="onImageError($event)">
               </div>
             </td>
@@ -151,11 +151,10 @@
           <!-- Colonne Article -->
           <ng-container matColumnDef="article">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Article</th>
-            <td mat-cell *matCellDef="let article">
+            <td mat-cell *matCellDef="let stock">
               <div class="article-info">
-                <span class="article-name">{{ article.nom }}</span>
-                <span class="article-ref">Réf: {{ article.reference }}</span>
-                <span class="article-barcode" *ngIf="article.codeBarres">{{ article.codeBarres }}</span>
+                <span class="article-name">{{ stock.article?.designation }}</span>
+                <span class="article-ref">Réf: {{ stock.article?.reference }}</span>
               </div>
             </td>
           </ng-container>
@@ -163,9 +162,9 @@
           <!-- Colonne Catégorie -->
           <ng-container matColumnDef="categorie">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Catégorie</th>
-            <td mat-cell *matCellDef="let article">
+            <td mat-cell *matCellDef="let stock">
               <mat-chip class="category-chip">
-                {{ article.categorie || 'Non définie' }}
+                {{ stock.article?.categorie || 'Non définie' }}
               </mat-chip>
             </td>
           </ng-container>
@@ -173,14 +172,14 @@
           <!-- Colonne Stock -->
           <ng-container matColumnDef="stock">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
-            <td mat-cell *matCellDef="let article">
+            <td mat-cell *matCellDef="let stock">
               <div class="stock-info">
-                <span class="stock-quantity" [ngClass]="getStockStatusClass(article)">
-                  {{ article.quantite || 0 }}
+                <span class="stock-quantity" [ngClass]="getStockStatusClass(stock)">
+                  {{ stock.quantite || 0 }}
                 </span>
-                <span class="stock-unit">{{ article.unite }}</span>
-                <mat-icon class="stock-icon" [ngClass]="getStockStatusClass(article)">
-                  {{ getStockIcon(article) }}
+                <span class="stock-unit">{{ stock.article?.unite }}</span>
+                <mat-icon class="stock-icon" [ngClass]="getStockStatusClass(stock)">
+                  {{ getStockIcon(stock) }}
                 </mat-icon>
               </div>
             </td>
@@ -189,9 +188,9 @@
           <!-- Colonne Prix -->
           <ng-container matColumnDef="prix">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Prix</th>
-            <td mat-cell *matCellDef="let article">
+            <td mat-cell *matCellDef="let stock">
               <div class="price-info">
-                <span class="price-value">{{ article.prix | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <span class="price-value">{{ stock.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
                 <span class="price-label">HT</span>
               </div>
             </td>
@@ -200,9 +199,9 @@
           <!-- Colonne Statut -->
           <ng-container matColumnDef="statut">
             <th mat-header-cell *matHeaderCellDef>Statut</th>
-            <td mat-cell *matCellDef="let article">
-              <mat-chip [color]="getStatutColor(article.statut)" selected>
-                {{ getStatutLabel(article.statut) }}
+            <td mat-cell *matCellDef="let stock">
+              <mat-chip [color]="getStatutColor(stock.article?.estActif ? 'ACTIF' : 'INACTIF')" selected>
+                {{ getStatutLabel(stock.article?.estActif ? 'ACTIF' : 'INACTIF') }}
               </mat-chip>
             </td>
           </ng-container>
@@ -210,15 +209,15 @@
           <!-- Colonne Actions -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let article">
+            <td mat-cell *matCellDef="let stock">
               <div class="action-buttons">
-                <button mat-icon-button (click)="viewArticle(article)" matTooltip="Voir détails">
+                <button mat-icon-button (click)="viewArticle(stock)" matTooltip="Voir détails">
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button (click)="editArticle(article)" matTooltip="Modifier">
+                <button mat-icon-button (click)="editArticle(stock)" matTooltip="Modifier">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button (click)="duplicateArticle(article)" matTooltip="Dupliquer">
+                <button mat-icon-button (click)="duplicateArticle(stock)" matTooltip="Dupliquer">
                   <mat-icon>content_copy</mat-icon>
                 </button>
                 <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="Plus d'actions">
@@ -226,16 +225,16 @@
                 </button>
 
                 <mat-menu #actionMenu="matMenu">
-                  <button mat-menu-item (click)="adjustStock(article)">
+                  <button mat-menu-item (click)="adjustStock(stock)">
                     <mat-icon>tune</mat-icon>
                     Ajuster le stock
                   </button>
-                  <button mat-menu-item (click)="viewMovements(article)">
+                  <button mat-menu-item (click)="viewMovements(stock)">
                     <mat-icon>history</mat-icon>
                     Historique des mouvements
                   </button>
                   <mat-divider></mat-divider>
-                  <button mat-menu-item (click)="deleteArticle(article)" class="danger-action">
+                  <button mat-menu-item (click)="deleteArticle(stock)" class="danger-action">
                     <mat-icon>delete</mat-icon>
                     Supprimer
                   </button>

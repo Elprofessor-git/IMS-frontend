@@ -50,7 +50,7 @@
           <mat-select [(ngModel)]="selectedArticle" (selectionChange)="onFilterChange()">
             <mat-option value="">Tous les articles</mat-option>
             <mat-option *ngFor="let article of articles" [value]="article.id">
-              {{ article.nom }}
+              {{ article.designation }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -185,7 +185,7 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Article</th>
             <td mat-cell *matCellDef="let mouvement">
               <div class="article-info">
-                <span class="article-name">{{ mouvement.article?.nom || 'Article supprimé' }}</span>
+                <span class="article-name">{{ mouvement.article?.designation || 'Article supprimé' }}</span>
                 <span class="article-ref" *ngIf="mouvement.article?.reference">
                   Réf: {{ mouvement.article.reference }}
                 </span>
