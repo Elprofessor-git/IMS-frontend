@@ -110,7 +110,7 @@ export class FournisseurFormComponent {
 
   onSubmit() {
     if (this.fournisseurForm.valid) {
-      console.log('Données du fournisseur:', this.fournisseurForm.value);
+      
       // Ici, vous ajouteriez la logique pour sauvegarder le fournisseur
       this.router.navigate(['/clients-fournisseurs/fournisseurs']);
     }
@@ -120,3 +120,5 @@ export class FournisseurFormComponent {
     this.router.navigate(['/clients-fournisseurs/fournisseurs']);
   }
 }
+
+

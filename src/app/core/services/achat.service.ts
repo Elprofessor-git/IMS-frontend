@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BaseApiService } from './base-api.service';
 
-export interface Achat {
+export interface IAchat {
   id?: number;
   referenceAchat: string;
   fournisseurId: number;
@@ -25,7 +25,7 @@ export interface Achat {
   updatedAt?: Date;
 }
 
-export interface LigneAchat {
+export interface ILigneAchat {
   id?: number;
   achatId: number;
   articleId: number;
@@ -92,7 +92,7 @@ export class AchatService extends BaseApiService<Achat> {
   }
 
   // Méthodes de calcul
-  calculateMontants(lignes: LigneAchat[], tauxTVA: number = 20): any {
+  calculateMontants(lignes: LigneAchat[], tauxTVA = 20): any {
     const montantHT = lignes.reduce((total, ligne) => total + ligne.montantHT, 0);
     const montantTVA = montantHT * (tauxTVA / 100);
     const montantTTC = montantHT + montantTVA;
@@ -105,7 +105,7 @@ export class AchatService extends BaseApiService<Achat> {
     };
   }
 
-  calculateLigneMontants(ligne: LigneAchat, tauxTVA: number = 20): LigneAchat {
+  calculateLigneMontants(ligne: LigneAchat, tauxTVA = 20): LigneAchat {
     const montantHT = ligne.quantite * ligne.prixUnitaire;
     const montantTVA = montantHT * (tauxTVA / 100);
     const montantTTC = montantHT + montantTVA;
@@ -179,7 +179,7 @@ export class AchatService extends BaseApiService<Achat> {
 
   // Méthodes de statistiques
   getStatistiques(dateDebut?: Date, dateFin?: Date): Observable<any> {
-    let url = `${this.apiUrl}/statistiques`;
+    const url = `${this.apiUrl}/statistiques`;
     const params: any = {};
 
     if (dateDebut) {
@@ -192,7 +192,7 @@ export class AchatService extends BaseApiService<Achat> {
     return this.http.get(url, { params });
   }
 
-  getAchatsRecents(limit: number = 10): Observable<Achat[]> {
+  getAchatsRecents(limit = 10): Observable<Achat[]> {
     return this.http.get<Achat[]>(`${this.apiUrl}/recents?limit=${limit}`);
   }
 
@@ -246,3 +246,10 @@ export class AchatService extends BaseApiService<Achat> {
     return this.http.patch<void>(`${this.apiUrl}/notifications/${notificationId}/lue`, {});
   }
 }
+
+
+
+
+// Auto-generated aliases for backward compatibility
+export type Achat = IAchat;
+export type LigneAchat = ILigneAchat;

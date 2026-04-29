@@ -18,6 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
+import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -101,7 +102,8 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
     private importationService: ImportationService,
     private fournisseurService: FournisseurService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -147,10 +149,9 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
 
   calculateStats(): void {
     const totalImportations = this.importations.length;
-    const importationsEnCours = this.importations.filter(i =>
-      ['EN_PREPARATION', 'EXPEDIE', 'EN_TRANSIT', 'ARRIVE'].includes(i.statut)
-    ).length;
-    const importationsLivrees = this.importations.filter(i => i.statut === 'LIVRE').length;
+    const enCoursSet = new Set(['Brouillon', 'Soumise', 'Validee']);
+    const importationsEnCours = this.importations.filter(i => enCoursSet.has(i.statut)).length;
+    const importationsLivrees = this.importations.filter(i => i.statut === 'Recue').length;
     const montantTotal = this.importations.reduce((sum, i) => sum + (i.montantTotal || 0), 0);
 
     this.stats = {
@@ -258,74 +259,71 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
   // Helper methods for display
   getStatutColor(statut: string): 'primary' | 'accent' | 'warn' {
     switch (statut) {
-      case 'LIVRE': return 'primary';
-      case 'EN_TRANSIT':
-      case 'ARRIVE': return 'accent';
-      case 'ANNULE': return 'warn';
-      default: return 'primary';
+      case 'Recue': return 'primary';
+      case 'Soumise':
+      case 'Validee': return 'accent';
+      case 'Annulee': return 'warn';
+      default: return 'accent';
     }
   }
 
   getStatutIcon(statut: string): string {
     switch (statut) {
-      case 'EN_PREPARATION': return 'schedule';
-      case 'EXPEDIE': return 'local_shipping';
-      case 'EN_TRANSIT': return 'flight';
-      case 'ARRIVE': return 'flight_land';
-      case 'LIVRE': return 'check_circle';
-      case 'ANNULE': return 'cancel';
+      case 'Brouillon': return 'draft';
+      case 'Soumise': return 'send';
+      case 'Validee': return 'verified';
+      case 'Recue': return 'inventory_2';
+      case 'Annulee': return 'cancel';
       default: return 'help';
     }
   }
 
   getStatutLabel(statut: string): string {
     switch (statut) {
-      case 'EN_PREPARATION': return 'En préparation';
-      case 'EXPEDIE': return 'Expédié';
-      case 'EN_TRANSIT': return 'En transit';
-      case 'ARRIVE': return 'Arrivé';
-      case 'LIVRE': return 'Livré';
-      case 'ANNULE': return 'Annulé';
+      case 'Brouillon': return 'Brouillon';
+      case 'Soumise': return 'Soumise';
+      case 'Validee': return 'Validée';
+      case 'Recue': return 'Reçue';
+      case 'Annulee': return 'Annulée';
       default: return statut;
     }
   }
 
   getModeIcon(mode: string): string {
     switch (mode) {
-      case 'MARITIME': return 'directions_boat';
-      case 'AERIEN': return 'flight';
-      case 'ROUTIER': return 'local_shipping';
-      case 'FERROVIAIRE': return 'train';
+      case 'Maritime': return 'directions_boat';
+      case 'Aerien': return 'flight';
+      case 'Terrestre': return 'local_shipping';
+      case 'Express': return 'rocket_launch';
       default: return 'help';
     }
   }
 
   getModeLabel(mode: string): string {
     switch (mode) {
-      case 'MARITIME': return 'Maritime';
-      case 'AERIEN': return 'Aérien';
-      case 'ROUTIER': return 'Routier';
-      case 'FERROVIAIRE': return 'Ferroviaire';
+      case 'Maritime': return 'Maritime';
+      case 'Aerien': return 'Aérien';
+      case 'Terrestre': return 'Terrestre';
+      case 'Express': return 'Express';
       default: return mode;
     }
   }
 
   getProgressionValue(statut: string): number {
     switch (statut) {
-      case 'EN_PREPARATION': return 20;
-      case 'EXPEDIE': return 40;
-      case 'EN_TRANSIT': return 60;
-      case 'ARRIVE': return 80;
-      case 'LIVRE': return 100;
-      case 'ANNULE': return 0;
+      case 'Brouillon': return 10;
+      case 'Soumise': return 30;
+      case 'Validee': return 60;
+      case 'Recue': return 100;
+      case 'Annulee': return 0;
       default: return 0;
     }
   }
 
   getProgressionColor(statut: string): 'primary' | 'accent' | 'warn' {
     switch (statut) {
-      case 'LIVRE': return 'primary';
-      case 'ANNULE': return 'warn';
+      case 'Recue': return 'primary';
+      case 'Annulee': return 'warn';
       default: return 'accent';
     }
   }
@@ -336,9 +334,7 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
 
   // Action methods
   openImportationForm(): void {
-    this.snackBar.open('Fonctionnalité en cours de développement', 'Fermer', {
-      duration: 3000
-    });
+    this.router.navigate(['/importations/new']);
   }
 
   viewImportation(importation: Importation): void {
@@ -348,9 +344,7 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
   }
 
   editImportation(importation: Importation): void {
-    this.snackBar.open(`Modification de ${importation.referenceImportation}`, 'Fermer', {
-      duration: 3000
-    });
+    this.router.navigate(['/importations/edit', importation.id]);
   }
 
   duplicateImportation(importation: Importation): void {
@@ -379,12 +373,53 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
         });
         this.loadData();
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.error('Erreur lors de la mise à jour du statut:', error);
         this.snackBar.open('Erreur lors de la mise à jour du statut', 'Fermer', {
           duration: 3000
         });
       }
+    });
+  }
+
+  // Actions explicites mappées au backend
+  soumettre(importation: Importation): void {
+    this.importationService.soumettreImportation(importation.id!).subscribe({
+      next: (res) => {
+        this.snackBar.open(res.message, 'Fermer', { duration: 3000 });
+        this.loadData();
+      },
+      error: (error: unknown) => this.snackBar.open('Erreur lors de la soumission', 'Fermer', { duration: 3000 })
+    });
+  }
+
+  valider(importation: Importation): void {
+    this.importationService.validerImportation(importation.id!, 'UI').subscribe({
+      next: (res) => {
+        this.snackBar.open(res.message, 'Fermer', { duration: 3000 });
+        this.loadData();
+      },
+      error: (error: unknown) => this.snackBar.open('Erreur lors de la validation', 'Fermer', { duration: 3000 })
+    });
+  }
+
+  recevoir(importation: Importation): void {
+    this.importationService.recevoirImportation(importation.id!).subscribe({
+      next: (res) => {
+        this.snackBar.open(res.message, 'Fermer', { duration: 3000 });
+        this.loadData();
+      },
+      error: (error: unknown) => this.snackBar.open('Erreur lors de la réception', 'Fermer', { duration: 3000 })
+    });
+  }
+
+  affecter(importation: Importation): void {
+    this.importationService.affecterCommandes(importation.id!).subscribe({
+      next: (res) => {
+        this.snackBar.open(res.message, 'Fermer', { duration: 3000 });
+        this.loadData();
+      },
+      error: (error: unknown) => this.snackBar.open('Erreur lors de l\'affectation aux commandes', 'Fermer', { duration: 3000 })
     });
   }
 
@@ -400,3 +435,5 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
     });
   }
 }
+
+

@@ -1,0 +1,143 @@
+[
+  {
+    "id": "textile-management-frontend-tests",
+    "title": "Angular Textile Management Frontend Testing",
+    "description": "Comprehensive testing of the Angular textile management system frontend application",
+    "projectName": "gestion-textile-frontend",
+    "projectPath": "D:\\IMS mise à jour\\Projet final\\gestion-textile-frontend-COMPLET\\IMS-frontend",
+    "testType": "frontend",
+    "localEndpoint": "http://localhost:4200",
+    "loginCredentials": {
+      "username": "admin@example.com",
+      "password": "Admintest3"
+    },
+    "steps": [
+      {
+        "id": "TC-AUTH-001",
+        "title": "Login with valid credentials",
+        "description": "Test successful login with valid admin credentials",
+        "priority": "critical",
+        "steps": [
+          "Navigate to login page",
+          "Enter valid username: admin@example.com",
+          "Enter valid password: Admintest3",
+          "Click login button",
+          "Verify redirect to dashboard"
+        ],
+        "expectedResult": "User should be logged in and redirected to dashboard"
+      },
+      {
+        "id": "TC-AUTH-002",
+        "title": "Login with invalid credentials",
+        "description": "Test login failure with invalid credentials",
+        "priority": "critical",
+        "steps": [
+          "Navigate to login page",
+          "Enter invalid username",
+          "Enter invalid password",
+          "Click login button",
+          "Verify error message displayed"
+        ],
+        "expectedResult": "Error message should be displayed and user should remain on login page"
+      },
+      {
+        "id": "TC-DASH-001",
+        "title": "Dashboard loads after login",
+        "description": "Test dashboard loads correctly after successful login",
+        "priority": "high",
+        "steps": [
+          "Login with valid credentials",
+          "Wait for dashboard to load",
+          "Verify dashboard components are displayed"
+        ],
+        "expectedResult": "Dashboard should load with all components visible"
+      },
+      {
+        "id": "TC-STOCK-001",
+        "title": "Stock list displays correctly",
+        "description": "Test stock management list view",
+        "priority": "high",
+        "steps": [
+          "Navigate to stock management",
+          "Verify stock list is displayed",
+          "Check if stock items are loaded"
+        ],
+        "expectedResult": "Stock list should be displayed with items"
+      },
+      {
+        "id": "TC-ORDER-001",
+        "title": "Order list displays correctly",
+        "description": "Test order management list view",
+        "priority": "high",
+        "steps": [
+          "Navigate to order management",
+          "Verify order list is displayed",
+          "Check if orders are loaded"
+        ],
+        "expectedResult": "Order list should be displayed with orders"
+      },
+      {
+        "id": "TC-NAV-001",
+        "title": "Navigation between modules",
+        "description": "Test navigation between different modules",
+        "priority": "high",
+        "steps": [
+          "Navigate to dashboard",
+          "Click on stock management",
+          "Click on order management",
+          "Click on user management",
+          "Verify each page loads correctly"
+        ],
+        "expectedResult": "All navigation should work correctly"
+      },
+      {
+        "id": "TC-FORM-001",
+        "title": "Form validation testing",
+        "description": "Test form validation across the application",
+        "priority": "high",
+        "steps": [
+          "Navigate to stock form",
+          "Try to submit empty form",
+          "Verify validation messages",
+          "Fill required fields",
+          "Submit form",
+          "Verify success"
+        ],
+        "expectedResult": "Form validation should work correctly"
+      },
+      {
+        "id": "TC-CRUD-001",
+        "title": "CRUD operations testing",
+        "description": "Test Create, Read, Update, Delete operations",
+        "priority": "high",
+        "steps": [
+          "Create new item",
+          "Read item details",
+          "Update item",
+          "Delete item",
+          "Verify operations work"
+        ],
+        "expectedResult": "All CRUD operations should work correctly"
+      }
+    ],
+    "browserTesting": {
+      "browsers": ["chrome", "firefox", "edge"],
+      "viewportSizes": [
+        {"width": 1920, "height": 1080},
+        {"width": 768, "height": 1024},
+        {"width": 375, "height": 667}
+      ]
+    },
+    "performanceTesting": {
+      "loadTimeThreshold": 3000,
+      "memoryUsageThreshold": 100,
+      "networkRequests": "optimized"
+    },
+    "accessibilityTesting": {
+      "wcagLevel": "AA",
+      "keyboardNavigation": true,
+      "screenReader": true,
+      "colorContrast": true
+    }
+  }
+]

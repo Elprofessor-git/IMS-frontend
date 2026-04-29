@@ -291,7 +291,7 @@ export class ParametresComponent implements OnInit {
 
   onSubmit(): void {
     if (this.parametresForm.valid) {
-      console.log('Paramètres sauvegardés:', this.parametresForm.value);
+      
       this.snackBar.open('Paramètres sauvegardés avec succès', 'Fermer', {
         duration: 3000,
         horizontalPosition: 'center',
@@ -324,3 +324,4 @@ export class ParametresComponent implements OnInit {
     });
   }
 }
+

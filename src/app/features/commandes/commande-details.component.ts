@@ -192,10 +192,10 @@ export class CommandeDetailsComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     // Ici, vous chargeriez les détails de la commande depuis le service
-    console.log('Chargement de la commande ID:', id);
+    
   }
 
   getStatusColor(statut: string): string {
@@ -231,3 +231,5 @@ export class CommandeDetailsComponent implements OnInit {
     this.router.navigate(['/commandes']);
   }
 }
+
+

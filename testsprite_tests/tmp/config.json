@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:4200",
+  "loginUser": "admin@example.com",
+  "loginPassword": "Admintest3",
+  "executionArgs": {
+    "projectName": "gestion-textile-frontend",
+    "projectPath": "D:\\IMS mise à jour\\Projet final\\gestion-textile-frontend-COMPLET\\IMS-frontend",
+    "testIds": [],
+    "additionalInstruction": "Execute comprehensive frontend testing for the Angular textile management application. Test authentication (login with admin@example.com/Admintest3), dashboard functionality, stock management, order management, navigation between modules, form validation, and CRUD operations. Focus on critical and high-priority test cases for the textile management system.",
+    "envs": {
+      "API_KEY": "sk-user-wpFvRMdzjUXWjHQENPJv-cwBJw5-faiIgN1WvklowHiJdBWfZ4Vgkh1ck8HvinawFGB1t-kER_XsvULnpYy0AEC-DznESPwKa7oXSTqtW8_2B1EbB2AFXY5Ppt689z0zAME"
+    }
+  },
+  "proxy": "http://1cef6c94-0d21-4aef-bea7-b14b4f39005f:YqQhyLIdiiemLIvLcmCyNHns1sdQZFeS@tun.testsprite.com:8080"
+}

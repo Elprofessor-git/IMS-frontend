@@ -27,3 +27,5 @@ export class PlateformeService extends BaseApiService<Plateforme> {
     return this.http.post(`${this.apiUrl}/${id}/Desactiver`, {});
   }
 }
+
+

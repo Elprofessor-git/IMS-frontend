@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BaseApiService } from './base-api.service';
 
-export interface MouvementStock {
+export interface IMouvementStock {
   id?: number;
   typeMouvement: string;
   articleId: number;
@@ -25,7 +25,7 @@ export interface MouvementStock {
   updatedAt?: Date;
 }
 
-export interface MouvementLigne {
+export interface IMouvementLigne {
   id?: number;
   mouvementId: number;
   articleId: number;
@@ -175,7 +175,7 @@ export class MouvementService extends BaseApiService<MouvementStock> {
 
   // Méthodes de statistiques
   getStatistiques(dateDebut?: Date, dateFin?: Date): Observable<any> {
-    let url = `${this.apiUrl}/statistiques`;
+    const url = `${this.apiUrl}/statistiques`;
     const params: any = {};
 
     if (dateDebut) {
@@ -188,7 +188,7 @@ export class MouvementService extends BaseApiService<MouvementStock> {
     return this.http.get(url, { params });
   }
 
-  getMouvementsRecents(limit: number = 10): Observable<MouvementStock[]> {
+  getMouvementsRecents(limit = 10): Observable<MouvementStock[]> {
     return this.http.get<MouvementStock[]>(`${this.apiUrl}/recents?limit=${limit}`);
   }
 
@@ -212,3 +212,9 @@ export class MouvementService extends BaseApiService<MouvementStock> {
     return this.http.get<MouvementStock[]>(`${this.apiUrl}/historique/emplacement/${emplacementId}`);
   }
 }
+
+
+
+// Auto-generated aliases for backward compatibility
+export type MouvementStock = IMouvementStock;
+export type MouvementLigne = IMouvementLigne;

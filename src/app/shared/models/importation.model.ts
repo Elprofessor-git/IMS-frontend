@@ -2,7 +2,7 @@ import { Fournisseur } from './common.model';
 import { CommandeClient } from './commande.model';
 import { Article } from './stock.model';
 
-export interface Importation {
+export interface IImportation {
   id: number;
   referenceImportation: string;
   fournisseurId: number;
@@ -20,13 +20,15 @@ export interface Importation {
   dateCreation: Date;
   dateMiseAJour?: Date;
   modifiePar?: string;
-  lignesImportation?: LigneImportation[];
+  lignesImportation?: ILigneImportation[];
 }
 
-export interface LigneImportation {
+export type Importation = IImportation;
+
+export interface ILigneImportation {
   id: number;
   importationId: number;
-  importation?: Importation;
+  importation?: IImportation;
   articleId: number;
   article?: Article;
   commandeClientId?: number;
@@ -42,6 +44,8 @@ export interface LigneImportation {
   dateCreation: Date;
 }
 
+export type LigneImportation = ILigneImportation;
+
 export enum StatutImportation {
   Brouillon = 'Brouillon',
   Soumise = 'Soumise',
@@ -56,3 +60,5 @@ export enum ModeExpedition {
   Terrestre = 'Terrestre',
   Express = 'Express'
 }
+
+

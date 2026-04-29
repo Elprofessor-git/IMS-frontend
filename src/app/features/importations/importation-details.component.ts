@@ -497,3 +497,5 @@ export class ImportationDetailsComponent implements OnInit {
     this.router.navigate(['/importations']);
   }
 }
+
+

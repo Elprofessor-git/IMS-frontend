@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 
-export interface Emplacement {
+export interface IEmplacement {
   id?: number;
   code: string;
   nom: string;
@@ -21,7 +21,7 @@ export interface Emplacement {
   updatedAt?: Date;
 }
 
-export interface EmplacementStats {
+export interface IEmplacementStats {
   totalEmplacements: number;
   emplacementsActifs: number;
   emplacementsInactifs: number;
@@ -148,3 +148,10 @@ export class EmplacementService extends BaseApiService<Emplacement> {
     return this.http.post<Emplacement[]>(`${this.apiUrl}/reorganiser`, { emplacements });
   }
 }
+
+
+
+
+// Auto-generated aliases for backward compatibility
+export type Emplacement = IEmplacement;
+export type EmplacementStats = IEmplacementStats;

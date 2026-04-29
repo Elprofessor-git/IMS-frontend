@@ -382,3 +382,5 @@ export class MouvementsComponent implements OnInit {
     this.snackBar.open('Fonctionnalité d\'export en cours de développement', 'Fermer', { duration: 3000 });
   }
 }
+
+

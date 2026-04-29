@@ -745,3 +745,5 @@ export class MouvementDetailsComponent implements OnInit {
     this.router.navigate(['/mouvements']);
   }
 }
+
+

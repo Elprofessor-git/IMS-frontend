@@ -7,7 +7,7 @@ import { Achat, LigneAchat } from './achat.model';
 import { Importation, LigneImportation } from './importation.model';
 
 // Interfaces communes
-export interface PaginatedResponse<T> {
+export interface IPaginatedResponse<T> {
   items: T[];
   totalCount: number;
   pageNumber: number;
@@ -17,7 +17,7 @@ export interface PaginatedResponse<T> {
   hasNextPage: boolean;
 }
 
-export interface PagedRequest {
+export interface IPagedRequest {
   pageNumber: number;
   pageSize: number;
   searchTerm?: string;
@@ -26,20 +26,20 @@ export interface PagedRequest {
   filters?: { [key: string]: any };
 }
 
-export interface SelectOption {
+export interface ISelectOption {
   value: any;
   label: string;
   disabled?: boolean;
 }
 
-export interface ApiResponse<T> {
+export interface IApiResponse<T> {
   data: T;
   success: boolean;
   message?: string;
   errors?: string[];
 }
 
-export interface TableColumn {
+export interface ITableColumn {
   key: string;
   label: string;
   sortable?: boolean;
@@ -47,22 +47,24 @@ export interface TableColumn {
   type?: 'text' | 'number' | 'date' | 'boolean' | 'badge' | 'actions';
 }
 
-export interface NotificationMessage {
+export interface INotificationMessage {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message: string;
   duration?: number;
-  actions?: NotificationAction[];
+  actions?: INotificationAction[];
 }
 
-export interface NotificationAction {
+export type NotificationAction = INotificationAction;
+
+export interface INotificationAction {
   label: string;
   action: () => void;
 }
 
 // Modèles spécifiques à l'API ASP.NET Core
-export interface Plateforme {
+export interface IPlateforme {
   id: number;
   nom: string;
   description: string;
@@ -74,7 +76,9 @@ export interface Plateforme {
   clients?: Client[];
 }
 
-export interface Fournisseur {
+export type Plateforme = IPlateforme;
+
+export interface IFournisseur {
   id: number;
   nomEntreprise: string;
   personneContact: string;
@@ -94,10 +98,12 @@ export interface Fournisseur {
   importations?: Importation[];
 }
 
+export type Fournisseur = IFournisseur;
+
 // Types utilitaires
 export type EntityStatus = 'active' | 'inactive' | 'pending' | 'archived';
 
-export interface AuditInfo {
+export interface IAuditInfo {
   createdBy: number;
   createdAt: Date;
   modifiedBy?: number;
@@ -117,3 +123,15 @@ export {
   Achat, LigneAchat,
   Importation, LigneImportation
 };
+
+
+
+
+// Auto-generated aliases for backward compatibility
+export type PaginatedResponse<T> = IPaginatedResponse<T>;
+export type PagedRequest = IPagedRequest;
+export type SelectOption = ISelectOption;
+export type ApiResponse<T> = IApiResponse<T>;
+export type TableColumn = ITableColumn;
+export type NotificationMessage = INotificationMessage;
+export type AuditInfo = IAuditInfo;

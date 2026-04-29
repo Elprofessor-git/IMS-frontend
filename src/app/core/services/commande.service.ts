@@ -84,3 +84,5 @@ export class CommandeService extends BaseApiService<CommandeClient> {
     return this.http.get<CommandeClient[]>(url);
   }
 }
+
+

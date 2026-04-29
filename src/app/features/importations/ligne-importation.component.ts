@@ -206,9 +206,9 @@ import { ArticleService } from '../../core/services/article.service';
 })
 export class LigneImportationComponent implements OnInit {
   @Input() ligne: LigneImportation | null = null;
-  @Input() index: number = 0;
-  @Input() isEditMode: boolean = false;
-  @Input() isExpanded: boolean = false;
+  @Input() index = 0;
+  @Input() isEditMode = false;
+  @Input() isExpanded = false;
 
   @Output() save = new EventEmitter<LigneImportation>();
   @Output() cancel = new EventEmitter<void>();
@@ -327,3 +327,4 @@ export class LigneImportationComponent implements OnInit {
     }
   }
 }
+

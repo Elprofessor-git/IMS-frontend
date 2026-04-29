@@ -104,7 +104,7 @@ export class ClientFormComponent {
 
   onSubmit() {
     if (this.clientForm.valid) {
-      console.log('Données du client:', this.clientForm.value);
+      
       // Ici, vous ajouteriez la logique pour sauvegarder le client
       this.router.navigate(['/clients-fournisseurs/clients']);
     }
@@ -114,3 +114,5 @@ export class ClientFormComponent {
     this.router.navigate(['/clients-fournisseurs/clients']);
   }
 }
+
+

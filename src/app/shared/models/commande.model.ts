@@ -1,9 +1,9 @@
-import { Plateforme, Fournisseur } from './common.model';
-import { Article } from './stock.model';
-import { TacheProduction } from './tache.model';
-import { Achat } from './achat.model';
+import { IPlateforme, IFournisseur } from './common.model';
+import { IArticle } from './stock.model';
+import { ITacheProduction } from './tache.model';
+import { IAchat } from './achat.model';
 
-export interface Client {
+export interface IClient {
   id: number;
   nom?: string;
   prenom?: string;
@@ -15,19 +15,19 @@ export interface Client {
   pays: string;
   codePostal?: string;
   plateformeId: number;
-  plateforme?: Plateforme;
+  plateforme?: IPlateforme;
   preferencesTissus?: string;
   estActif: boolean;
   dateCreation: Date;
   dateModification?: Date;
-  commandes?: CommandeClient[];
+  commandes?: ICommandeClient[];
 }
 
-export interface CommandeClient {
+export interface ICommandeClient {
   id: number;
   numeroCommande: string;
   clientId: number;
-  client?: Client;
+  client?: IClient;
   titreCommande: string;
   descriptionCommande?: string;
   dateLivraisonSouhaitee: Date;
@@ -36,17 +36,17 @@ export interface CommandeClient {
   pourcentageRessourcesCouvertes: number;
   dateCreation: Date;
   dateModification?: Date;
-  besoins?: BesoinCommande[];
-  taches?: TacheProduction[];
-  achats?: Achat[];
+  besoins?: IBesoinCommande[];
+  taches?: ITacheProduction[];
+  achats?: IAchat[];
 }
 
-export interface BesoinCommande {
+export interface IBesoinCommande {
   id: number;
   commandeClientId: number;
-  commandeClient?: CommandeClient;
+  commandeClient?: ICommandeClient;
   articleId: number;
-  article?: Article;
+  article?: IArticle;
   typeBesoin: TypeBesoin;
   couleur?: string;
   codeCouleur?: string;
@@ -76,3 +76,8 @@ export enum TypeBesoin {
   Emballage = 'Emballage',
   Autre = 'Autre'
 }
+
+// Aliases without I-prefix for backward compatibility
+export type Client = IClient;
+export type CommandeClient = ICommandeClient;
+export type BesoinCommande = IBesoinCommande;

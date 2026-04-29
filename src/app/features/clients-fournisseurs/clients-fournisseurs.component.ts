@@ -259,7 +259,7 @@ export class ClientsFournisseursComponent implements OnInit {
 
   constructor(private router: Router) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     // Configuration de la recherche pour les clients
     this.clientSearchControl.valueChanges
       .pipe(
@@ -294,12 +294,12 @@ export class ClientsFournisseursComponent implements OnInit {
     const client = this.clients.find(c => c.id === clientId);
     if (client) {
       client.actif = !client.actif;
-      console.log('Statut client modifié:', client);
+      
     }
   }
 
   searchClients(searchTerm: string) {
-    console.log('Recherche clients:', searchTerm);
+    
     // Ici, vous implémenteriez la logique de recherche
   }
 
@@ -316,12 +316,14 @@ export class ClientsFournisseursComponent implements OnInit {
     const fournisseur = this.fournisseurs.find(f => f.id === fournisseurId);
     if (fournisseur) {
       fournisseur.actif = !fournisseur.actif;
-      console.log('Statut fournisseur modifié:', fournisseur);
+      
     }
   }
 
   searchFournisseurs(searchTerm: string) {
-    console.log('Recherche fournisseurs:', searchTerm);
+    
     // Ici, vous implémenteriez la logique de recherche
   }
 }
+
+

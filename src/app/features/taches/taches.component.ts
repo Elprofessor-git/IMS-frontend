@@ -276,3 +276,5 @@ export class TachesComponent implements OnInit {
     this.snackBar.open('Export en cours de développement', 'Fermer', { duration: 3000 });
   }
 }
+
+

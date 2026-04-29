@@ -1,0 +1,418 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Markdown Preview</title>
+      <style>
+        body {
+          font-family: sans-serif;
+          padding: 40px;
+          line-height: 1.6;
+          background: #fdfdfd;
+          color: #333;
+        }
+        pre {
+          background: #f4f4f4;
+          padding: 10px;
+          border-radius: 5px;
+          overflow-x: auto;
+        }
+        code {
+          font-family: monospace;
+          background: #eee;
+          padding: 2px 4px;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 20px;
+        }
+        th, td {
+          border: 1px solid #ccc;
+          padding: 8px 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>TestSprite Test Report - Angular Textile Management Frontend</h1>
+<h2>Executive Summary</h2>
+<p><strong>Project:</strong> Gestion Textile Frontend (IMS-frontend)<br>
+<strong>Test Date:</strong> December 2024<br>
+<strong>Test Scope:</strong> Frontend Application Testing<br>
+<strong>Test Type:</strong> Comprehensive UI/UX Testing<br>
+<strong>Application Status:</strong> ✅ Ready for Testing</p>
+<h2>Application Overview</h2>
+<h3>Tech Stack</h3>
+<ul>
+<li><strong>Framework:</strong> Angular 18</li>
+<li><strong>Language:</strong> TypeScript</li>
+<li><strong>UI Library:</strong> Angular Material</li>
+<li><strong>Styling:</strong> SCSS</li>
+<li><strong>State Management:</strong> RxJS</li>
+<li><strong>Routing:</strong> Angular Router</li>
+<li><strong>Forms:</strong> Angular Reactive Forms</li>
+</ul>
+<h3>Application Features</h3>
+<p>The application is a comprehensive textile management system with 17 major features:</p>
+<ol>
+<li><strong>Authentication System</strong> - Login, guards, token management</li>
+<li><strong>Dashboard</strong> - Analytics and overview</li>
+<li><strong>Stock Management</strong> - Inventory tracking</li>
+<li><strong>Order Management</strong> - Client order processing</li>
+<li><strong>Client &amp; Supplier Management</strong> - Business partner management</li>
+<li><strong>Task Management</strong> - Operations tracking</li>
+<li><strong>Purchase Management</strong> - Procurement system</li>
+<li><strong>Import Management</strong> - Customs operations</li>
+<li><strong>Movement Management</strong> - Warehouse operations</li>
+<li><strong>User Management</strong> - User administration</li>
+<li><strong>Reporting System</strong> - Analytics and BI</li>
+<li><strong>Location Management</strong> - Warehouse locations</li>
+<li><strong>Chatbot Integration</strong> - AI assistance</li>
+<li><strong>Admin Panel</strong> - System configuration</li>
+<li><strong>Core Services</strong> - API and utilities</li>
+<li><strong>Shared Models</strong> - Data interfaces</li>
+<li><strong>Layout Components</strong> - Navigation and layout</li>
+</ol>
+<h2>Test Plan</h2>
+<h3>1. Authentication &amp; Security Testing</h3>
+<p><strong>Priority:</strong> Critical<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-AUTH-001:</strong> Login with valid credentials</li>
+<li>[ ] <strong>TC-AUTH-002:</strong> Login with invalid credentials</li>
+<li>[ ] <strong>TC-AUTH-003:</strong> Password reset functionality</li>
+<li>[ ] <strong>TC-AUTH-004:</strong> Session management and token handling</li>
+<li>[ ] <strong>TC-AUTH-005:</strong> Route guards for protected pages</li>
+<li>[ ] <strong>TC-AUTH-006:</strong> Logout functionality</li>
+<li>[ ] <strong>TC-AUTH-007:</strong> Token refresh mechanism</li>
+<li>[ ] <strong>TC-AUTH-008:</strong> Error handling for auth failures</li>
+</ul>
+<h4>Test Data:</h4>
+<ul>
+<li>Valid User: <code>admin@example.com</code> / <code>Admintest3</code></li>
+<li>Invalid User: <code>invalid@example.com</code> / <code>wrongpassword</code></li>
+</ul>
+<h3>2. Dashboard Testing</h3>
+<p><strong>Priority:</strong> High<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-DASH-001:</strong> Dashboard loads after successful login</li>
+<li>[ ] <strong>TC-DASH-002:</strong> Analytics widgets display correctly</li>
+<li>[ ] <strong>TC-DASH-003:</strong> Navigation to different sections works</li>
+<li>[ ] <strong>TC-DASH-004:</strong> Responsive design on different screen sizes</li>
+<li>[ ] <strong>TC-DASH-005:</strong> Real-time data updates</li>
+<li>[ ] <strong>TC-DASH-006:</strong> Dashboard refresh functionality</li>
+</ul>
+<h3>3. Stock Management Testing</h3>
+<p><strong>Priority:</strong> High<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-STOCK-001:</strong> Stock list displays correctly</li>
+<li>[ ] <strong>TC-STOCK-002:</strong> Add new stock items</li>
+<li>[ ] <strong>TC-STOCK-003:</strong> Edit existing stock items</li>
+<li>[ ] <strong>TC-STOCK-004:</strong> Delete stock items</li>
+<li>[ ] <strong>TC-STOCK-005:</strong> Stock search and filtering</li>
+<li>[ ] <strong>TC-STOCK-006:</strong> Stock details view</li>
+<li>[ ] <strong>TC-STOCK-007:</strong> Stock form validation</li>
+<li>[ ] <strong>TC-STOCK-008:</strong> Stock quantity updates</li>
+<li>[ ] <strong>TC-STOCK-009:</strong> Stock alerts and notifications</li>
+</ul>
+<h3>4. Order Management Testing</h3>
+<p><strong>Priority:</strong> High<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-ORDER-001:</strong> Order list displays correctly</li>
+<li>[ ] <strong>TC-ORDER-002:</strong> Create new orders</li>
+<li>[ ] <strong>TC-ORDER-003:</strong> Edit existing orders</li>
+<li>[ ] <strong>TC-ORDER-004:</strong> Order status updates</li>
+<li>[ ] <strong>TC-ORDER-005:</strong> Order details view</li>
+<li>[ ] <strong>TC-ORDER-006:</strong> Order form validation</li>
+<li>[ ] <strong>TC-ORDER-007:</strong> Order line items management</li>
+<li>[ ] <strong>TC-ORDER-008:</strong> Order search and filtering</li>
+</ul>
+<h3>5. Client &amp; Supplier Management Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-CLIENT-001:</strong> Client list displays correctly</li>
+<li>[ ] <strong>TC-CLIENT-002:</strong> Add new clients</li>
+<li>[ ] <strong>TC-CLIENT-003:</strong> Edit client information</li>
+<li>[ ] <strong>TC-CLIENT-004:</strong> Client search and filtering</li>
+<li>[ ] <strong>TC-SUPPLIER-001:</strong> Supplier list displays correctly</li>
+<li>[ ] <strong>TC-SUPPLIER-002:</strong> Add new suppliers</li>
+<li>[ ] <strong>TC-SUPPLIER-003:</strong> Edit supplier information</li>
+<li>[ ] <strong>TC-SUPPLIER-004:</strong> Supplier search and filtering</li>
+</ul>
+<h3>6. Task Management Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-TASK-001:</strong> Task list displays correctly</li>
+<li>[ ] <strong>TC-TASK-002:</strong> Create new tasks</li>
+<li>[ ] <strong>TC-TASK-003:</strong> Update task status</li>
+<li>[ ] <strong>TC-TASK-004:</strong> Task assignment</li>
+<li>[ ] <strong>TC-TASK-005:</strong> Task filtering and search</li>
+<li>[ ] <strong>TC-TASK-006:</strong> Task priority management</li>
+<li>[ ] <strong>TC-TASK-007:</strong> Task deadline handling</li>
+</ul>
+<h3>7. Purchase Management Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-PURCHASE-001:</strong> Purchase order list</li>
+<li>[ ] <strong>TC-PURCHASE-002:</strong> Create purchase orders</li>
+<li>[ ] <strong>TC-PURCHASE-003:</strong> Purchase order details</li>
+<li>[ ] <strong>TC-PURCHASE-004:</strong> Purchase line items management</li>
+<li>[ ] <strong>TC-PURCHASE-005:</strong> Purchase order status tracking</li>
+<li>[ ] <strong>TC-PURCHASE-006:</strong> Purchase order approval workflow</li>
+</ul>
+<h3>8. Import Management Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-IMPORT-001:</strong> Import operations list</li>
+<li>[ ] <strong>TC-IMPORT-002:</strong> Create import records</li>
+<li>[ ] <strong>TC-IMPORT-003:</strong> Import status tracking</li>
+<li>[ ] <strong>TC-IMPORT-004:</strong> Customs documentation</li>
+<li>[ ] <strong>TC-IMPORT-005:</strong> Import cost calculations</li>
+<li>[ ] <strong>TC-IMPORT-006:</strong> Import timeline management</li>
+</ul>
+<h3>9. Movement Management Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-MOVEMENT-001:</strong> Stock movement tracking</li>
+<li>[ ] <strong>TC-MOVEMENT-002:</strong> Create movement records</li>
+<li>[ ] <strong>TC-MOVEMENT-003:</strong> Movement history</li>
+<li>[ ] <strong>TC-MOVEMENT-004:</strong> Warehouse operations</li>
+<li>[ ] <strong>TC-MOVEMENT-005:</strong> Movement validation</li>
+<li>[ ] <strong>TC-MOVEMENT-006:</strong> Movement reporting</li>
+</ul>
+<h3>10. User Management Testing</h3>
+<p><strong>Priority:</strong> High<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-USER-001:</strong> User list displays correctly</li>
+<li>[ ] <strong>TC-USER-002:</strong> Add new users</li>
+<li>[ ] <strong>TC-USER-003:</strong> Edit user information</li>
+<li>[ ] <strong>TC-USER-004:</strong> Role assignment</li>
+<li>[ ] <strong>TC-USER-005:</strong> User permissions</li>
+<li>[ ] <strong>TC-USER-006:</strong> User deactivation</li>
+<li>[ ] <strong>TC-USER-007:</strong> Password management</li>
+</ul>
+<h3>11. Reporting System Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-REPORT-001:</strong> Report generation</li>
+<li>[ ] <strong>TC-REPORT-002:</strong> Data visualization</li>
+<li>[ ] <strong>TC-REPORT-003:</strong> Export functionality</li>
+<li>[ ] <strong>TC-REPORT-004:</strong> Report filtering</li>
+<li>[ ] <strong>TC-REPORT-005:</strong> Report scheduling</li>
+<li>[ ] <strong>TC-REPORT-006:</strong> Report sharing</li>
+</ul>
+<h3>12. Location Management Testing</h3>
+<p><strong>Priority:</strong> Low<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-LOCATION-001:</strong> Warehouse locations list</li>
+<li>[ ] <strong>TC-LOCATION-002:</strong> Add new locations</li>
+<li>[ ] <strong>TC-LOCATION-003:</strong> Location assignment</li>
+<li>[ ] <strong>TC-LOCATION-004:</strong> Location capacity management</li>
+</ul>
+<h3>13. Chatbot Integration Testing</h3>
+<p><strong>Priority:</strong> Low<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-CHATBOT-001:</strong> Chatbot interface loads</li>
+<li>[ ] <strong>TC-CHATBOT-002:</strong> Message sending</li>
+<li>[ ] <strong>TC-CHATBOT-003:</strong> Response handling</li>
+<li>[ ] <strong>TC-CHATBOT-004:</strong> Chat history</li>
+<li>[ ] <strong>TC-CHATBOT-005:</strong> Chatbot suggestions</li>
+</ul>
+<h3>14. Admin Panel Testing</h3>
+<p><strong>Priority:</strong> Medium<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-ADMIN-001:</strong> System parameters</li>
+<li>[ ] <strong>TC-ADMIN-002:</strong> Configuration settings</li>
+<li>[ ] <strong>TC-ADMIN-003:</strong> Admin-only access</li>
+<li>[ ] <strong>TC-ADMIN-004:</strong> System maintenance</li>
+</ul>
+<h3>15. Cross-Feature Integration Testing</h3>
+<p><strong>Priority:</strong> High<br>
+<strong>Status:</strong> ⏳ Pending</p>
+<h4>Test Cases:</h4>
+<ul>
+<li>[ ] <strong>TC-INTEGRATION-001:</strong> Navigation between modules</li>
+<li>[ ] <strong>TC-INTEGRATION-002:</strong> Data consistency across features</li>
+<li>[ ] <strong>TC-INTEGRATION-003:</strong> Shared components functionality</li>
+<li>[ ] <strong>TC-INTEGRATION-004:</strong> Cross-module data flow</li>
+<li>[ ] <strong>TC-INTEGRATION-005:</strong> Error handling across modules</li>
+</ul>
+<h2>Performance Testing</h2>
+<h3>Load Testing</h3>
+<ul>
+<li>[ ] <strong>TC-PERF-001:</strong> Dashboard load time &lt; 3 seconds</li>
+<li>[ ] <strong>TC-PERF-002:</strong> Large data set handling (1000+ records)</li>
+<li>[ ] <strong>TC-PERF-003:</strong> Memory usage optimization</li>
+<li>[ ] <strong>TC-PERF-004:</strong> Network request optimization</li>
+</ul>
+<h3>Responsive Design Testing</h3>
+<ul>
+<li>[ ] <strong>TC-RESPONSIVE-001:</strong> Desktop (1920x1080)</li>
+<li>[ ] <strong>TC-RESPONSIVE-002:</strong> Tablet (768x1024)</li>
+<li>[ ] <strong>TC-RESPONSIVE-003:</strong> Mobile (375x667)</li>
+<li>[ ] <strong>TC-RESPONSIVE-004:</strong> Large screens (2560x1440)</li>
+</ul>
+<h2>Security Testing</h2>
+<h3>Input Validation</h3>
+<ul>
+<li>[ ] <strong>TC-SECURITY-001:</strong> SQL injection prevention</li>
+<li>[ ] <strong>TC-SECURITY-002:</strong> XSS prevention</li>
+<li>[ ] <strong>TC-SECURITY-003:</strong> CSRF protection</li>
+<li>[ ] <strong>TC-SECURITY-004:</strong> Input sanitization</li>
+</ul>
+<h3>Authentication &amp; Authorization</h3>
+<ul>
+<li>[ ] <strong>TC-SECURITY-005:</strong> Session timeout</li>
+<li>[ ] <strong>TC-SECURITY-006:</strong> Role-based access control</li>
+<li>[ ] <strong>TC-SECURITY-007:</strong> API endpoint protection</li>
+<li>[ ] <strong>TC-SECURITY-008:</strong> Sensitive data encryption</li>
+</ul>
+<h2>Browser Compatibility Testing</h2>
+<h3>Supported Browsers</h3>
+<ul>
+<li>[ ] <strong>TC-BROWSER-001:</strong> Chrome (latest)</li>
+<li>[ ] <strong>TC-BROWSER-002:</strong> Firefox (latest)</li>
+<li>[ ] <strong>TC-BROWSER-003:</strong> Safari (latest)</li>
+<li>[ ] <strong>TC-BROWSER-004:</strong> Edge (latest)</li>
+</ul>
+<h2>Accessibility Testing</h2>
+<h3>WCAG 2.1 Compliance</h3>
+<ul>
+<li>[ ] <strong>TC-A11Y-001:</strong> Keyboard navigation</li>
+<li>[ ] <strong>TC-A11Y-002:</strong> Screen reader compatibility</li>
+<li>[ ] <strong>TC-A11Y-003:</strong> Color contrast ratios</li>
+<li>[ ] <strong>TC-A11Y-004:</strong> Focus indicators</li>
+<li>[ ] <strong>TC-A11Y-005:</strong> Alt text for images</li>
+</ul>
+<h2>Test Environment Setup</h2>
+<h3>Prerequisites</h3>
+<ul>
+<li>✅ Angular application running on port 4200</li>
+<li>✅ TestSprite API key configured</li>
+<li>✅ Test data prepared</li>
+<li>✅ Test environment isolated</li>
+</ul>
+<h3>Test Data Requirements</h3>
+<ul>
+<li>Sample users with different roles</li>
+<li>Sample stock items</li>
+<li>Sample orders and clients</li>
+<li>Sample tasks and movements</li>
+<li>Sample reports and analytics data</li>
+</ul>
+<h2>Test Execution Strategy</h2>
+<h3>Phase 1: Core Functionality (Week 1)</h3>
+<ul>
+<li>Authentication testing</li>
+<li>Dashboard testing</li>
+<li>Basic CRUD operations</li>
+</ul>
+<h3>Phase 2: Business Logic (Week 2)</h3>
+<ul>
+<li>Stock management</li>
+<li>Order processing</li>
+<li>Task management</li>
+<li>User management</li>
+</ul>
+<h3>Phase 3: Advanced Features (Week 3)</h3>
+<ul>
+<li>Reporting system</li>
+<li>Import/Export operations</li>
+<li>Advanced workflows</li>
+<li>Integration testing</li>
+</ul>
+<h3>Phase 4: Performance &amp; Security (Week 4)</h3>
+<ul>
+<li>Performance testing</li>
+<li>Security testing</li>
+<li>Browser compatibility</li>
+<li>Accessibility testing</li>
+</ul>
+<h2>Risk Assessment</h2>
+<h3>High Risk Areas</h3>
+<ol>
+<li><strong>Authentication System</strong> - Critical for application security</li>
+<li><strong>Data Integrity</strong> - Stock and order management</li>
+<li><strong>User Permissions</strong> - Role-based access control</li>
+<li><strong>Performance</strong> - Large dataset handling</li>
+</ol>
+<h3>Medium Risk Areas</h3>
+<ol>
+<li><strong>UI/UX Consistency</strong> - Cross-browser compatibility</li>
+<li><strong>Integration Points</strong> - API communication</li>
+<li><strong>Data Validation</strong> - Form inputs and business rules</li>
+</ol>
+<h3>Low Risk Areas</h3>
+<ol>
+<li><strong>Cosmetic Issues</strong> - Minor UI adjustments</li>
+<li><strong>Documentation</strong> - Help text and tooltips</li>
+<li><strong>Non-critical Features</strong> - Chatbot, admin panel</li>
+</ol>
+<h2>Recommendations</h2>
+<h3>Immediate Actions</h3>
+<ol>
+<li><strong>Set up automated testing pipeline</strong> using TestSprite</li>
+<li><strong>Create comprehensive test data</strong> for all modules</li>
+<li><strong>Implement continuous integration</strong> for regression testing</li>
+<li><strong>Establish test environment</strong> with production-like data</li>
+</ol>
+<h3>Long-term Improvements</h3>
+<ol>
+<li><strong>Performance monitoring</strong> and optimization</li>
+<li><strong>Security audit</strong> and penetration testing</li>
+<li><strong>User acceptance testing</strong> with stakeholders</li>
+<li><strong>Load testing</strong> for production readiness</li>
+</ol>
+<h2>Conclusion</h2>
+<p>The Angular textile management frontend application is well-structured with comprehensive features covering all aspects of textile business operations. The application is ready for systematic testing using TestSprite's automated testing capabilities.</p>
+<p><strong>Next Steps:</strong></p>
+<ol>
+<li>Execute the test plan using TestSprite</li>
+<li>Address any issues found during testing</li>
+<li>Implement continuous testing in the development pipeline</li>
+<li>Regular regression testing for new features</li>
+</ol>
+<p><strong>Estimated Testing Duration:</strong> 4 weeks
+<strong>Test Coverage Target:</strong> 90%+
+<strong>Quality Gates:</strong> All critical and high-priority tests must pass</p>
+<hr>
+<p><em>Report generated by TestSprite MCP for Angular Textile Management Frontend Application</em>
+<em>Date: December 2024</em></p>
+
+    </body>
+    </html>
+  

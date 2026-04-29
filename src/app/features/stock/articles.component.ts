@@ -19,8 +19,8 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { StockService } from '../../core/services/stock.service';
-import { Stock, Article } from '../../shared/models/stock.model';
+import { ArticleService } from '../../core/services/article.service';
+import { Article } from '../../shared/models/stock.model';
 
 interface ArticleStats {
   totalArticles: number;
@@ -65,8 +65,8 @@ export class ArticlesComponent implements OnInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   // Table configuration
-  displayedColumns: string[] = ['image', 'article', 'categorie', 'stock', 'prix', 'statut', 'actions'];
-  dataSource = new MatTableDataSource<Stock>([]);
+  displayedColumns: string[] = ['image', 'designation', 'reference', 'categorie', 'prix', 'statut', 'actions'];
+  dataSource = new MatTableDataSource<Article>([]);
 
   // Pagination
   totalItems = 0;
@@ -79,7 +79,7 @@ export class ArticlesComponent implements OnInit {
   selectedStatutStock = '';
 
   // Data
-  stocks: Stock[] = [];
+  articles: Article[] = [];
   categories: Categorie[] = [];
   stats: ArticleStats | null = null;
 
@@ -87,7 +87,7 @@ export class ArticlesComponent implements OnInit {
   loading = true;
 
   constructor(
-    private stockService: StockService,
+    private articleService: ArticleService,
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
@@ -106,12 +106,13 @@ export class ArticlesComponent implements OnInit {
     this.loading = true;
 
     // Load articles
-    this.stockService.getAll().subscribe({
-      next: (stocks) => {
-        this.stocks = stocks;
-        this.dataSource.data = stocks;
-        this.totalItems = stocks.length;
+    this.articleService.getAll().subscribe({
+      next: (articles) => {
+        this.articles = articles;
+        this.dataSource.data = articles;
+        this.totalItems = articles.length;
         this.calculateStats();
+        this.extractCategories();
         this.loading = false;
       },
       error: (error) => {
@@ -131,21 +132,31 @@ export class ArticlesComponent implements OnInit {
   }
 
   calculateStats(): void {
-    const total = this.stocks.length;
-    const enStock = this.stocks.filter(s => s.quantite > (s.article?.seuilAlerte || 0)).length;
-    const stockFaible = this.stocks.filter(s => {
-      const qty = s.quantite;
-      const seuil = s.article?.seuilAlerte || 0;
-      return qty > 0 && qty <= seuil;
-    }).length;
-    const rupture = this.stocks.filter(s => s.quantite === 0).length;
+    const total = this.articles.length;
+    const actifs = this.articles.filter(a => a.estActif).length;
+    const alertes = this.articles.filter(a => a.seuilAlerte && a.seuilAlerte > 0).length;
+    const critiques = this.articles.filter(a => a.seuilCritique && a.seuilCritique > 0).length;
 
     this.stats = {
       totalArticles: total,
-      articlesEnStock: enStock,
-      articlesStockFaible: stockFaible,
-      articlesRupture: rupture
+      articlesEnStock: actifs,
+      articlesStockFaible: alertes,
+      articlesRupture: critiques
     };
+  }
+
+  extractCategories(): void {
+    const categoriesSet = new Set<string>();
+    this.articles.forEach(article => {
+      if (article.categorie) {
+        categoriesSet.add(article.categorie);
+      }
+    });
+    
+    this.categories = Array.from(categoriesSet).map((cat, index) => ({
+      id: index + 1,
+      nom: cat
+    }));
   }
 
   // Search and filters
@@ -158,37 +169,34 @@ export class ArticlesComponent implements OnInit {
   }
 
   applyFilters(): void {
-    let filteredData = [...this.stocks];
+    let filteredData = [...this.articles];
 
     // Search filter
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
-      filteredData = filteredData.filter(stock =>
-        (stock.article?.designation && stock.article.designation.toLowerCase().includes(term)) ||
-        (stock.article?.reference && stock.article.reference.toLowerCase().includes(term))
+      filteredData = filteredData.filter(article =>
+        (article.designation && article.designation.toLowerCase().includes(term)) ||
+        (article.reference && article.reference.toLowerCase().includes(term))
       );
     }
 
     // Category filter
     if (this.selectedCategorie) {
-      filteredData = filteredData.filter(stock =>
-        stock.article?.categorie === this.selectedCategorie
+      filteredData = filteredData.filter(article =>
+        article.categorie === this.selectedCategorie
       );
     }
 
-    // Stock status filter
+    // Status filter (based on article status)
     if (this.selectedStatutStock) {
-      filteredData = filteredData.filter(stock => {
-        const qty = stock.quantite;
-        const seuil = stock.article?.seuilAlerte || 0;
-
+      filteredData = filteredData.filter(article => {
         switch (this.selectedStatutStock) {
-          case 'EN_STOCK':
-            return qty > seuil;
-          case 'STOCK_FAIBLE':
-            return qty > 0 && qty <= seuil;
-          case 'RUPTURE':
-            return qty === 0;
+          case 'ACTIF':
+            return article.estActif;
+          case 'INACTIF':
+            return !article.estActif;
+          case 'AVEC_SEUIL':
+            return article.seuilAlerte && article.seuilAlerte > 0;
           default:
             return true;
         }
@@ -203,8 +211,8 @@ export class ArticlesComponent implements OnInit {
     this.searchTerm = '';
     this.selectedCategorie = '';
     this.selectedStatutStock = '';
-    this.dataSource.data = this.stocks;
-    this.totalItems = this.stocks.length;
+    this.dataSource.data = this.articles;
+    this.totalItems = this.articles.length;
   }
 
   // Pagination
@@ -220,22 +228,18 @@ export class ArticlesComponent implements OnInit {
     }
   }
 
-  // Stock status helpers
-  getStockStatusClass(stock: Stock): string {
-    const qty = stock.quantite;
-    const seuil = stock.article?.seuilAlerte || 0;
-
-    if (qty === 0) return 'stock-out';
-    if (qty <= seuil) return 'stock-low';
-    return 'stock-ok';
+  // Article status helpers
+  getArticleStatusClass(article: Article): string {
+    if (!article.estActif) return 'article-inactive';
+    if (article.seuilCritique && article.seuilCritique > 0) return 'article-critical';
+    if (article.seuilAlerte && article.seuilAlerte > 0) return 'article-warning';
+    return 'article-ok';
   }
 
-  getStockIcon(stock: Stock): string {
-    const qty = stock.quantite;
-    const seuil = stock.article?.seuilAlerte || 0;
-
-    if (qty === 0) return 'error';
-    if (qty <= seuil) return 'warning';
+  getArticleIcon(article: Article): string {
+    if (!article.estActif) return 'block';
+    if (article.seuilCritique && article.seuilCritique > 0) return 'error';
+    if (article.seuilAlerte && article.seuilAlerte > 0) return 'warning';
     return 'check_circle';
   }
 
@@ -265,39 +269,33 @@ export class ArticlesComponent implements OnInit {
     this.router.navigate(['/stock/articles/nouveau']);
   }
 
-  viewArticle(stock: Stock): void {
-    if (stock.article) {
-      this.router.navigate(['/stock/articles', stock.article.id]);
-    }
+  viewArticle(article: Article): void {
+    this.router.navigate(['/stock/articles', article.id]);
   }
 
-  editArticle(stock: Stock): void {
-    if (stock.article) {
-      this.router.navigate(['/stock/articles', stock.article.id, 'modifier']);
-    }
+  editArticle(article: Article): void {
+    this.router.navigate(['/stock/articles', article.id, 'modifier']);
   }
 
-  duplicateArticle(stock: Stock): void {
+  duplicateArticle(article: Article): void {
     // Implementation for duplicating article
     this.snackBar.open('Fonctionnalité de duplication en cours de développement', 'Fermer', { duration: 3000 });
   }
 
-  adjustStock(stock: Stock): void {
+  adjustStock(article: Article): void {
     // Implementation for stock adjustment
     this.snackBar.open('Fonctionnalité d\'ajustement de stock en cours de développement', 'Fermer', { duration: 3000 });
   }
 
-  viewMovements(stock: Stock): void {
-    if (stock.article) {
-      this.router.navigate(['/mouvements'], { queryParams: { articleId: stock.article.id } });
-    }
+  viewMovements(article: Article): void {
+    this.router.navigate(['/mouvements'], { queryParams: { articleId: article.id } });
   }
 
-  deleteArticle(stock: Stock): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer cette entrée de stock pour "${stock.article?.designation}" ?`)) {
-      this.stockService.delete(stock.id).subscribe({
+  deleteArticle(article: Article): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'article "${article.designation}" ?`)) {
+      this.articleService.delete(article.id).subscribe({
         next: () => {
-          this.snackBar.open('Entrée de stock supprimée avec succès', 'Fermer', { duration: 3000 });
+          this.snackBar.open('Article supprimé avec succès', 'Fermer', { duration: 3000 });
           this.loadData();
         },
         error: (error) => {
@@ -313,3 +311,5 @@ export class ArticlesComponent implements OnInit {
     this.snackBar.open('Fonctionnalité d\'export en cours de développement', 'Fermer', { duration: 3000 });
   }
 }
+
+

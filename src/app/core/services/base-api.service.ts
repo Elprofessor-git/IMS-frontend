@@ -69,3 +69,5 @@ export abstract class BaseApiService<T> {
     return this.http.patch<T>(`${this.apiUrl}/${id}/toggle-status`, {});
   }
 }
+
+

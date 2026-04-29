@@ -165,9 +165,10 @@ export class RapportVentesComponent implements OnInit {
     { position: 10, nom: 'Écharpe Laine', quantite: 15, ca: 300, evolution: 10 }
   ];
 
-  constructor() {}
+  constructor() { /* TODO: Implement */ }
 
   ngOnInit(): void {
     // Charger les données du rapport
   }
 }
+

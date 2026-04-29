@@ -22,6 +22,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Router } from '@angular/router';
 import { StatutCommande } from '../../shared/models/commande.model';
 
 import { CommandeService } from '../../core/services/commande.service';
@@ -103,7 +104,8 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private commandeService: CommandeService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -237,9 +239,7 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Action methods
   openNewOrderDialog(): void {
-    this.snackBar.open('Fonctionnalité "Nouvelle commande" en cours de développement', 'Fermer', {
-      duration: 3000
-    });
+    this.router.navigate(['/commandes/new']);
   }
 
   viewOrder(order: CommandeClient): void {
@@ -249,14 +249,43 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   editOrder(order: CommandeClient): void {
-    this.snackBar.open(`Modifier la commande ${order.numeroCommande}`, 'Fermer', {
-      duration: 2000
-    });
+    this.router.navigate(['/commandes/edit', order.id]);
   }
 
   printOrder(order: CommandeClient): void {
     this.snackBar.open(`Imprimer la commande ${order.numeroCommande}`, 'Fermer', {
       duration: 2000
+    });
+  }
+
+  validateResources(order: CommandeClient): void {
+    this.commandeService.validerRessources(order.id).subscribe({
+      next: (res: any) => {
+        this.snackBar.open(
+          `Validation: ${Math.round(res.pourcentageCouverture)}% - Statut: ${res.statut}`,
+          'Fermer',
+          { duration: 4000 }
+        );
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.snackBar.open('Erreur lors de la validation des ressources', 'Fermer', { duration: 3000 });
+        console.error(err);
+      }
+    });
+  }
+
+  generateTasks(order: CommandeClient): void {
+    this.commandeService.genererTaches(order.id).subscribe({
+      next: (res: any) => {
+        this.snackBar.open(`Tâches générées (ID ${res.tacheId})`, 'Fermer', { duration: 3000 });
+        this.loadOrders();
+      },
+      error: (err) => {
+        const msg = err?.error || 'Erreur lors de la génération des tâches';
+        this.snackBar.open(typeof msg === 'string' ? msg : 'Erreur lors de la génération des tâches', 'Fermer', { duration: 3000 });
+        console.error(err);
+      }
     });
   }
 
@@ -308,3 +337,5 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.selection.selected.every(order => order.statut === StatutCommande.EnAttente);
   }
 }
+
+

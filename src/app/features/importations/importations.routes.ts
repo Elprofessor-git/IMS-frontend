@@ -18,3 +18,5 @@ export const importationsRoutes: Routes = [
     loadComponent: () => import('./importation-details.component').then(m => m.ImportationDetailsComponent)
   }
 ];
+
+

@@ -237,7 +237,7 @@ interface ChatMessage {
 })
 export class ChatbotComponent implements OnInit {
   messages: ChatMessage[] = [];
-  newMessage: string = '';
+  newMessage = '';
   suggestions: string[] = [
     'Combien d\'articles sont en stock ?',
     'Quelles sont les commandes en cours ?',
@@ -316,3 +316,4 @@ export class ChatbotComponent implements OnInit {
     this.addBotMessage(response);
   }
 }
+

@@ -1,4 +1,4 @@
-export interface User {
+export interface IUser {
   id: string;
   userName: string;
   email: string;
@@ -6,35 +6,42 @@ export interface User {
   prenom: string;
   poste?: string;
   roleId?: number;
-  role?: Role;
+  role?: IRole;
   estActif: boolean;
   dateCreation: Date;
   derniereConnexion?: Date;
 }
 
-export interface Role {
+export interface IRole {
   id: number;
   nom: string;
   description?: string;
-  permissions?: Permission[];
-  utilisateurs?: User[];
+  permissions?: IPermission[];
+  utilisateurs?: IUser[];
 }
 
-export interface Permission {
+export interface IPermission {
   id: number;
   module: string;
   action: string;
   description?: string;
 }
 
-export interface LoginRequest {
+export interface ILoginRequest {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
+export interface ILoginResponse {
   token: string;
   refreshToken: string;
-  user: User;
+  user: IUser;
   expiresAt: Date;
 }
+
+// Aliases without I-prefix for backward compatibility
+export type User = IUser;
+export type Role = IRole;
+export type Permission = IPermission;
+export type LoginRequest = ILoginRequest;
+export type LoginResponse = ILoginResponse;

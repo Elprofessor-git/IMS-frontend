@@ -17,6 +17,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'home',
+    redirectTo: '/dashboard',
+    pathMatch: 'full'
+  },
+  {
     path: 'stock',
     loadChildren: () => import('./features/stock/stock.routes').then(m => m.stockRoutes),
     canActivate: [AuthGuard]
@@ -76,3 +81,5 @@ export const routes: Routes = [
     redirectTo: '/dashboard'
   }
 ];
+
+

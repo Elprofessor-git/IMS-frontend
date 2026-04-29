@@ -18,3 +18,5 @@ export const achatsRoutes: Routes = [
     loadComponent: () => import('./achat-details.component').then(m => m.AchatDetailsComponent)
   }
 ];
+
+

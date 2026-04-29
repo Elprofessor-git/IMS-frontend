@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
-import { LoginRequest } from '../../shared/models/common.model';
+import { LoginRequest } from '../../core/auth/auth.model';
 
 @Component({
   selector: 'app-login',
@@ -150,12 +151,32 @@ import { LoginRequest } from '../../shared/models/common.model';
         padding: 24px;
       }
     }
+
+    // Styles pour les notifications
+    .success-snackbar {
+      background-color: #4caf50 !important; // Vert
+      color: white !important;
+    }
+
+    .error-snackbar {
+      background-color: #f44336 !important; // Rouge
+      color: white !important;
+    }
+
+    // Amélioration de l'accessibilité
+    .mat-snack-bar-container {
+      font-weight: 500;
+      button {
+        color: white !important;
+      }
+    }
   `]
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   isSubmitting = false;
   hidePassword = true;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -176,31 +197,68 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid) {
-      this.isSubmitting = true;
-      const loginData: LoginRequest = this.loginForm.value;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-      this.authService.login(loginData).subscribe({
-        next: (response) => {
+  onSubmit(): void {
+    if (this.loginForm.invalid || this.isSubmitting) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    const loginData: LoginRequest = this.loginForm.value;
+
+    this.authService.login(loginData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
           this.isSubmitting = false;
-          this.snackBar.open('Connexion réussie', 'Fermer', { duration: 3000 });
-          this.router.navigate(['/dashboard']);
+          
+          
+          this.snackBar.open('Connexion réussie', 'Fermer', { 
+            duration: 2000,
+            panelClass: ['success-snackbar']
+          });
+          
+          // Attendre un court délai pour que l'authentification soit bien enregistrée
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']).then(success => {
+              if (!success) {
+                console.error('Navigation vers dashboard échouée');
+                // Fallback vers une route alternative
+                this.router.navigate(['/stock']);
+              }
+            });
+          }, 100);
         },
         error: (error) => {
           this.isSubmitting = false;
-          console.error('Erreur de connexion:', error);
+          console.error('Erreur de connexion complète:', error);
+          console.error('Status:', error.status);
+          console.error('URL tentée:', error.url);
 
-          let errorMessage = 'Erreur de connexion';
+          let errorMessage = 'Une erreur est survenue lors de la connexion';
           if (error.status === 401) {
             errorMessage = 'Email ou mot de passe incorrect';
           } else if (error.status === 0) {
-            errorMessage = 'Impossible de se connecter au serveur';
+            errorMessage = 'Impossible de se connecter au serveur (http://localhost:5001). Vérifiez que le backend est démarré.';
+          } else if (error.status === 404) {
+            errorMessage = 'Endpoint de connexion non trouvé. Vérifiez la configuration de l\'API.';
+          } else if (error.status >= 500) {
+            errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.';
+          } else if (error.message) {
+            errorMessage = `Erreur: ${error.message}`;
           }
 
-          this.snackBar.open(errorMessage, 'Fermer', { duration: 5000 });
+          this.snackBar.open(errorMessage, 'Fermer', { 
+            duration: 8000,
+            panelClass: ['error-snackbar']
+          });
         }
       });
-    }
   }
 }
+
+

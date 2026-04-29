@@ -1,0 +1,60 @@
+# Dockerfile optimisé pour éviter les timeouts
+FROM node:18-alpine AS build
+
+# Augmenter les timeouts et la mémoire
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NPM_CONFIG_TIMEOUT=300000
+ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
+
+WORKDIR /app
+
+# Installer les outils de build nécessaires
+RUN apk add --no-cache python3 make g++
+
+# Copier seulement package.json et package-lock.json d'abord
+COPY package*.json ./
+
+# Nettoyer le cache npm et installer avec des options optimisées
+RUN npm cache clean --force && \
+    npm ci --only=production --no-audit --no-fund --timeout=300000
+
+# Copier le reste du code source
+COPY . .
+
+# Build avec des options optimisées
+RUN npm run build -- --configuration=production --optimization=true --build-optimizer=true
+
+# Étape de production avec Nginx
+FROM nginx:alpine
+
+# Installer curl pour les health checks
+RUN apk add --no-cache curl
+
+# Copier les fichiers buildés
+COPY --from=build /app/dist/gestion-textile-frontend /usr/share/nginx/html
+
+# Copier la configuration nginx
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Créer un utilisateur non-root pour la sécurité
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Changer les permissions
+RUN chown -R nextjs:nodejs /usr/share/nginx/html && \
+    chown -R nextjs:nodejs /var/cache/nginx && \
+    chown -R nextjs:nodejs /var/log/nginx && \
+    chown -R nextjs:nodejs /etc/nginx/conf.d
+
+# Créer les répertoires nécessaires
+RUN touch /var/run/nginx.pid && \
+    chown -R nextjs:nodejs /var/run/nginx.pid
+
+# Exposer le port
+EXPOSE 80
+
+# Utiliser l'utilisateur non-root
+USER nextjs
+
+# Commande de démarrage
+CMD ["nginx", "-g", "daemon off;"]

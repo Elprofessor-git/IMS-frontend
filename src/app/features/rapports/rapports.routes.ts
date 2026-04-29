@@ -19,3 +19,4 @@ export const rapportsRoutes: Routes = [
     loadComponent: () => import('./analytics.component').then(m => m.AnalyticsComponent)
   }
 ];
+

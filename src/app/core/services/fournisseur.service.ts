@@ -31,3 +31,5 @@ export class FournisseurService extends BaseApiService<Fournisseur> {
       .pipe(map(response => response.data));
   }
 }
+
+

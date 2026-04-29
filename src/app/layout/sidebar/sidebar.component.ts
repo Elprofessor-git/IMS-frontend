@@ -215,3 +215,5 @@ export class SidebarComponent {
     return this.authService.hasPermission(item.permission.module, item.permission.action);
   }
 }
+
+

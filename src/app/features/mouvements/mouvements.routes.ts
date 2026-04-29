@@ -14,3 +14,5 @@ export const mouvementsRoutes: Routes = [
     loadComponent: () => import('./mouvement-details.component').then(m => m.MouvementDetailsComponent)
   }
 ];
+
+
