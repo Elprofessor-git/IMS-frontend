@@ -18,3 +18,5 @@ export const tachesRoutes: Routes = [
     loadComponent: () => import('./tache-details.component').then(m => m.TacheDetailsComponent)
   }
 ];
+
+

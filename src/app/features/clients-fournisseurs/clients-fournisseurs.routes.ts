@@ -22,3 +22,5 @@ export const clientsFournisseursRoutes: Routes = [
     loadComponent: () => import('./fournisseurs/fournisseur-form.component').then(m => m.FournisseurFormComponent)
   }
 ];
+
+

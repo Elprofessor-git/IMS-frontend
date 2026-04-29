@@ -47,26 +47,6 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Statut</mat-label>
-          <mat-select [(value)]="selectedStatus" (selectionChange)="onFilterChange()">
-            <mat-option value="">Tous les statuts</mat-option>
-            <mat-option value="ACTIF">Actif</mat-option>
-            <mat-option value="INACTIF">Inactif</mat-option>
-            <mat-option value="SUSPENDU">Suspendu</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Département</mat-label>
-          <mat-select [(value)]="selectedDepartment" (selectionChange)="onFilterChange()">
-            <mat-option value="">Tous les départements</mat-option>
-            <mat-option value="PRODUCTION">Production</mat-option>
-            <mat-option value="LOGISTIQUE">Logistique</mat-option>
-            <mat-option value="COMMERCIAL">Commercial</mat-option>
-            <mat-option value="ADMINISTRATION">Administration</mat-option>
-          </mat-select>
-        </mat-form-field>
 
         <button mat-icon-button (click)="clearFilters()" matTooltip="Effacer les filtres">
           <mat-icon>clear</mat-icon>
@@ -89,29 +69,6 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-content">
-          <mat-icon class="stat-icon success">check_circle</mat-icon>
-          <div class="stat-info">
-            <span class="stat-number">{{ stats.activeUsers || 0 }}</span>
-            <span class="stat-label">Actifs</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-content">
-          <mat-icon class="stat-icon warning">schedule</mat-icon>
-          <div class="stat-info">
-            <span class="stat-number">{{ stats.onlineUsers || 0 }}</span>
-            <span class="stat-label">En ligne</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
 
     <mat-card class="stat-card">
       <mat-card-content>
@@ -176,18 +133,11 @@
             <td mat-cell *matCellDef="let user">
               <div class="user-info">
                 <div class="user-avatar">
-                  <img *ngIf="user.avatar; else defaultAvatar"
-                       [src]="user.avatar"
-                       [alt]="user.prenom + ' ' + user.nom">
-                  <ng-template #defaultAvatar>
                     <mat-icon>person</mat-icon>
-                  </ng-template>
-                  <div class="online-indicator" *ngIf="user.isOnline"></div>
                 </div>
                 <div class="user-details">
-                  <span class="user-name">{{ user.prenom }} {{ user.nom }}</span>
+                  <span class="user-name">{{ user.userName }}</span>
                   <span class="user-email">{{ user.email }}</span>
-                  <span class="user-phone" *ngIf="user.telephone">{{ user.telephone }}</span>
                 </div>
               </div>
             </td>
@@ -195,60 +145,17 @@
 
           <!-- Role Column -->
           <ng-container matColumnDef="role">
-            <th mat-header-cell *matHeaderCellDef>Rôle</th>
+            <th mat-header-cell *matHeaderCellDef>Rôles</th>
             <td mat-cell *matCellDef="let user">
-              <mat-chip [color]="getRoleColor(user.role)" selected>
-                <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
-                {{ getRoleLabel(user.role) }}
-              </mat-chip>
+              <mat-chip-listbox>
+                <mat-chip *ngFor="let role of user.roles" [color]="getRoleColor(role)" selected>
+                  <mat-icon>{{ getRoleIcon(role) }}</mat-icon>
+                  {{ getRoleLabel(role) }}
+                </mat-chip>
+              </mat-chip-listbox>
             </td>
           </ng-container>
 
-          <!-- Department Column -->
-          <ng-container matColumnDef="department">
-            <th mat-header-cell *matHeaderCellDef>Département</th>
-            <td mat-cell *matCellDef="let user">
-              <div class="department-info">
-                <mat-icon class="department-icon">{{ getDepartmentIcon(user.departement) }}</mat-icon>
-                <span>{{ getDepartmentLabel(user.departement) }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Status Column -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Statut</th>
-            <td mat-cell *matCellDef="let user">
-              <mat-chip [color]="getStatusColor(user.statut)" selected>
-                <mat-icon>{{ getStatusIcon(user.statut) }}</mat-icon>
-                {{ getStatusLabel(user.statut) }}
-              </mat-chip>
-            </td>
-          </ng-container>
-
-          <!-- Last Login Column -->
-          <ng-container matColumnDef="lastLogin">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Dernière connexion</th>
-            <td mat-cell *matCellDef="let user">
-              <div class="last-login-info">
-                <span *ngIf="user.derniereConnexion; else neverConnected"
-                      class="login-date">
-                  {{ user.derniereConnexion | date:'dd/MM/yyyy HH:mm' }}
-                </span>
-                <ng-template #neverConnected>
-                  <span class="never-connected">Jamais connecté</span>
-                </ng-template>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Created Date Column -->
-          <ng-container matColumnDef="created">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Créé le</th>
-            <td mat-cell *matCellDef="let user">
-              {{ user.dateCreation | date:'dd/MM/yyyy' }}
-            </td>
-          </ng-container>
 
           <!-- Actions Column -->
           <ng-container matColumnDef="actions">
@@ -273,10 +180,6 @@
                   <button mat-menu-item (click)="changeRole(user)">
                     <mat-icon>admin_panel_settings</mat-icon>
                     Changer le rôle
-                  </button>
-                  <button mat-menu-item (click)="toggleUserStatus(user)">
-                    <mat-icon>{{ user.statut === 'ACTIF' ? 'block' : 'check_circle' }}</mat-icon>
-                    {{ user.statut === 'ACTIF' ? 'Désactiver' : 'Activer' }}
                   </button>
                   <mat-divider></mat-divider>
                   <button mat-menu-item (click)="viewUserActivity(user)">

@@ -1,14 +1,14 @@
-import { Fournisseur } from './common.model';
-import { CommandeClient } from './commande.model';
-import { Article } from './stock.model';
+import { IFournisseur } from './common.model';
+import { ICommandeClient } from './commande.model';
+import { IArticle } from './stock.model';
 
-export interface Achat {
+export interface IAchat {
   id: number;
   numeroAchat: string;
   fournisseurId: number;
-  fournisseur?: Fournisseur;
+  fournisseur?: IFournisseur;
   commandeClientId: number;
-  commandeClient?: CommandeClient;
+  commandeClient?: ICommandeClient;
   statut: StatutAchat;
   montantTotal: number;
   devise: string;
@@ -17,15 +17,15 @@ export interface Achat {
   commentaires?: string;
   dateCreation: Date;
   dateMiseAJour?: Date;
-  lignesAchat?: LigneAchat[];
+  lignesAchat?: ILigneAchat[];
 }
 
-export interface LigneAchat {
+export interface ILigneAchat {
   id: number;
   achatId: number;
-  achat?: Achat;
+  achat?: IAchat;
   articleId: number;
-  article?: Article;
+  article?: IArticle;
   couleur?: string;
   codeCouleur?: string;
   taille?: string;
@@ -44,3 +44,7 @@ export enum StatutAchat {
   Livre = 'Livre',
   Annule = 'Annule'
 }
+
+// Aliases without I-prefix for backward compatibility
+export type Achat = IAchat;
+export type LigneAchat = ILigneAchat;

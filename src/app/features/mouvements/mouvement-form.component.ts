@@ -608,3 +608,5 @@ export class MouvementFormComponent implements OnInit {
     this.router.navigate(['/mouvements']);
   }
 }
+
+

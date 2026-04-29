@@ -309,8 +309,8 @@
               <mat-option *ngFor="let role of availableRoles" [value]="role.id">
                 <div class="role-option">
                   <div class="role-color" [style.background-color]="role.couleur"></div>
-                  <span class="role-name">{{role.nom}}</span>
-                  <mat-chip class="role-level">Niveau {{role.niveau}}</mat-chip>
+                  <span class="role-name">{{role.name}}</span>
+                  <mat-chip class="role-level" *ngIf="role.niveau">Niveau {{role.niveau}}</mat-chip>
                 </div>
               </mat-option>
             </mat-select>

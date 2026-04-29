@@ -601,7 +601,7 @@ export class AchatFormComponent implements OnInit {
 
         // Charger les lignes d'achat
         this.lignesAchatArray.clear();
-        achat.lignesAchat?.forEach(ligne => {
+        achat.lignesAchat?.forEach((ligne: any) => {
           const ligneGroup = this.fb.group({
             articleId: [ligne.articleId, Validators.required],
             quantite: [ligne.quantite, [Validators.required, Validators.min(1)]],
@@ -683,3 +683,5 @@ export class AchatFormComponent implements OnInit {
     this.router.navigate(['/achats']);
   }
 }
+
+

@@ -11,3 +11,4 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./parametres.component').then(m => m.ParametresComponent)
   }
 ];
+

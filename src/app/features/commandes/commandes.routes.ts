@@ -18,3 +18,5 @@ export const commandesRoutes: Routes = [
     loadComponent: () => import('./commande-details.component').then(m => m.CommandeDetailsComponent)
   }
 ];
+
+

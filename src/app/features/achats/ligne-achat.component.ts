@@ -224,10 +224,10 @@ import { ArticleService } from '../../core/services/article.service';
 })
 export class LigneAchatComponent implements OnInit {
   @Input() ligne: LigneAchat | null = null;
-  @Input() index: number = 0;
-  @Input() isEditMode: boolean = false;
-  @Input() isExpanded: boolean = false;
-  @Input() tauxTVA: number = 20;
+  @Input() index = 0;
+  @Input() isEditMode = false;
+  @Input() isExpanded = false;
+  @Input() tauxTVA = 20;
 
   @Output() save = new EventEmitter<LigneAchat>();
   @Output() cancel = new EventEmitter<void>();
@@ -354,3 +354,4 @@ export class LigneAchatComponent implements OnInit {
     }
   }
 }
+

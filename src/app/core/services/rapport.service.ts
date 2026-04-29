@@ -5,7 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { BaseApiService } from './base-api.service';
 
 // Define the structure of the statistics object returned by the backend
-export interface MouvementStatistiques {
+export interface IMouvementStatistiques {
   totalMouvements: number;
   entrees: number;
   sorties: number;
@@ -54,3 +54,9 @@ export class RapportService extends BaseApiService<any> {
     // getRapportVentes(): Observable<any> { ... }
     // getAnalyticsData(): Observable<any> { ... }
 }
+
+
+
+
+// Auto-generated aliases for backward compatibility
+export type MouvementStatistiques = IMouvementStatistiques;

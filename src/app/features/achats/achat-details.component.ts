@@ -806,3 +806,5 @@ export class AchatDetailsComponent implements OnInit {
     this.router.navigate(['/achats']);
   }
 }
+
+

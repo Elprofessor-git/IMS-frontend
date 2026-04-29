@@ -31,3 +31,5 @@ export class ClientService extends BaseApiService<Client> {
       .pipe(map((response: any) => response.data));
   }
 }
+
+

@@ -253,6 +253,19 @@
                 </button>
 
                 <button mat-icon-button
+                        matTooltip="Valider ressources"
+                        (click)="validateResources(order); $event.stopPropagation()">
+                  <mat-icon>playlist_add_check</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        matTooltip="Générer tâches"
+                        (click)="generateTasks(order); $event.stopPropagation()"
+                        [disabled]="order.statut !== 'Prete'">
+                  <mat-icon>play_circle</mat-icon>
+                </button>
+
+                <button mat-icon-button
                         matTooltip="Imprimer"
                         (click)="printOrder(order); $event.stopPropagation()">
                   <mat-icon>print</mat-icon>

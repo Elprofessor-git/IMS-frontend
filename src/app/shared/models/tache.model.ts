@@ -1,12 +1,12 @@
-import { CommandeClient } from './commande.model';
-import { MouvementStock } from './stock.model';
+import { ICommandeClient } from './commande.model';
+import { IMouvementStock } from './stock.model';
 
-export interface TacheProduction {
+export interface ITacheProduction {
   id: number;
   titre: string;
   description?: string;
   commandeClientId?: number;
-  commandeClient?: CommandeClient;
+  commandeClient?: ICommandeClient;
   statut: StatutTache;
   priorite: PrioriteTache;
   pourcentageAvancement: number;
@@ -18,7 +18,7 @@ export interface TacheProduction {
   dateFinReelle?: Date;
   commentaires?: string;
   motifBlocage?: string;
-  mouvementsStock?: MouvementStock[];
+  mouvementsStock?: IMouvementStock[];
 }
 
 export enum StatutTache {
@@ -35,3 +35,6 @@ export enum PrioriteTache {
   Haute = 'Haute',
   Critique = 'Critique'
 }
+
+// Alias without I-prefix for backward compatibility
+export type TacheProduction = ITacheProduction;

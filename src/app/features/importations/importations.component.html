@@ -259,7 +259,7 @@
                   <mat-icon>visibility</mat-icon>
                 </button>
                 <button mat-icon-button (click)="editImportation(importation)"
-                        [disabled]="importation.statut === 'LIVRE' || importation.statut === 'ANNULE'"
+                        [disabled]="importation.statut === 'Recue' || importation.statut === 'Annulee'"
                         matTooltip="Modifier">
                   <mat-icon>edit</mat-icon>
                 </button>
@@ -277,29 +277,34 @@
                     Documents douaniers
                   </button>
                   <button mat-menu-item (click)="trackShipment(importation)"
-                          [disabled]="importation.statut === 'EN_PREPARATION'">
+                          [disabled]="importation.statut === 'Brouillon'">
                     <mat-icon>track_changes</mat-icon>
                     Suivi colis
                   </button>
                   <mat-divider></mat-divider>
-                  <button mat-menu-item (click)="updateStatut(importation, 'EXPEDIE')"
-                          [disabled]="importation.statut !== 'EN_PREPARATION'">
-                    <mat-icon>local_shipping</mat-icon>
-                    Marquer expédié
+                  <button mat-menu-item (click)="soumettre(importation)"
+                          [disabled]="importation.statut !== 'Brouillon'">
+                    <mat-icon>send</mat-icon>
+                    Soumettre
                   </button>
-                  <button mat-menu-item (click)="updateStatut(importation, 'ARRIVE')"
-                          [disabled]="importation.statut !== 'EN_TRANSIT'">
-                    <mat-icon>flight_land</mat-icon>
-                    Marquer arrivé
+                  <button mat-menu-item (click)="valider(importation)"
+                          [disabled]="importation.statut !== 'Soumise'">
+                    <mat-icon>verified</mat-icon>
+                    Valider
                   </button>
-                  <button mat-menu-item (click)="updateStatut(importation, 'LIVRE')"
-                          [disabled]="importation.statut !== 'ARRIVE'">
-                    <mat-icon>check_circle</mat-icon>
-                    Marquer livré
+                  <button mat-menu-item (click)="recevoir(importation)"
+                          [disabled]="importation.statut !== 'Validee'">
+                    <mat-icon>inventory_2</mat-icon>
+                    Recevoir
+                  </button>
+                  <button mat-menu-item (click)="affecter(importation)"
+                          [disabled]="importation.statut !== 'Recue'">
+                    <mat-icon>assignment_turned_in</mat-icon>
+                    Affecter aux commandes
                   </button>
                   <mat-divider></mat-divider>
                   <button mat-menu-item (click)="annulerImportation(importation)"
-                          [disabled]="importation.statut === 'LIVRE' || importation.statut === 'ANNULE'"
+                          [disabled]="importation.statut === 'Recue' || importation.statut === 'Annulee'"
                           class="danger-action">
                     <mat-icon>cancel</mat-icon>
                     Annuler

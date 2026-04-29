@@ -1,0 +1,140 @@
+{
+  "projectName": "gestion-textile-frontend",
+  "projectDescription": "Angular-based textile management system frontend application",
+  "projectType": "frontend",
+  "techStack": {
+    "framework": "Angular 18",
+    "language": "TypeScript",
+    "uiLibrary": "Angular Material",
+    "styling": "SCSS",
+    "stateManagement": "RxJS",
+    "routing": "Angular Router",
+    "forms": "Angular Reactive Forms"
+  },
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "Complete authentication system with login, guards, interceptors, and token management",
+      "priority": "critical",
+      "testCases": [
+        "Login with valid credentials",
+        "Login with invalid credentials",
+        "Password reset functionality",
+        "Session management and token handling",
+        "Route guards for protected pages",
+        "Logout functionality"
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Main dashboard with analytics and overview of textile management system",
+      "priority": "high",
+      "testCases": [
+        "Dashboard loads after successful login",
+        "Analytics widgets display correctly",
+        "Navigation to different sections works",
+        "Responsive design on different screen sizes",
+        "Real-time data updates"
+      ]
+    },
+    {
+      "name": "Stock Management",
+      "description": "Complete stock management system with inventory tracking and article management",
+      "priority": "high",
+      "testCases": [
+        "Stock list displays correctly",
+        "Add new stock items",
+        "Edit existing stock items",
+        "Delete stock items",
+        "Stock search and filtering",
+        "Stock details view",
+        "Stock form validation"
+      ]
+    },
+    {
+      "name": "Order Management",
+      "description": "Order processing system for managing client orders and order details",
+      "priority": "high",
+      "testCases": [
+        "Order list displays correctly",
+        "Create new orders",
+        "Edit existing orders",
+        "Order status updates",
+        "Order details view",
+        "Order form validation"
+      ]
+    },
+    {
+      "name": "Client and Supplier Management",
+      "description": "Management system for clients and suppliers with CRUD operations",
+      "priority": "medium",
+      "testCases": [
+        "Client list displays correctly",
+        "Add new clients",
+        "Edit client information",
+        "Supplier list displays correctly",
+        "Add new suppliers",
+        "Edit supplier information"
+      ]
+    },
+    {
+      "name": "Task Management",
+      "description": "Task tracking and management system for textile operations",
+      "priority": "medium",
+      "testCases": [
+        "Task list displays correctly",
+        "Create new tasks",
+        "Update task status",
+        "Task assignment",
+        "Task filtering and search"
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "User administration and role management system",
+      "priority": "high",
+      "testCases": [
+        "User list displays correctly",
+        "Add new users",
+        "Edit user information",
+        "Role assignment",
+        "User permissions"
+      ]
+    }
+  ],
+  "testRequirements": {
+    "browserCompatibility": ["Chrome", "Firefox", "Edge", "Safari"],
+    "responsiveDesign": ["Desktop", "Tablet", "Mobile"],
+    "performance": {
+      "loadTime": "< 3 seconds",
+      "memoryUsage": "Optimized",
+      "networkRequests": "Minimized"
+    },
+    "accessibility": {
+      "wcagLevel": "AA",
+      "keyboardNavigation": true,
+      "screenReader": true
+    },
+    "security": {
+      "authentication": "Required",
+      "authorization": "Role-based",
+      "inputValidation": "Required",
+      "csrfProtection": "Required"
+    }
+  },
+  "testData": {
+    "validUser": {
+      "username": "admin@example.com",
+      "password": "Admintest3"
+    },
+    "invalidUser": {
+      "username": "invalid@example.com",
+      "password": "wrongpassword"
+    }
+  },
+  "testEnvironment": {
+    "localEndpoint": "http://localhost:4200",
+    "apiEndpoint": "http://localhost:5001/api",
+    "testTimeout": 30000
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "Angular 18",
+    "Angular Material",
+    "RxJS",
+    "SCSS",
+    "Angular Router",
+    "Angular Forms",
+    "Angular CDK"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "Complete authentication system with login, logout, and route guards",
+      "files": [
+        "src/app/core/auth/auth.guard.ts",
+        "src/app/core/auth/auth.model.ts",
+        "src/app/core/guards/auth.guard.ts",
+        "src/app/core/guards/mock-auth.guard.ts",
+        "src/app/core/services/auth.service.ts",
+        "src/app/core/services/mock-auth.service.ts",
+        "src/app/features/auth/login/login.component.ts",
+        "src/app/features/auth/login/login.component.html",
+        "src/app/features/auth/forgot-password/forgot-password.component.ts"
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Main dashboard with analytics and overview of the textile management system",
+      "files": [
+        "src/app/features/dashboard/dashboard.component.ts",
+        "src/app/features/dashboard/dashboard.component.html",
+        "src/app/features/dashboard/dashboard.component.scss",
+        "src/app/features/dashboard/dashboard.routes.ts",
+        "src/app/features/dashboard/models/dashboard.model.ts",
+        "src/app/features/dashboard/services/dashboard.service.ts"
+      ]
+    },
+    {
+      "name": "Stock Management",
+      "description": "Complete stock management system with CRUD operations",
+      "files": [
+        "src/app/features/stock/stock.component.ts",
+        "src/app/features/stock/stock.component.html",
+        "src/app/features/stock/stock.component.scss",
+        "src/app/core/services/stock.service.ts",
+        "src/app/core/services/article.service.ts"
+      ]
+    },
+    {
+      "name": "Order Management",
+      "description": "Order processing and management system",
+      "files": [
+        "src/app/features/commandes/commandes.component.ts",
+        "src/app/features/commandes/commandes.component.html",
+        "src/app/features/commandes/commandes.component.scss",
+        "src/app/features/commandes/commande-form.component.ts",
+        "src/app/features/commandes/commande-form.component.html",
+        "src/app/features/commandes/commande-details.component.ts",
+        "src/app/features/commandes/commande-details.component.html",
+        "src/app/features/commandes/commandes.routes.ts",
+        "src/app/core/services/commande.service.ts"
+      ]
+    },
+    {
+      "name": "Client & Supplier Management",
+      "description": "Management of clients and suppliers with detailed information",
+      "files": [
+        "src/app/features/clients-fournisseurs/clients-fournisseurs.component.ts",
+        "src/app/features/clients-fournisseurs/clients-fournisseurs.component.html",
+        "src/app/features/clients-fournisseurs/clients-fournisseurs.component.scss",
+        "src/app/features/clients-fournisseurs/clients-fournisseurs.routes.ts",
+        "src/app/features/clients-fournisseurs/clients/clients.component.ts",
+        "src/app/features/clients-fournisseurs/fournisseurs/fournisseurs.component.ts",
+        "src/app/core/services/client.service.ts",
+        "src/app/core/services/fournisseur.service.ts"
+      ]
+    },
+    {
+      "name": "Purchase Management",
+      "description": "Purchase order and procurement management system",
+      "files": [
+        "src/app/features/achats/achats.component.ts",
+        "src/app/features/achats/achats.component.html",
+        "src/app/features/achats/achats.component.scss",
+        "src/app/features/achats/achat-form.component.ts",
+        "src/app/features/achats/achat-form.component.html",
+        "src/app/features/achats/achat-details.component.ts",
+        "src/app/features/achats/achat-details.component.html",
+        "src/app/features/achats/ligne-achat.component.ts",
+        "src/app/features/achats/ligne-achat.component.html",
+        "src/app/features/achats/achats.routes.ts",
+        "src/app/core/services/achat.service.ts"
+      ]
+    },
+    {
+      "name": "Import Management",
+      "description": "Import operations and customs management",
+      "files": [
+        "src/app/features/importations/importations.component.ts",
+        "src/app/features/importations/importations.component.html",
+        "src/app/features/importations/importations.component.scss",
+        "src/app/core/services/importation.service.ts"
+      ]
+    },
+    {
+      "name": "Movement Management",
+      "description": "Stock movement tracking and management",
+      "files": [
+        "src/app/features/mouvements/mouvements.component.ts",
+        "src/app/features/mouvements/mouvements.component.html",
+        "src/app/features/mouvements/mouvements.component.scss",
+        "src/app/features/mouvements/mouvement-form.component.ts",
+        "src/app/features/mouvements/mouvement-form.component.html",
+        "src/app/features/mouvements/mouvement-details.component.ts",
+        "src/app/features/mouvements/mouvement-details.component.html",
+        "src/app/features/mouvements/mouvements.routes.ts",
+        "src/app/core/services/mouvement.service.ts"
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "User administration and role management",
+      "files": [
+        "src/app/features/utilisateurs/utilisateurs.component.ts",
+        "src/app/features/utilisateurs/utilisateurs.component.html",
+        "src/app/features/utilisateurs/utilisateurs.component.scss"
+      ]
+    },
+    {
+      "name": "Task Management",
+      "description": "Task tracking and project management",
+      "files": [
+        "src/app/features/taches/taches.component.ts",
+        "src/app/features/taches/taches.component.html",
+        "src/app/features/taches/taches.component.scss",
+        "src/app/core/services/tache.service.ts"
+      ]
+    },
+    {
+      "name": "Reporting System",
+      "description": "Comprehensive reporting and analytics",
+      "files": [
+        "src/app/features/rapports/rapports.component.ts",
+        "src/app/features/rapports/rapports.component.html",
+        "src/app/features/rapports/rapports.component.scss",
+        "src/app/core/services/rapport.service.ts"
+      ]
+    },
+    {
+      "name": "Chatbot Integration",
+      "description": "AI-powered chatbot for user assistance",
+      "files": [
+        "src/app/features/chatbot/chatbot.component.ts",
+        "src/app/features/chatbot/chatbot.component.html",
+        "src/app/features/chatbot/chatbot.component.scss"
+      ]
+    },
+    {
+      "name": "Admin Panel",
+      "description": "Administrative settings and configuration",
+      "files": [
+        "src/app/features/admin/parametres.component.ts",
+        "src/app/features/admin/parametres.component.html",
+        "src/app/features/admin/parametres.component.scss",
+        "src/app/features/admin/admin.routes.ts"
+      ]
+    },
+    {
+      "name": "Location Management",
+      "description": "Warehouse and storage location management",
+      "files": [
+        "src/app/features/emplacements/emplacements.component.ts",
+        "src/app/features/emplacements/emplacements.component.html",
+        "src/app/features/emplacements/emplacements.component.scss",
+        "src/app/core/services/emplacement.service.ts"
+      ]
+    },
+    {
+      "name": "Core Services",
+      "description": "Base API service and common utilities",
+      "files": [
+        "src/app/core/services/base-api.service.ts",
+        "src/app/core/services/notification.service.ts",
+        "src/app/core/services/plateforme.service.ts"
+      ]
+    },
+    {
+      "name": "HTTP Interceptors",
+      "description": "Authentication and error handling interceptors",
+      "files": [
+        "src/app/core/interceptors/auth.interceptor.ts",
+        "src/app/core/interceptors/error.interceptor.ts"
+      ]
+    },
+    {
+      "name": "Shared Models",
+      "description": "Common data models and interfaces",
+      "files": [
+        "src/app/shared/models/auth.model.ts",
+        "src/app/shared/models/commande.model.ts",
+        "src/app/shared/models/stock.model.ts",
+        "src/app/shared/models/client.model.ts",
+        "src/app/shared/models/fournisseur.model.ts",
+        "src/app/shared/models/achat.model.ts",
+        "src/app/shared/models/importation.model.ts"
+      ]
+    },
+    {
+      "name": "Layout Components",
+      "description": "Main layout structure with header and sidebar",
+      "files": [
+        "src/app/layout/header/header.component.ts",
+        "src/app/layout/sidebar/sidebar.component.ts"
+      ]
+    }
+  ]
+}

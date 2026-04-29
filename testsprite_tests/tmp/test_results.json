@@ -1,0 +1,16 @@
+[
+  {
+    "projectId": "bb139855-999a-49a8-9f01-adf7d9392ac5",
+    "testId": "e5be4f8b-f7f4-4795-a86b-8392c9f19348",
+    "userId": "c4d864a8-6051-7005-d9e8-7091c2a72b9d",
+    "title": "textile-management-frontend-tests-Angular Textile Management Frontend Testing",
+    "description": "Comprehensive testing of the Angular textile management system frontend application",
+    "testStatus": "FAILED",
+    "testError": "Test execution timed out after 15 minutes",
+    "testType": "FRONTEND",
+    "createFrom": "mcp",
+    "testVisualization": "",
+    "created": "2025-08-30T15:18:07.729Z",
+    "modified": "2025-08-30T15:18:07.729Z"
+  }
+]

@@ -94,3 +94,5 @@ export class StockAdjustmentDialogComponent {
     this.dialogRef.close();
   }
 }
+
+

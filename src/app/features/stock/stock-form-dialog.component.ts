@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Article } from '../../core/services/stock.service';
 import { Stock } from '../../shared/models/stock.model';
 
-export interface StockFormData {
+export interface IStockFormData {
   stock?: Stock;
   articles: Article[];
   isEdit: boolean;
@@ -207,3 +207,8 @@ export class StockFormDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+
+
+
+// Auto-generated aliases for backward compatibility
+export type StockFormData = IStockFormData;

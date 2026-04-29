@@ -1,6 +1,6 @@
-import { TacheProduction } from './tache.model';
+import { ITacheProduction } from './tache.model';
 
-export interface Article {
+export interface IArticle {
   id: number;
   imageUrl?: string;
   designation: string;
@@ -14,16 +14,16 @@ export interface Article {
   prixUnitaireMoyen: number;
   estActif: boolean;
   dateCreation?: Date;
-  stocks?: Stock[];
+  stocks?: IStock[];
   besoinsCommande?: any[];
   lignesAchat?: any[];
   lignesImportation?: any[];
 }
 
-export interface Stock {
+export interface IStock {
   id: number;
   articleId: number;
-  article?: Article;
+  article?: IArticle;
   couleur?: string;
   codeCouleur?: string;
   taille?: string;
@@ -38,15 +38,15 @@ export interface Stock {
   estValide: boolean;
   validePar?: string;
   dateValidation?: Date;
-  mouvements?: MouvementStock[];
+  mouvements?: IMouvementStock[];
 }
 
-export interface MouvementStock {
+export interface IMouvementStock {
   id: number;
   stockId: number;
-  stock?: Stock;
+  stock?: IStock;
   tacheProductionId?: number;
-  tacheProduction?: TacheProduction;
+  tacheProduction?: ITacheProduction;
   typeMouvement: TypeMouvement;
   origineMouvement: OrigineMouvement;
   quantite: number;
@@ -85,7 +85,7 @@ export enum OrigineMouvement {
   Autre = 'Autre'
 }
 
-export interface StockSummary {
+export interface IStockSummary {
   totalArticles: number;
   totalStock: number;
   articlesEnAlerte: number;
@@ -95,3 +95,9 @@ export interface StockSummary {
   stockParCategorie: { [key: string]: number };
   evolutionStock: { date: string; quantite: number }[];
 }
+
+// Aliases without I-prefix for backward compatibility
+export type Article = IArticle;
+export type Stock = IStock;
+export type MouvementStock = IMouvementStock;
+export type StockSummary = IStockSummary;

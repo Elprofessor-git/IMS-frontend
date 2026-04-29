@@ -272,9 +272,10 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class AnalyticsComponent implements OnInit {
 
-  constructor() {}
+  constructor() { /* TODO: Implement */ }
 
   ngOnInit(): void {
     // Charger les données analytics
   }
 }
+

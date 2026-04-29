@@ -71,3 +71,5 @@ export class ForgotPasswordComponent {
     this.dialogRef.close();
   }
 }
+
+

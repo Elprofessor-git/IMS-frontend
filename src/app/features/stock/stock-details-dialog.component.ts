@@ -51,3 +51,5 @@ export class StockDetailsDialogComponent {
     this.dialogRef.close();
   }
 }
+
+

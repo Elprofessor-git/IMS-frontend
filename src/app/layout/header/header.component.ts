@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
-import { User } from '../../shared/models/common.model';
+import { User } from '../../core/auth/auth.model';
 
 @Component({
   selector: 'app-header',
@@ -105,3 +105,5 @@ export class HeaderComponent {
     this.authService.logout();
   }
 }
+
+

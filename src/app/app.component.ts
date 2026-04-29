@@ -73,3 +73,5 @@ import { SidebarComponent } from './layout/sidebar/sidebar.component';
 export class AppComponent {
   title = 'Système de Gestion Textile';
 }
+
+

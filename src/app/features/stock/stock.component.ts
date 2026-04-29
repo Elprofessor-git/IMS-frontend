@@ -62,6 +62,7 @@ export class StockComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   articles: Article[] = [];
+  selectedType: 'all' | 'libre' | 'reserve' = 'all';
 
   constructor(
     private stockService: StockService,
@@ -87,7 +88,13 @@ export class StockComponent implements OnInit, OnDestroy {
   loadStocks(): void {
     this.loading = true;
     this.error = null;
-    this.stockService.getStocks()
+    const loader$ = this.selectedType === 'libre'
+      ? this.stockService.getStocksLibres()
+      : this.selectedType === 'reserve'
+        ? this.stockService.getStocksReserves()
+        : this.stockService.getStocks();
+
+    loader$
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stocks) => {
@@ -107,6 +114,10 @@ export class StockComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
+  }
+
+  onTypeChange(): void {
+    this.loadStocks();
   }
 
   // --- Selection Logic ---
@@ -175,6 +186,30 @@ export class StockComponent implements OnInit, OnDestroy {
     }
   }
 
+  validateStock(stock: Stock): void {
+    const user = 'manager';
+    this.stockService.validerStock(stock.id, user).subscribe({
+      next: () => {
+        this.snackBar.open('Stock validé', 'Fermer', { duration: 3000 });
+        this.loadStocks();
+      },
+      error: (err) => this.handleError('Erreur lors de la validation', err)
+    });
+  }
+
+  reserveStock(stock: Stock): void {
+    const quantite = prompt('Quantité à réserver ?', '1');
+    const q = quantite ? Number(quantite) : 0;
+    if (!q || q <= 0) { return; }
+    this.stockService.reserverStock(stock.id, q).subscribe({
+      next: () => {
+        this.snackBar.open('Quantité réservée', 'Fermer', { duration: 3000 });
+        this.loadStocks();
+      },
+      error: (err) => this.handleError('Erreur lors de la réservation', err)
+    });
+  }
+
   adjustStock(stock: Stock): void {
     const dialogRef = this.dialog.open(StockAdjustmentDialogComponent, {
       width: '400px',
@@ -198,3 +233,5 @@ export class StockComponent implements OnInit, OnDestroy {
     });
   }
 }
+
+

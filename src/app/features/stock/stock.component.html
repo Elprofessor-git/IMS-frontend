@@ -16,6 +16,14 @@
         <mat-icon>refresh</mat-icon>
         Actualiser
       </button>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Type</mat-label>
+        <mat-select [(ngModel)]="selectedType" (selectionChange)="onTypeChange()">
+          <mat-option value="all">Tous</mat-option>
+          <mat-option value="libre">Libre</mat-option>
+          <mat-option value="reserve">Réservé</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
@@ -96,6 +104,12 @@
                 </button>
                 <button mat-icon-button (click)="adjustStock(element)" matTooltip="Ajuster stock" *ngIf="authService.hasPermission('Stock', 'Update')">
                   <mat-icon>tune</mat-icon>
+                </button>
+                <button mat-icon-button (click)="validateStock(element)" matTooltip="Valider" *ngIf="!element.estValide">
+                  <mat-icon>task_alt</mat-icon>
+                </button>
+                <button mat-icon-button (click)="reserveStock(element)" matTooltip="Réserver">
+                  <mat-icon>bookmark_add</mat-icon>
                 </button>
                 <button mat-icon-button (click)="deleteStock(element)" matTooltip="Supprimer" color="warn" *ngIf="authService.hasPermission('Stock', 'Delete')">
                   <mat-icon>delete</mat-icon>

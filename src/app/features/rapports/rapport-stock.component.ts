@@ -120,7 +120,7 @@ export class RapportStockComponent implements OnInit {
     }
     this.isLoading = true;
     this.error = null;
-    console.log('Generating report for period:', this.dateDebut, 'to', this.dateFin);
+    
     // Mock data for now to make template compile
     setTimeout(() => {
       this.rapportData = this.getMockRapportData();
@@ -129,9 +129,9 @@ export class RapportStockComponent implements OnInit {
     }, 1000);
   }
 
-  exportToPDF(): void { console.log('Exporting to PDF...'); }
-  exportToExcel(): void { console.log('Exporting to Excel...'); }
-  applyFilters(): void { console.log('Applying filters...'); }
+  exportToPDF(): void {  }
+  exportToExcel(): void {  }
+  applyFilters(): void {  }
   refreshData(): void { this.generateReport(); }
 
   updateDisplayedColumns(): void {
@@ -158,9 +158,9 @@ export class RapportStockComponent implements OnInit {
     return '';
   }
 
-  viewArticleDetails(item: any): void { console.log('View details for:', item); }
-  viewMovements(item: any): void { console.log('View movements for:', item); }
-  adjustStock(item: any): void { console.log('Adjust stock for:', item); }
+  viewArticleDetails(item: any): void {  }
+  viewMovements(item: any): void {  }
+  adjustStock(item: any): void {  }
 
   getAlertIcon(level: 'critique' | 'warning' | 'info'): string {
     switch (level) {
@@ -170,7 +170,7 @@ export class RapportStockComponent implements OnInit {
     }
   }
 
-  resolveAlert(alert: any): void { console.log('Resolving alert:', alert); }
+  resolveAlert(alert: any): void {  }
 
   private getMockRapportData(): any {
     return {
@@ -188,3 +188,4 @@ export class RapportStockComponent implements OnInit {
     };
   }
 }
+

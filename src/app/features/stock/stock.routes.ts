@@ -18,3 +18,5 @@ export const stockRoutes: Routes = [
     loadComponent: () => import('./article-form.component').then(m => m.ArticleFormComponent)
   }
 ];
+
+
