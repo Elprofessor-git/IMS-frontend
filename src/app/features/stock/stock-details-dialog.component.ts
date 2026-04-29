@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { Stock } from '../../core/services/stock.service';
+import { Stock } from './stock.service';
 
 @Component({
   selector: 'app-stock-details-dialog',

@@ -18,7 +18,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { StockService, Stock, Article } from '../../core/services/stock.service';
+import { StockService, Stock, Article } from './stock.service';
 import { AuthService } from '../../core/services/auth.service';
 import { StockFormComponent } from './stock-form.component';
 import { StockAdjustmentDialogComponent } from './stock-adjustment-dialog.component';

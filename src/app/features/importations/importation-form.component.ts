@@ -15,7 +15,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { ImportationService } from '../../core/services/importation.service';
+import { ImportationService } from './importation.service';
 import { FournisseurService } from '../../core/services/fournisseur.service';
 import { ArticleService } from '../../core/services/article.service';
 
@@ -493,33 +493,31 @@ export class ImportationFormComponent implements OnInit {
 
       
 
-      // Simuler la sauvegarde en attendant l'API backend
-      setTimeout(() => {
-        this.isSubmitting = false;
-        this.snackBar.open(
-          `Importation ${this.isEditMode ? 'modifiée' : 'créée'} avec succès!`,
-          'Fermer',
-          { 
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          }
-        );
-        this.router.navigate(['/importations']);
-      }, 1000);
-
-      // Tentative d'appel API réel (optionnel)
+      // Tentative d'appel API réel
       const request = this.isEditMode && this.importationId
         ? this.importationService.update(this.importationId, importationData)
         : this.importationService.create(importationData);
 
       request.subscribe({
         next: (result) => {
-          
-          // La notification et redirection sont déjà gérées par le setTimeout ci-dessus
+          this.snackBar.open(
+            `Importation ${this.isEditMode ? 'modifiée' : 'créée'} avec succès!`,
+            'OK',
+            { duration: 3000, panelClass: ['success-snackbar'] }
+          );
+          this.router.navigate(['/importations']);
         },
-        error: (error) => {
-          console.warn('API non disponible, utilisation du mode simulation:', error);
-          // Le mode simulation gère déjà la notification
+        error: (err) => {
+          const msg = err?.error?.message || err?.error?.title || 'Erreur serveur';
+          console.error('Erreur API Importation:', err);
+          this.snackBar.open(msg, 'Fermer', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+          this.isSubmitting = false;
+        },
+        complete: () => {
+          this.isSubmitting = false;
         }
       });
     } else {

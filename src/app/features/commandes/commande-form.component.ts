@@ -14,9 +14,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { CommandeService } from '../../core/services/commande.service';
+import { CommandeService } from './commande.service';
 import { ClientService } from '../../core/services/client.service';
-import { StockService } from '../../core/services/stock.service';
+import { StockService } from '../stock/stock.service';
 
 @Component({
   selector: 'app-commande-form',
@@ -447,15 +447,27 @@ export class CommandeFormComponent implements OnInit {
 
     
 
-    // Simuler l'appel API
-    setTimeout(() => {
-      this.isSubmitting = false;
-      this.snackBar.open('Commande créée avec succès!', 'Fermer', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-      this.router.navigate(['/commandes']);
-    }, 1000);
+    this.commandeService.createCommande(commandeData as any).subscribe({
+      next: () => {
+        this.snackBar.open('Commande créée avec succès!', 'OK', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.router.navigate(['/commandes']);
+      },
+      error: (err) => {
+        const msg = err?.error?.message || err?.error?.title || 'Erreur serveur';
+        console.error('Erreur création commande:', err);
+        this.snackBar.open(msg, 'Fermer', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+        this.isSubmitting = false;
+      },
+      complete: () => {
+        this.isSubmitting = false;
+      }
+    });
   }
 
   onCancel(): void {
