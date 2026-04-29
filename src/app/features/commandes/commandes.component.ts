@@ -25,7 +25,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Router } from '@angular/router';
 import { StatutCommande } from '../../shared/models/commande.model';
 
-import { CommandeService } from '../../core/services/commande.service';
+import { CommandeService } from './commande.service';
 import { CommandeClient } from '../../shared/models/commande.model';
 
 @Component({

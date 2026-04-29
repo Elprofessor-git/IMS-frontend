@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { StockService, Stock, MouvementStock, TypeMouvement, OrigineMouvement } from '../../core/services/stock.service';
+import { StockService, Stock, MouvementStock, TypeMouvement, OrigineMouvement } from './stock.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({

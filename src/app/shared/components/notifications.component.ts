@@ -1,10 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { AppStore, Notification } from '../../core/store/app.store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-notifications',
+  standalone: true,
+  imports: [CommonModule, MatIconModule, MatButtonModule],
   template: `
     <div class="notifications-container">
       <div *ngFor="let notification of notifications$ | async"

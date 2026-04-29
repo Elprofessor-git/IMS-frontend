@@ -13,7 +13,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { TacheService } from '../../core/services/tache.service';
+import { TacheService } from './tache.service';
 
 @Component({
   selector: 'app-tache-form',
@@ -237,15 +237,27 @@ export class TacheFormComponent implements OnInit {
 
     
 
-    // Simulation de sauvegarde
-    setTimeout(() => {
-      this.isSubmitting = false;
-      this.snackBar.open('Tâche créée avec succès!', 'Fermer', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-      this.router.navigate(['/taches']);
-    }, 1500);
+    this.tacheService.creerTache(tacheData as any).subscribe({
+      next: () => {
+        this.snackBar.open('Tâche créée avec succès!', 'OK', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.router.navigate(['/taches']);
+      },
+      error: (err) => {
+        const msg = err?.error?.message || err?.error?.title || 'Erreur serveur';
+        console.error('Erreur lors de la création:', err);
+        this.snackBar.open(msg, 'Fermer', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+        this.isSubmitting = false;
+      },
+      complete: () => {
+        this.isSubmitting = false;
+      }
+    });
   }
 
   onCancel(): void {

@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 
-import { LigneImportation } from '../../core/services/importation.service';
+import { LigneImportation } from './importation.service';
 import { ArticleService } from '../../core/services/article.service';
 
 @Component({

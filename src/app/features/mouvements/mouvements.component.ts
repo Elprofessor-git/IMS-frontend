@@ -20,7 +20,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { MouvementService, MouvementStock } from '../../core/services/mouvement.service';
-import { StockService, Article } from '../../core/services/stock.service';
+import { StockService, Article } from '../stock/stock.service';
 import { EmplacementService, Emplacement } from '../../core/services/emplacement.service';
 
 interface MouvementStats {

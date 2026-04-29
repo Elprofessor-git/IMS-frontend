@@ -11,7 +11,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
-import { ImportationService, Importation } from '../../core/services/importation.service';
+import { ImportationService, Importation } from './importation.service';
 
 @Component({
   selector: 'app-importation-details',

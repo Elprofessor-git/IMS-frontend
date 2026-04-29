@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { Article } from '../../core/services/stock.service';
+import { Article } from './stock.service';
 import { Stock } from '../../shared/models/stock.model';
 
 export interface IStockFormData {

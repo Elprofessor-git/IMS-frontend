@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { StockService, Stock, Article } from '../../core/services/stock.service';
+import { StockService, Stock, Article } from './stock.service';
 
 @Component({
   selector: 'app-stock-form',
