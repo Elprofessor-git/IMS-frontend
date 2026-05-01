@@ -98,5 +98,16 @@
 
 ---
 
+### BUG-005 : Erreur de chargement des rôles (Endpoint incorrect)
+
+- **Date**       : 01/05/2026
+- **Fichier(s)** : `src/app/features/utilisateurs/utilisateur.service.ts`
+- **Symptôme**   : Notification "Erreur lors du chargement des rôles" et liste vide.
+- **Cause**      : L'endpoint utilisé était `/api/Account/roles`. Cependant, dans l'architecture du backend, les rôles semblent être gérés par un contrôleur indépendant ou directement sous la racine `/api/roles`, et non comme une sous-ressource de `Account`.
+- **Solution**   : Modification de `UtilisateurService` pour appeler `${environment.apiUrl}/roles` directement au lieu de passer par le préfixe `/Account`.
+- **Commit**     : `fix: correction endpoint des rôles (/api/roles)`
+
+---
+
 > 💡 **Règle générale Angular** : Toujours déclarer les routes **statiques** avant les routes **dynamiques** (`:parametre`), sinon les routes statiques ne seront jamais atteintes.
 

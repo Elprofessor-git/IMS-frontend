@@ -77,19 +77,19 @@ export class UtilisateurService {
 
   // Role methods
   getRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>(`${this.apiUrl}/roles`);
+    return this.http.get<Role[]>(`${environment.apiUrl}/roles`);
   }
 
   createRole(role: Partial<Role>): Observable<Role> {
-    return this.http.post<Role>(`${this.apiUrl}/roles`, role);
+    return this.http.post<Role>(`${environment.apiUrl}/roles`, role);
   }
 
   updateRole(id: string, role: Partial<Role>): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/roles/${id}`, role);
+    return this.http.put<void>(`${environment.apiUrl}/roles/${id}`, role);
   }
 
   deleteRole(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/roles/${id}`);
+    return this.http.delete<void>(`${environment.apiUrl}/roles/${id}`);
   }
 }
 
