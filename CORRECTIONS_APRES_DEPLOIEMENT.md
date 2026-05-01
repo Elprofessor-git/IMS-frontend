@@ -80,5 +80,23 @@
 
 ---
 
+### BUG-004 : La liste des rôles est vide malgré des données en base
+
+- **Date**       : 01/05/2026
+- **Fichier(s)** : `src/app/features/utilisateurs/roles.component.ts`
+- **Symptôme**   : Le tableau des rôles reste vide (ou affiche "Aucun rôle trouvé") alors que la base de données contient des rôles.
+- **Cause**      : 
+  1. Manque de robustesse dans le traitement de la réponse API (possibilité que l'API renvoie un objet `{ data: [...] }` au lieu d'un tableau direct).
+  2. Propriétés de mapping (`nom` vs `name`) possiblement incorrectes selon le retour de l'API.
+  3. Manque de l'initialisation du paginator et du sort dans `ngAfterViewInit`.
+- **Solution**   :
+  1. Ajout de `AfterViewInit` pour lier correctement le `MatPaginator` et le `MatSort`.
+  2. Amélioration de `loadRoles()` pour gérer différents formats de réponse (tableau direct, ou objet avec propriété `roles` ou `data`).
+  3. Mapping flexible pour le champ `nom` (prend `role.name` ou `role.nom`).
+  4. Ajout de logs console pour faciliter le débogage si le problème persiste.
+- **Commit**     : `fix: mapping data roles et initialisation paginator`
+
+---
+
 > 💡 **Règle générale Angular** : Toujours déclarer les routes **statiques** avant les routes **dynamiques** (`:parametre`), sinon les routes statiques ne seront jamais atteintes.
 

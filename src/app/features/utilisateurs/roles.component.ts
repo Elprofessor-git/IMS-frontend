@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -55,7 +55,7 @@ export interface RoleViewModel extends Role {
   templateUrl: './roles.component.html',
   styleUrls: ['./roles.component.scss']
 })
-export class RolesComponent implements OnInit {
+export class RolesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('deleteConfirmDialog') deleteConfirmDialog!: TemplateRef<any>;
@@ -104,19 +104,31 @@ export class RolesComponent implements OnInit {
     this.loadRoles();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   loadRoles(): void {
     this.loading = true;
     this.utilisateurService.getRoles().subscribe({
       next: (apiRoles) => {
+        console.log('API Roles received:', apiRoles);
+        
+        // Handle case where API might return an object with a roles property
+        const rolesList = Array.isArray(apiRoles) ? apiRoles : (apiRoles as any).roles || (apiRoles as any).data || [];
+        
         // Map API roles to view model
-        this.roles = apiRoles.map(role => ({
+        this.roles = rolesList.map((role: any) => ({
           ...role,
-          nom: role.name,
-          permissions: [], // Mock data or fetch from another endpoint
-          utilisateurs: [], // Mock data
-          actif: true, // Assuming default active
-          dateCreation: new Date()
+          nom: role.name || role.nom || 'Sans nom',
+          permissions: role.permissions || [],
+          utilisateurs: role.utilisateurs || [],
+          actif: role.actif !== undefined ? role.actif : true,
+          dateCreation: role.dateCreation || new Date()
         }));
+        
+        console.log('Mapped Roles:', this.roles);
         
         this.calculateStats();
         this.applyFilters();
