@@ -60,7 +60,23 @@
   { path: 'roles/:id', ... }
   { path: ':id', ... }         ← route dynamique en dernier
   ```
+  ```
 - **Commit**     : `fix: ordre des routes utilisateurs - roles avant :id`
+
+---
+
+### BUG-003 : La page "Rôles et Permissions" affiche "En cours de développement"
+
+- **Date**       : 01/05/2026
+- **Fichier(s)** : `src/app/features/utilisateurs/roles.component.ts` et `src/app/features/utilisateurs/role-form.component.ts`
+- **Symptôme**   : Lors de la navigation sur la page de gestion des rôles ou d'ajout d'un rôle, seul un texte "En cours de développement" s'affiche sans style.
+- **Cause**      : Les composants TypeScript (`roles.component.ts` et `role-form.component.ts`) étaient générés avec un template inline minimal et ne chargeaient pas les vrais fichiers HTML et SCSS correspondants qui étaient pourtant complets. De plus, ils n'avaient pas de logique métier implémentée (variables, tables, filtres).
+- **Solution**   : Implémentation complète de `RolesComponent` et `RoleFormComponent` en TypeScript, avec :
+  1. Utilisation de `templateUrl` et `styleUrls` pour charger le bon HTML/SCSS
+  2. Création de variables de données, pagination, et sélection (MatTableDataSource, SelectionModel)
+  3. Ajout de méthodes pour gérer l'affichage de permissions en catégories
+  4. Gestion de la soumission de formulaires et des statuts visuels
+- **Commit**     : `fix: implémentation des composants Roles et RoleForm`
 
 ---
 
