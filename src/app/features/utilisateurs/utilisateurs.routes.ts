@@ -10,10 +10,6 @@ export const utilisateursRoutes: Routes = [
     loadComponent: () => import('./utilisateur-form.component').then(m => m.UtilisateurFormComponent)
   },
   {
-    path: ':id',
-    loadComponent: () => import('./utilisateur-form.component').then(m => m.UtilisateurFormComponent)
-  },
-  {
     path: 'roles',
     loadComponent: () => import('./roles.component').then(m => m.RolesComponent)
   },
@@ -24,6 +20,10 @@ export const utilisateursRoutes: Routes = [
   {
     path: 'roles/:id',
     loadComponent: () => import('./role-form.component').then(m => m.RoleFormComponent)
+  },
+  {
+    path: ':id',
+    loadComponent: () => import('./utilisateur-form.component').then(m => m.UtilisateurFormComponent)
   }
 ];
 
