@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -75,7 +76,10 @@ export class UtilisateursComponent implements OnInit {
     { key: 'actions', label: 'Actions', visible: true }
   ];
 
-  constructor(private utilisateurService: UtilisateurService) {}
+  constructor(
+    private utilisateurService: UtilisateurService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -117,7 +121,11 @@ export class UtilisateursComponent implements OnInit {
 
   // Template methods
   openUserForm(user?: User): void {
-    
+    if (user) {
+      this.router.navigate(['/utilisateurs', user.id]);
+    } else {
+      this.router.navigate(['/utilisateurs', 'nouveau']);
+    }
   }
 
   exportUsers(): void {
@@ -165,8 +173,7 @@ export class UtilisateursComponent implements OnInit {
 
   // User actions
   editUser(user: User): void {
-    
-    this.openUserForm(user);
+    this.router.navigate(['/utilisateurs', user.id]);
   }
 
   deleteUser(user: User): void {
