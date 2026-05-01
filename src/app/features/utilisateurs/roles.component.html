@@ -220,7 +220,7 @@
               <div class="permissions-cell">
                 <mat-chip-set>
                   <mat-chip *ngFor="let permission of role.permissions | slice:0:3">
-                    {{permission.nom}}
+                    {{$any(permission).nom}}
                   </mat-chip>
                   <mat-chip *ngIf="role.permissions.length > 3" class="more-permissions">
                     +{{role.permissions.length - 3}} autres
@@ -237,8 +237,8 @@
               <div class="users-cell">
                 <div class="users-avatars" *ngIf="role.utilisateurs && role.utilisateurs.length > 0">
                   <div class="user-avatar" *ngFor="let user of role.utilisateurs | slice:0:3">
-                    <mat-icon *ngIf="!user.avatar">person</mat-icon>
-                    <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.prenom + ' ' + user.nom">
+                    <mat-icon *ngIf="!$any(user).avatar">person</mat-icon>
+                    <img *ngIf="$any(user).avatar" [src]="$any(user).avatar" [alt]="$any(user).prenom + ' ' + $any(user).nom">
                   </div>
                   <div class="more-users" *ngIf="role.utilisateurs.length > 3">
                     +{{role.utilisateurs.length - 3}}
