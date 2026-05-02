@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -228,7 +229,7 @@ export class RoleFormComponent implements OnInit {
       estAdministrateur: formValue.niveau === '1' || formValue['permission_admin_all'] || false
     };
 
-    const action = this.isEditMode && this.roleId
+    const action: Observable<any> = this.isEditMode && this.roleId
       ? this.utilisateurService.updateRole(this.roleId, roleData)
       : this.utilisateurService.createRole(roleData);
 
@@ -238,7 +239,7 @@ export class RoleFormComponent implements OnInit {
         this.notificationService.success(`Rôle ${this.isEditMode ? 'mis à jour' : 'créé'} avec succès`);
         this.router.navigate(['/utilisateurs/roles']);
       },
-      error: (error) => {
+      error: (error: any) => {
         this.loading = false;
         console.error('Erreur lors de la sauvegarde du rôle:', error);
         this.notificationService.error('Erreur lors de la sauvegarde du rôle');
