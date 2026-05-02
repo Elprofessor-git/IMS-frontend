@@ -111,40 +111,31 @@ export class RoleFormComponent implements OnInit {
 
   private loadRole(id: string): void {
     this.loading = true;
-    // Mock fetching a role
-    setTimeout(() => {
-      // Dummy data that matches expected structure
-      const mockRole = {
-        nom: 'Manager',
-        description: 'Rôle pour les managers',
-        niveau: '2',
-        couleur: '#388e3c',
-        actif: true,
-        permissions: ['users_read', 'stock_read', 'stock_write', 'orders_read']
-      };
+    this.utilisateurService.getRole(id).subscribe({
+      next: (role) => {
+        this.roleForm.patchValue({
+          nom: role.name,
+          description: role.description,
+          niveau: role.estAdministrateur ? '1' : '4',
+          actif: true // Les rôles Identity sont actifs par défaut dans ce système
+        });
 
-      this.roleForm.patchValue({
-        nom: mockRole.nom,
-        description: mockRole.description,
-        niveau: mockRole.niveau,
-        couleur: mockRole.couleur,
-        actif: mockRole.actif
-      });
-
-      // Patch permissions
-      mockRole.permissions.forEach(code => {
-        if (this.roleForm.contains('permission_' + code)) {
-          this.roleForm.get('permission_' + code)?.setValue(true);
+        // Mapping des permissions booléennes vers les cases à cocher
+        if (role.peutGererStock) {
+          this.roleForm.get('permission_stock_write')?.setValue(true);
         }
-      });
+        if (role.estAdministrateur) {
+          this.roleForm.get('permission_admin_all')?.setValue(true);
+        }
 
-      this.assignedUsers = [
-        { prenom: 'John', nom: 'Doe', email: 'john@example.com', actif: true },
-        { prenom: 'Jane', nom: 'Smith', email: 'jane@example.com', actif: false }
-      ];
-
-      this.loading = false;
-    }, 500);
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Erreur lors du chargement du rôle:', error);
+        this.notificationService.error('Erreur lors du chargement des données du rôle');
+        this.loading = false;
+      }
+    });
   }
 
   // --- Permissions Logic ---
