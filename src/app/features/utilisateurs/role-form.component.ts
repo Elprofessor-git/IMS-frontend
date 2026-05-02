@@ -220,21 +220,29 @@ export class RoleFormComponent implements OnInit {
     this.loading = true;
     const formValue = this.roleForm.value;
     
-    // Extract actual role data
+    // Mapping pour le Backend (CreateRoleDto/RoleDto)
     const roleData: any = {
       name: formValue.nom,
       description: formValue.description,
-      niveau: parseInt(formValue.niveau),
-      couleur: formValue.couleur,
-      actif: formValue.actif,
-      permissions: this.getSelectedPermissions().map(p => p.code)
+      peutGererStock: formValue['permission_stock_write'] || false,
+      estAdministrateur: formValue.niveau === '1' || formValue['permission_admin_all'] || false
     };
 
-    // Simulate API call
-    setTimeout(() => {
-      this.loading = false;
-      this.notificationService.success(`Rôle ${this.isEditMode ? 'mis à jour' : 'créé'} avec succès`);
-      this.router.navigate(['/utilisateurs/roles']);
-    }, 800);
+    const action = this.isEditMode && this.roleId
+      ? this.utilisateurService.updateRole(this.roleId, roleData)
+      : this.utilisateurService.createRole(roleData);
+
+    action.subscribe({
+      next: () => {
+        this.loading = false;
+        this.notificationService.success(`Rôle ${this.isEditMode ? 'mis à jour' : 'créé'} avec succès`);
+        this.router.navigate(['/utilisateurs/roles']);
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Erreur lors de la sauvegarde du rôle:', error);
+        this.notificationService.error('Erreur lors de la sauvegarde du rôle');
+      }
+    });
   }
 }
