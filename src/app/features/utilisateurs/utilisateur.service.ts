@@ -41,6 +41,8 @@ export interface IRole {
   description?: string;
   couleur?: string; // For UI display
   niveau?: number; // Access level
+  peutGererStock?: boolean;
+  estAdministrateur?: boolean;
 }
 
 export type User = IUser;
@@ -76,6 +78,10 @@ export class UtilisateurService {
   }
 
   // Role methods
+  getRole(id: string): Observable<Role> {
+    return this.http.get<Role>(`${environment.apiUrl}/roles/${id}`);
+  }
+
   getRoles(): Observable<Role[]> {
     return this.http.get<Role[]>(`${environment.apiUrl}/roles`);
   }
