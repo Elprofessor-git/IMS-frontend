@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -12,26 +14,35 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
-import { RapportService } from '../../core/services/rapport.service';
-import { CommandeClientService } from '../commandes/commande-client.service';
+import { MouvementStockService } from '../../core/services/mouvement-stock.service';
 import { ArticleService } from '../../core/services/article.service';
+import { EmplacementService } from '../../core/services/emplacement.service';
 
-interface IVentesData {
-  chiffreAffaires: number;
-  totalCommandes: number;
-  panierMoyen: number;
-  croissance: number;
-  topProduits: ITopProduit[];
+interface IConsommationData {
+  totalConsommation: number;
+  totalMouvements: number;
+  valeurTotale: number;
+  articlesLesPlusUtilises: IArticleConso[];
 }
 
-interface ITopProduit {
-  position: number;
+interface IArticleConso {
+  articleId: number;
   nom: string;
+  quantiteConsommee: number;
+  valeurConsommee: number;
+  dernierMouvement: Date;
+}
+
+interface IMouvementTable {
+  date: Date;
+  article: string;
   quantite: number;
-  ca: number;
-  evolution: number;
+  source: string;
+  destination: string;
+  type: string;
+  valeur: number;
 }
 
 @Component({
@@ -42,6 +53,8 @@ interface ITopProduit {
     FormsModule,
     MatCardModule,
     MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
@@ -51,26 +64,29 @@ interface ITopProduit {
     MatNativeDateModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatTabsModule
+    MatSnackBarModule
   ],
   templateUrl: './rapport-ventes.component.html',
   styleUrls: ['./rapport-ventes.component.scss']
 })
 export class RapportVentesComponent implements OnInit {
-  colonnesProduits: string[] = ['position', 'produit', 'quantite', 'ca', 'evolution'];
-  topProduitsDataSource = new MatTableDataSource<ITopProduit>([]);
-  
+  displayedColumns: string[] = ['date', 'article', 'quantite', 'source', 'destination', 'type', 'valeur'];
+  mouvementsDataSource = new MatTableDataSource<IMouvementTable>([]);
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   dateDebut: Date | null = null;
   dateFin: Date | null = null;
   
-  ventesData: IVentesData | null = null;
+  consoData: IConsommationData | null = null;
   isLoading = false;
   error: string | null = null;
 
   constructor(
-    private rapportService: RapportService,
-    private commandeService: CommandeClientService,
-    private articleService: ArticleService
+    private mouvementService: MouvementStockService,
+    private articleService: ArticleService,
+    private emplacementService: EmplacementService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -90,65 +106,98 @@ export class RapportVentesComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.commandeService.getCommandes().subscribe(commandes => {
-      const commandesFiltrees = commandes.filter(c => {
-        const dateCmd = new Date(c.dateCreation);
-        return dateCmd >= this.dateDebut! && dateCmd <= this.dateFin!;
+    this.mouvementService.getAll().subscribe(mouvements => {
+      const mouvementsFiltres = mouvements.filter(m => {
+        const dateMouv = new Date(m.dateMouvement);
+        return dateMouv >= this.dateDebut! && dateMouv <= this.dateFin!;
       });
 
-      let caTotal = 0;
-      const articlesMap = new Map<number, { nom: string, quantite: number, ca: number }>();
+      let valeurTotale = 0;
+      const articlesMap = new Map<number, IArticleConso>();
 
-      commandesFiltrees.forEach(cmd => {
-        cmd.specifications?.article?.forEach(spec => {
-          const articleId = spec.article.id;
-          const quantite = spec.quantite;
-          
-          this.articleService.getById(articleId).subscribe(article => {
-            const prixUnitaire = article.prixVente || article.prixAchat || 0;
-            const ligneCA = quantite * prixUnitaire;
-            caTotal += ligneCA;
+      mouvementsFiltres.forEach(mouv => {
+        this.articleService.getById(mouv.articleId).subscribe(article => {
+          const quantite = mouv.quantite;
+          const prixUnitaire = article.prixAchat || 0;
+          const ligneValeur = quantite * prixUnitaire;
+          valeurTotale += ligneValeur;
 
-            const existing = articlesMap.get(articleId) || { nom: article.nom, quantite: 0, ca: 0 };
-            existing.quantite += quantite;
-            existing.ca += ligneCA;
-            articlesMap.set(articleId, existing);
-          });
+          const existing = articlesMap.get(article.id) || {
+            articleId: article.id,
+            nom: article.nom,
+            quantiteConsommee: 0,
+            valeurConsommee: 0,
+            dernierMouvement: new Date(0)
+          };
+          existing.quantiteConsommee += quantite;
+          existing.valeurConsommee += ligneValeur;
+          if (new Date(mouv.dateMouvement) > existing.dernierMouvement) {
+            existing.dernierMouvement = new Date(mouv.dateMouvement);
+          }
+          articlesMap.set(article.id, existing);
         });
       });
 
-      const topProduits: ITopProduit[] = Array.from(articlesMap.entries())
-        .map(([id, data], index) => ({
-          position: index + 1,
-          nom: data.nom,
-          quantite: data.quantite,
-          ca: data.ca,
-          evolution: Math.floor(Math.random() * 30) - 10
-        }))
-        .sort((a, b) => b.ca - a.ca)
+      const topArticles: IArticleConso[] = Array.from(articlesMap.values())
+        .sort((a, b) => b.valeurConsommee - a.valeurConsommee)
         .slice(0, 10);
 
-      const panierMoyen = commandesFiltrees.length > 0 ? caTotal / commandesFiltrees.length : 0;
+      const tableData: IMouvementTable[] = mouvementsFiltres.map(mouv => ({
+        date: new Date(mouv.dateMouvement),
+        article: '',
+        quantite: mouv.quantite,
+        source: mouv.emplacementSource?.nom || 'N/A',
+        destination: mouv.emplacementDestination?.nom || 'N/A',
+        type: mouv.typeMouvement,
+        valeur: 0
+      }));
 
-      this.ventesData = {
-        chiffreAffaires: caTotal,
-        totalCommandes: commandesFiltrees.length,
-        panierMoyen: panierMoyen,
-        croissance: 15,
-        topProduits: topProduits
-      };
+      Promise.all(tableData.map(row => 
+        this.articleService.getById(mouvements.find(m => m.id === row.quantite)?.articleId || 0).toPromise()
+      )).then(articles => {
+        articles.forEach((article, index) => {
+          if (article) {
+            tableData[index].article = article.nom;
+            tableData[index].valeur = tableData[index].quantite * (article.prixAchat || 0);
+          }
+        });
+        
+        this.consoData = {
+          totalConsommation: topArticles.reduce((sum, art) => sum + art.quantiteConsommee, 0),
+          totalMouvements: mouvementsFiltres.length,
+          valeurTotale: valeurTotale,
+          articlesLesPlusUtilises: topArticles
+        };
 
-      this.topProduitsDataSource.data = topProduits;
-      this.isLoading = false;
+        this.mouvementsDataSource.data = tableData;
+        this.mouvementsDataSource.paginator = this.paginator;
+        this.mouvementsDataSource.sort = this.sort;
+        this.isLoading = false;
+      }).catch(() => {
+        this.mouvementsDataSource.data = tableData;
+        this.isLoading = false;
+      });
+
     }, error => {
-      this.error = 'Erreur lors du chargement des données de ventes';
+      this.error = 'Erreur lors du chargement des données de consommation';
       this.isLoading = false;
       console.error(error);
+      this.snackBar.open('Erreur de chargement des données', 'Fermer', { duration: 3000 });
     });
   }
 
-  exportToPDF(): void { console.log('Export PDF'); }
-  exportToExcel(): void { console.log('Export Excel'); }
+  exportToPDF(): void { 
+    this.snackBar.open('Export PDF non implémenté', 'Fermer', { duration: 2000 });
+  }
+  
+  exportToExcel(): void { 
+    this.snackBar.open('Export Excel non implémenté', 'Fermer', { duration: 2000 });
+  }
+  
   applyFilters(): void { this.generateReport(); }
-  refreshData(): void { this.generateReport(); }
+  
+  refreshData(): void { 
+    this.generateReport();
+    this.snackBar.open('Données actualisées', 'Fermer', { duration: 2000 });
+  }
 }
