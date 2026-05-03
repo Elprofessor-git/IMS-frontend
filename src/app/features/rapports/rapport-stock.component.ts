@@ -121,12 +121,90 @@ export class RapportStockComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
     
-    // Mock data for now to make template compile
-    setTimeout(() => {
-      this.rapportData = this.getMockRapportData();
-      this.stockDataSource.data = []; // You would populate this from rapportData
+    // Récupérer les stocks réels depuis le service
+    this.articleService.getAll().subscribe(articles => {
+      // Récupérer tous les stocks pour ces articles
+      const stocks: Stock[] = [];
+      
+      articles.forEach(article => {
+        // Simuler un appel pour récupérer le stock de chaque article
+        // Dans une implémentation réelle, vous auriez un endpoint dedicated
+        const stock: Stock = {
+          id: article.id,
+          article: article,
+          quantite: article.quantiteStock || 0,
+          emplacement: { id: 1, nom: 'Défaut', code: 'DEF' },
+          dateCreation: new Date(),
+          dateModification: new Date()
+        };
+        stocks.push(stock);
+      });
+
+      // Filtrer selon les critères sélectionnés
+      let stocksFiltres = stocks;
+      
+      if (this.selectedCategorie) {
+        stocksFiltres = stocksFiltres.filter(s => s.article?.categorie === this.selectedCategorie);
+      }
+      
+      if (this.selectedEmplacement) {
+        stocksFiltres = stocksFiltres.filter(s => s.emplacement?.id.toString() === this.selectedEmplacement);
+      }
+      
+      if (this.searchTerm) {
+        const term = this.searchTerm.toLowerCase();
+        stocksFiltres = stocksFiltres.filter(s => 
+          s.article?.nom?.toLowerCase().includes(term) ||
+          s.article?.reference?.toLowerCase().includes(term)
+        );
+      }
+
+      // Calculer les statistiques
+      const valeurTotale = stocksFiltres.reduce((acc, s) => {
+        const prix = s.article?.prixAchat || 0;
+        return acc + (s.quantite * prix);
+      }, 0);
+      
+      const totalArticles = stocksFiltres.length;
+      const quantiteTotale = stocksFiltres.reduce((acc, s) => acc + s.quantite, 0);
+      
+      const alertes = stocksFiltres.filter(s => {
+        const seuil = s.article?.seuilAlerte || 0;
+        return s.quantite <= seuil;
+      }).length;
+
+      this.rapportData = {
+        valeurTotale,
+        totalArticles,
+        quantiteTotale,
+        alertes,
+        rotationMoyenne: 4.2, // TODO: Calculer depuis les mouvements
+        mouvements: { entrees: 0, sorties: 0, transferts: 0, ajustements: 0 },
+        mouvementsChart: {},
+        rotation: { rapide: 0, normale: 0, lente: 0 },
+        topArticles: [],
+        previsions: [],
+        alertesDetaillees: stocksFiltres
+          .filter(s => s.quantite <= (s.article?.seuilAlerte || 0))
+          .map(s => ({
+            niveau: s.quantite === 0 ? 'critique' : 'warning',
+            articleNom: s.article?.nom || 'N/A',
+            type: s.quantite === 0 ? 'Rupture de stock' : 'Stock bas',
+            dateDetection: new Date(),
+            message: s.quantite === 0 ? 'Stock à 0' : `Stock: ${s.quantite}`,
+            stockActuel: s.quantite,
+            seuil: s.article?.seuilAlerte || 0,
+            article: s.article
+          }))
+      };
+
+      this.stockDataSource.data = stocksFiltres;
       this.isLoading = false;
-    }, 1000);
+    }, error => {
+      this.error = 'Erreur lors du chargement des données de stock';
+      this.isLoading = false;
+      console.error(error);
+    });
   }
 
   exportToPDF(): void {  }
