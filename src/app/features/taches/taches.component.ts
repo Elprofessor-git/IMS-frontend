@@ -18,6 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
+import { Router } from '@angular/router';
 
 import { TacheService } from './tache.service';
 import { TacheProduction as Task, StatutTache } from '../../shared/models/tache.model';
@@ -83,7 +84,8 @@ export class TachesComponent implements OnInit {
   constructor(
     private tacheService: TacheService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -222,31 +224,31 @@ export class TachesComponent implements OnInit {
   }
 
   viewTask(task: Task): void {
-    this.snackBar.open(`Affichage des détails de ${task.nom}`, 'Fermer', { duration: 3000 });
+    this.snackBar.open(`Affichage des détails de ${task.titre}`, 'Fermer', { duration: 3000 });
   }
 
   editTask(task: Task): void {
-    this.snackBar.open(`Modification de ${task.nom}`, 'Fermer', { duration: 3000 });
+    this.snackBar.open(`Modification de ${task.titre}`, 'Fermer', { duration: 3000 });
   }
 
   startTask(task: Task): void {
-    this.snackBar.open(`Démarrage de ${task.nom}`, 'Fermer', { duration: 3000 });
+    this.snackBar.open(`Démarrage de ${task.titre}`, 'Fermer', { duration: 3000 });
   }
 
   completeTask(task: Task): void {
-    this.snackBar.open(`${task.nom} marquée comme terminée`, 'Fermer', { duration: 3000 });
+    this.snackBar.open(`${task.titre} marquée comme terminée`, 'Fermer', { duration: 3000 });
   }
 
   assignTask(task: Task): void {
-    this.snackBar.open(`Attribution de ${task.nom}`, 'Fermer', { duration: 3000 });
+    this.snackBar.open(`Attribution de ${task.titre}`, 'Fermer', { duration: 3000 });
   }
 
   duplicateTask(task: Task): void {
-    this.snackBar.open(`Duplication de ${task.nom}`, 'Fermer', { duration: 3000 });
+    this.snackBar.open(`Duplication de ${task.titre}`, 'Fermer', { duration: 3000 });
   }
 
   cancelTask(task: Task): void {
-    if (confirm(`Êtes-vous sûr de vouloir annuler ${task.nom} ?`)) {
+    if (confirm(`Êtes-vous sûr de vouloir annuler ${task.titre} ?`)) {
       this.snackBar.open('Tâche annulée', 'Fermer', { duration: 3000 });
     }
   }
