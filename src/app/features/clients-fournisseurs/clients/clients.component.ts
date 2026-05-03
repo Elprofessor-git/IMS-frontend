@@ -20,6 +20,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject, takeUntil } from 'rxjs';
+import { Router } from '@angular/router';
 
 import { ClientService } from '../../../core/services/client.service';
 import { Client } from '../../../shared/models/commande.model';
@@ -93,13 +94,13 @@ export class ClientsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private clientService: ClientService,
+    private router: Router,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.loadClients();
-    this.loadStatistics();
   }
 
   ngOnDestroy(): void {
@@ -116,28 +117,34 @@ export class ClientsComponent implements OnInit, OnDestroy, AfterViewInit {
   loadClients(): void {
     this.loading = true;
 
-    const filters = {
-      search: this.searchTerm,
-      status: this.selectedStatus,
-      page: this.currentPage,
-      pageSize: this.pageSize
-    };
-
-    // Mock data for now - replace with actual service call
-    setTimeout(() => {
-      this.dataSource.data = [];
-      this.totalClients = 0;
-      this.loading = false;
-    }, 1000);
+    this.clientService.getAll().subscribe({
+      next: (clients) => {
+        this.dataSource.data = clients;
+        this.totalClients = clients.length;
+        this.calculateStatistics(clients);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des clients:', error);
+        this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 3000 });
+        this.loading = false;
+      }
+    });
   }
 
-  loadStatistics(): void {
-    // Mock data for now - replace with actual service call
+  calculateStatistics(clients: Client[]): void {
+    const total = clients.length;
+    const active = clients.filter(c => c.actif).length;
+    const inactive = total - active;
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const newThisMonth = clients.filter(c => new Date(c.dateCreation) >= firstDayOfMonth).length;
+
     this.statistics = {
-      total: 45,
-      active: 38,
-      inactive: 7,
-      newThisMonth: 5
+      total,
+      active,
+      inactive,
+      newThisMonth
     };
   }
 
@@ -202,29 +209,29 @@ export class ClientsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Action methods
   openNewClientDialog(): void {
-    this.snackBar.open('Fonctionnalité "Nouveau client" en cours de développement', 'Fermer', {
-      duration: 3000
-    });
+    this.router.navigate(['/clients-fournisseurs/clients/nouveau']);
   }
 
   viewClient(client: Client): void {
-    this.snackBar.open(`Voir détails du client ${client.nom}`, 'Fermer', {
-      duration: 2000
-    });
+    this.router.navigate(['/clients-fournisseurs/clients', client.id]);
   }
 
   editClient(client: Client): void {
-    this.snackBar.open(`Modifier le client ${client.nom}`, 'Fermer', {
-      duration: 2000
-    });
+    this.router.navigate(['/clients-fournisseurs/clients/modifier', client.id]);
   }
 
   deleteClient(client: Client): void {
     if (confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.nom} ?`)) {
-      this.snackBar.open('Client supprimé avec succès', 'Fermer', {
-        duration: 3000
+      this.clientService.delete(client.id).subscribe({
+        next: () => {
+          this.snackBar.open('Client supprimé avec succès', 'Fermer', { duration: 3000 });
+          this.loadClients();
+        },
+        error: (error) => {
+          console.error('Erreur lors de la suppression:', error);
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
       });
-      this.loadClients();
     }
   }
 

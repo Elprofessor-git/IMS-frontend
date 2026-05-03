@@ -19,19 +19,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 
-interface Task {
-  id: number;
-  nom: string;
-  description: string;
-  priorite: string;
-  statut: string;
-  progression: number;
-  dateEcheance: Date;
-  assigneA?: {
-    nom: string;
-    prenom: string;
-  };
-}
+import { TacheService } from './tache.service';
+import { TacheProduction as Task, StatutTache } from '../../shared/models/tache.model';
 
 interface TaskStats {
   totalTasks: number;
@@ -92,6 +81,7 @@ export class TachesComponent implements OnInit {
   loading = false;
 
   constructor(
+    private tacheService: TacheService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -108,42 +98,31 @@ export class TachesComponent implements OnInit {
 
   loadTasks(): void {
     this.loading = true;
-    // Simulation de données
-    setTimeout(() => {
-      const mockTasks: Task[] = [
-        {
-          id: 1,
-          nom: 'Production Lot A',
-          description: 'Production de 1000 unités du lot A',
-          priorite: 'HAUTE',
-          statut: 'EN_COURS',
-          progression: 65,
-          dateEcheance: new Date(Date.now() + 86400000 * 3),
-          assigneA: { nom: 'Dupont', prenom: 'Jean' }
-        },
-        {
-          id: 2,
-          nom: 'Contrôle Qualité',
-          description: 'Contrôle qualité des articles textiles',
-          priorite: 'MOYENNE',
-          statut: 'EN_ATTENTE',
-          progression: 0,
-          dateEcheance: new Date(Date.now() + 86400000 * 7)
-        }
-      ];
-      this.dataSource.data = mockTasks;
-      this.totalItems = mockTasks.length;
-      this.loading = false;
-    }, 1000);
+    this.tacheService.getAll().subscribe({
+      next: (tasks) => {
+        this.dataSource.data = tasks;
+        this.totalItems = tasks.length;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des tâches:', error);
+        this.snackBar.open('Erreur lors du chargement des tâches', 'Fermer', { duration: 3000 });
+        this.loading = false;
+      }
+    });
   }
 
   loadStats(): void {
-    this.stats = {
-      totalTasks: 25,
-      tasksEnCours: 8,
-      tasksTerminees: 15,
-      productivite: 85
-    };
+    this.tacheService.getAll().subscribe({
+      next: (tasks) => {
+        this.stats = {
+          totalTasks: tasks.length,
+          tasksEnCours: tasks.filter(t => t.statut === StatutTache.EnCours).length,
+          tasksTerminees: tasks.filter(t => t.statut === StatutTache.Termine).length,
+          productivite: tasks.length > 0 ? Math.round((tasks.filter(t => t.statut === StatutTache.Termine).length / tasks.length) * 100) : 0
+        };
+      }
+    });
   }
 
   onSearch(): void {
@@ -239,7 +218,7 @@ export class TachesComponent implements OnInit {
 
   // Action methods
   openTaskForm(): void {
-    this.snackBar.open('Fonctionnalité en cours de développement', 'Fermer', { duration: 3000 });
+    this.router.navigate(['/taches/nouvelle']);
   }
 
   viewTask(task: Task): void {
