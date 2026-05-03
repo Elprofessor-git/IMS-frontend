@@ -110,7 +110,6 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.loadOrders();
-    this.loadStatistics();
   }
 
   ngOnDestroy(): void {
@@ -136,21 +135,32 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
       pageSize: this.pageSize
     };
 
-    // Mock data for now - replace with actual service call
-    setTimeout(() => {
-      this.dataSource.data = [];
-      this.totalOrders = 0;
-      this.loading = false;
-    }, 1000);
+    this.commandeService.getAll().subscribe({
+      next: (orders) => {
+        this.dataSource.data = orders;
+        this.totalOrders = orders.length;
+        this.calculateStatistics(orders);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des commandes:', error);
+        this.snackBar.open('Erreur lors du chargement des commandes', 'Fermer', { duration: 3000 });
+        this.loading = false;
+      }
+    });
   }
 
-  loadStatistics(): void {
-    // Mock data for now - replace with actual service call
+  calculateStatistics(orders: CommandeClient[]): void {
+    const pending = orders.filter(o => o.statut === StatutCommande.EnAttente).length;
+    const confirmed = orders.filter(o => o.statut === StatutCommande.Confirmee).length;
+    const shipped = orders.filter(o => o.statut === StatutCommande.Expediee).length;
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.montantTotal || 0), 0);
+
     this.statistics = {
-      pending: 5,
-      confirmed: 12,
-      shipped: 8,
-      totalRevenue: 25000
+      pending,
+      confirmed,
+      shipped,
+      totalRevenue
     };
   }
 
@@ -291,10 +301,16 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   deleteOrder(order: CommandeClient): void {
     if (confirm(`Êtes-vous sûr de vouloir supprimer la commande ${order.numeroCommande} ?`)) {
-      this.snackBar.open('Commande supprimée avec succès', 'Fermer', {
-        duration: 3000
+      this.commandeService.delete(order.id).subscribe({
+        next: () => {
+          this.snackBar.open('Commande supprimée avec succès', 'Fermer', { duration: 3000 });
+          this.loadOrders();
+        },
+        error: (error) => {
+          console.error('Erreur lors de la suppression:', error);
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', { duration: 3000 });
+        }
       });
-      this.loadOrders();
     }
   }
 
