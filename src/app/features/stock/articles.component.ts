@@ -108,11 +108,16 @@ export class ArticlesComponent implements OnInit {
     // Load articles
     this.articleService.getAll().subscribe({
       next: (articles) => {
-        this.articles = articles;
-        this.dataSource.data = articles;
-        this.totalItems = articles.length;
-        this.calculateStats();
-        this.extractCategories();
+        console.log('Articles reçus:', articles);
+        try {
+          this.articles = articles || [];
+          this.dataSource.data = this.articles;
+          this.totalItems = this.articles.length;
+          this.calculateStats();
+          this.extractCategories();
+        } catch (e) {
+          console.error('Erreur lors du traitement des articles:', e);
+        }
         this.loading = false;
       },
       error: (error) => {

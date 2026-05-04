@@ -16,7 +16,18 @@ export class ArticleService extends BaseApiService<Article> {
   }
 
   // Méthodes spécifiques aux articles
-  // BaseApiService gère déjà getAll() pour les tableaux simples
+  // Surcharge pour être robuste aux différents formats de réponse possibles du backend
+  override getAll(): Observable<Article[]> {
+    return this.http.get<any>(this.apiUrl).pipe(
+      map(resp => {
+        if (Array.isArray(resp)) return resp;
+        if (resp && resp.items && Array.isArray(resp.items)) return resp.items;
+        if (resp && resp.data && Array.isArray(resp.data)) return resp.data;
+        return [];
+      })
+    );
+  }
+
   search(terme: string): Observable<Article[]> {
     return this.http.get<Article[]>(`${this.apiUrl}/Search/${encodeURIComponent(terme)}`);
   }
