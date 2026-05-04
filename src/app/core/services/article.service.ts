@@ -16,12 +16,7 @@ export class ArticleService extends BaseApiService<Article> {
   }
 
   // Méthodes spécifiques aux articles
-  // Surcharge pour gérer la réponse paginée du backend
-  override getAll(): Observable<Article[]> {
-    return this.http
-      .get<PaginatedResponse<Article>>(this.apiUrl)
-      .pipe(map((resp) => resp.items ?? []));
-  }
+  // BaseApiService gère déjà getAll() pour les tableaux simples
   search(terme: string): Observable<Article[]> {
     return this.http.get<Article[]>(`${this.apiUrl}/Search/${encodeURIComponent(terme)}`);
   }
