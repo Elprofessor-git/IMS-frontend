@@ -75,7 +75,7 @@ export class RoleFormComponent implements OnInit {
     private router: Router,
     private utilisateurService: UtilisateurService,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -140,8 +140,8 @@ export class RoleFormComponent implements OnInit {
 
   // --- Permissions Logic ---
   getFilteredPermissions(category: string): Permission[] {
-    return this.allPermissions.filter(p => 
-      p.categorie === category && 
+    return this.allPermissions.filter(p =>
+      p.categorie === category &&
       (!this.permissionFilter || p.nom.toLowerCase().includes(this.permissionFilter.toLowerCase()))
     );
   }
@@ -211,7 +211,7 @@ export class RoleFormComponent implements OnInit {
 
     this.loading = true;
     const formValue = this.roleForm.value;
-    
+
     // Mapping pour le Backend (CreateRoleDto/RoleDto)
     const roleData: any = {
       name: formValue.nom,
