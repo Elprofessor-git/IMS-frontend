@@ -131,11 +131,15 @@ export class RapportStockComponent implements OnInit {
         // Dans une implémentation réelle, vous auriez un endpoint dedicated
         const stock: Stock = {
           id: article.id,
+          articleId: article.id,
           article: article,
-          quantite: article.quantiteStock || 0,
-          emplacement: { id: 1, nom: 'Défaut', code: 'DEF' },
-          dateCreation: new Date(),
-          dateModification: new Date()
+          quantite: 0,
+          quantiteReservee: 0,
+          typeStock: 'Libre' as any, // TypeStock.Libre
+          prixUnitaire: article.prixUnitaireMoyen || 0,
+          dateEntree: new Date(),
+          estValide: true,
+          emplacementPhysique: 'DEF'
         };
         stocks.push(stock);
       });
@@ -148,20 +152,20 @@ export class RapportStockComponent implements OnInit {
       }
       
       if (this.selectedEmplacement) {
-        stocksFiltres = stocksFiltres.filter(s => s.emplacement?.id.toString() === this.selectedEmplacement);
+        stocksFiltres = stocksFiltres.filter(s => s.emplacementPhysique === this.selectedEmplacement);
       }
       
       if (this.searchTerm) {
         const term = this.searchTerm.toLowerCase();
         stocksFiltres = stocksFiltres.filter(s => 
-          s.article?.nom?.toLowerCase().includes(term) ||
+          s.article?.designation?.toLowerCase().includes(term) ||
           s.article?.reference?.toLowerCase().includes(term)
         );
       }
 
       // Calculer les statistiques
       const valeurTotale = stocksFiltres.reduce((acc, s) => {
-        const prix = s.article?.prixAchat || 0;
+        const prix = s.article?.prixUnitaireMoyen || 0;
         return acc + (s.quantite * prix);
       }, 0);
       
@@ -188,7 +192,7 @@ export class RapportStockComponent implements OnInit {
           .filter(s => s.quantite <= (s.article?.seuilAlerte || 0))
           .map(s => ({
             niveau: s.quantite === 0 ? 'critique' : 'warning',
-            articleNom: s.article?.nom || 'N/A',
+            articleNom: s.article?.designation || 'N/A',
             type: s.quantite === 0 ? 'Rupture de stock' : 'Stock bas',
             dateDetection: new Date(),
             message: s.quantite === 0 ? 'Stock à 0' : `Stock: ${s.quantite}`,

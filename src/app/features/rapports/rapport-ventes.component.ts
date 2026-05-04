@@ -16,7 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
-import { MouvementStockService } from '../../core/services/mouvement-stock.service';
+import { MouvementService } from '../../core/services/mouvement.service';
 import { ArticleService } from '../../core/services/article.service';
 import { EmplacementService } from '../../core/services/emplacement.service';
 
@@ -83,7 +83,7 @@ export class RapportVentesComponent implements OnInit {
   error: string | null = null;
 
   constructor(
-    private mouvementService: MouvementStockService,
+    private mouvementService: MouvementService,
     private articleService: ArticleService,
     private emplacementService: EmplacementService,
     private snackBar: MatSnackBar
@@ -106,8 +106,8 @@ export class RapportVentesComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.mouvementService.getAll().subscribe(mouvements => {
-      const mouvementsFiltres = mouvements.filter(m => {
+    this.mouvementService.getAll().subscribe((mouvements: any[]) => {
+      const mouvementsFiltres = mouvements.filter((m: any) => {
         const dateMouv = new Date(m.dateMouvement);
         return dateMouv >= this.dateDebut! && dateMouv <= this.dateFin!;
       });
@@ -115,16 +115,16 @@ export class RapportVentesComponent implements OnInit {
       let valeurTotale = 0;
       const articlesMap = new Map<number, IArticleConso>();
 
-      mouvementsFiltres.forEach(mouv => {
+      mouvementsFiltres.forEach((mouv: any) => {
         this.articleService.getById(mouv.articleId).subscribe(article => {
           const quantite = mouv.quantite;
-          const prixUnitaire = article.prixAchat || 0;
+          const prixUnitaire = article.prixUnitaireMoyen || 0;
           const ligneValeur = quantite * prixUnitaire;
           valeurTotale += ligneValeur;
 
           const existing = articlesMap.get(article.id) || {
             articleId: article.id,
-            nom: article.nom,
+            nom: article.designation,
             quantiteConsommee: 0,
             valeurConsommee: 0,
             dernierMouvement: new Date(0)
@@ -142,7 +142,7 @@ export class RapportVentesComponent implements OnInit {
         .sort((a, b) => b.valeurConsommee - a.valeurConsommee)
         .slice(0, 10);
 
-      const tableData: IMouvementTable[] = mouvementsFiltres.map(mouv => ({
+      const tableData: IMouvementTable[] = mouvementsFiltres.map((mouv: any) => ({
         date: new Date(mouv.dateMouvement),
         article: '',
         quantite: mouv.quantite,
@@ -153,12 +153,12 @@ export class RapportVentesComponent implements OnInit {
       }));
 
       Promise.all(tableData.map(row => 
-        this.articleService.getById(mouvements.find(m => m.id === row.quantite)?.articleId || 0).toPromise()
+        this.articleService.getById(mouvements.find((m: any) => m.id === row.quantite)?.articleId || 0).toPromise()
       )).then(articles => {
         articles.forEach((article, index) => {
           if (article) {
-            tableData[index].article = article.nom;
-            tableData[index].valeur = tableData[index].quantite * (article.prixAchat || 0);
+            tableData[index].article = article.designation;
+            tableData[index].valeur = tableData[index].quantite * (article.prixUnitaireMoyen || 0);
           }
         });
         
@@ -178,7 +178,7 @@ export class RapportVentesComponent implements OnInit {
         this.isLoading = false;
       });
 
-    }, error => {
+    }, (error: any) => {
       this.error = 'Erreur lors du chargement des données de consommation';
       this.isLoading = false;
       console.error(error);
