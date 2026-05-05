@@ -4,14 +4,15 @@ import { RouterModule } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { AuthService } from '../../core/services/auth.service';
+import { PermissionService } from '../../core/services/permission.service';
+import { ChatbotPanelComponent } from '../../features/chatbot/chatbot-panel.component';
 
 interface MenuItem {
   label: string;
   icon: string;
   route?: string;
   children?: MenuItem[];
-  permission?: { module: string; action: string };
+  permission?: string;
 }
 
 @Component({
@@ -22,7 +23,8 @@ interface MenuItem {
     RouterModule,
     MatListModule,
     MatIconModule,
-    MatExpansionModule
+    MatExpansionModule,
+    ChatbotPanelComponent
   ],
   template: `
     <div class="sidebar-content">
@@ -30,7 +32,7 @@ interface MenuItem {
         <h3>Gestion Textile</h3>
       </div>
 
-      <mat-nav-list>
+      <mat-nav-list class="nav-list">
         <ng-container *ngFor="let item of menuItems">
           <!-- Menu simple -->
           <a
@@ -67,12 +69,21 @@ interface MenuItem {
           </mat-expansion-panel>
         </ng-container>
       </mat-nav-list>
+
+      <app-chatbot-panel></app-chatbot-panel>
     </div>
   `,
   styles: [`
     .sidebar-content {
       height: 100%;
       background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-list {
+      flex: 1;
+      overflow-y: auto;
     }
 
     .logo {
@@ -149,7 +160,7 @@ export class SidebarComponent {
         { label: 'Articles', icon: 'category', route: '/stock/articles' },
         { label: 'Mouvements de Stock', icon: 'swap_horiz', route: '/mouvements' }
       ],
-      permission: { module: 'Stock', action: 'Read' }
+      permission: 'stock'
     },
     {
       label: 'Commandes & Production',
@@ -158,7 +169,7 @@ export class SidebarComponent {
         { label: 'Commandes Clients', icon: 'receipt', route: '/commandes' },
         { label: 'Tâches de Production', icon: 'task', route: '/taches' }
       ],
-      permission: { module: 'Commandes', action: 'Read' }
+      permission: 'commandes'
     },
     {
       label: 'Achats & Importations',
@@ -167,16 +178,15 @@ export class SidebarComponent {
         { label: 'Achats Fournisseurs', icon: 'shopping_bag', route: '/achats' },
         { label: 'Importations', icon: 'flight_land', route: '/importations' }
       ],
-      permission: { module: 'Achats', action: 'Read' }
+      permission: 'achats'
     },
     {
       label: 'Partenaires',
       icon: 'people',
       children: [
-        { label: 'Clients & Fournisseurs', icon: 'business', route: '/clients-fournisseurs' },
-        { label: 'Gestion Contacts', icon: 'contact_phone', route: '/clients-fournisseurs/contacts' }
+        { label: 'Clients & Fournisseurs', icon: 'business', route: '/clients-fournisseurs' }
       ],
-      permission: { module: 'Clients', action: 'Read' }
+      permission: 'clients'
     },
     {
       label: 'Administration',
@@ -186,33 +196,31 @@ export class SidebarComponent {
         { label: 'Rôles & Permissions', icon: 'security', route: '/utilisateurs/roles' },
         { label: 'Paramètres', icon: 'settings', route: '/admin/parametres' }
       ],
-      permission: { module: 'Users', action: 'Read' }
+      permission: 'utilisateurs'
     },
     {
       label: 'Rapports & Analytics',
       icon: 'analytics',
       children: [
         { label: 'Rapports de Stock', icon: 'assessment', route: '/rapports/stock' },
-        { label: 'Rapports de Ventes', icon: 'trending_up', route: '/rapports/ventes' },
+        { label: "Rapport d'achats", icon: 'receipt_long', route: '/rapports/ventes' },
         { label: 'Analytics', icon: 'insights', route: '/rapports/analytics' }
       ],
-      permission: { module: 'Rapports', action: 'Read' }
+      permission: 'rapports'
     },
     {
       label: 'Chatbot IA',
       icon: 'smart_toy',
       route: '/chatbot',
-      permission: { module: 'Chatbot', action: 'Read' }
+      permission: 'chatbot'
     }
   ];
 
-  constructor(private authService: AuthService) {}
+  constructor(private permissionService: PermissionService) {}
 
   hasPermission(item: MenuItem): boolean {
-    if (!item.permission) {
-      return true;
-    }
-    return this.authService.hasPermission(item.permission.module, item.permission.action);
+    if (!item.permission) return true;
+    return this.permissionService.canAccess(item.permission);
   }
 }
 

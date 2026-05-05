@@ -305,17 +305,13 @@
           <!-- Rôle -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Rôle *</mat-label>
-            <mat-select formControlName="roleId" multiple>
+            <mat-select formControlName="roleId">
               <mat-option *ngFor="let role of availableRoles" [value]="role.id">
-                <div class="role-option">
-                  <div class="role-color" [style.background-color]="role.couleur"></div>
-                  <span class="role-name">{{role.name}}</span>
-                  <mat-chip class="role-level" *ngIf="role.niveau">Niveau {{role.niveau}}</mat-chip>
-                </div>
+                {{ role.nom }}
               </mat-option>
             </mat-select>
             <mat-error *ngIf="utilisateurForm.get('roleId')?.hasError('required')">
-              Au moins un rôle doit être sélectionné
+              Un rôle doit être sélectionné
             </mat-error>
           </mat-form-field>
 

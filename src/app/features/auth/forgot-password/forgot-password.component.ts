@@ -56,15 +56,12 @@ export class ForgotPasswordComponent {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) {
-      return;
-    }
+    if (this.form.invalid) return;
     this.isLoading = true;
-    // TODO: Implement actual service call when available
-    setTimeout(() => {
-      this.isLoading = false;
-      this.dialogRef.close(true);
-    }, 1000);
+    this.authService.forgotPassword(this.form.value.email).subscribe({
+      next: () => { this.isLoading = false; this.dialogRef.close(true); },
+      error: () => { this.isLoading = false; }
+    });
   }
 
   onCancel(): void {

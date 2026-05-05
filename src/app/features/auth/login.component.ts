@@ -217,21 +217,11 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.isSubmitting = false;
           
           
-          this.snackBar.open('Connexion réussie', 'Fermer', { 
+          this.snackBar.open('Connexion réussie', 'Fermer', {
             duration: 2000,
             panelClass: ['success-snackbar']
           });
-          
-          // Attendre un court délai pour que l'authentification soit bien enregistrée
-          setTimeout(() => {
-            this.router.navigate(['/dashboard']).then(success => {
-              if (!success) {
-                console.error('Navigation vers dashboard échouée');
-                // Fallback vers une route alternative
-                this.router.navigate(['/stock']);
-              }
-            });
-          }, 100);
+          this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isSubmitting = false;

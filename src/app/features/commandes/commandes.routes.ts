@@ -10,6 +10,10 @@ export const commandesRoutes: Routes = [
     loadComponent: () => import('./commande-form.component').then(m => m.CommandeFormComponent)
   },
   {
+    path: 'modeles-bom',
+    loadComponent: () => import('./modele-bom.component').then(m => m.ModeleBomComponent)
+  },
+  {
     path: ':id',
     loadComponent: () => import('./commande-form.component').then(m => m.CommandeFormComponent)
   },

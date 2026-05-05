@@ -23,6 +23,15 @@ export interface IClient {
   commandes?: ICommandeClient[];
 }
 
+export interface ITaillesCommande {
+  XS: number;
+  S: number;
+  M: number;
+  L: number;
+  XL: number;
+  XXL: number;
+}
+
 export interface ICommandeClient {
   id: number;
   numeroCommande: string;
@@ -39,6 +48,9 @@ export interface ICommandeClient {
   besoins?: IBesoinCommande[];
   taches?: ITacheProduction[];
   achats?: IAchat[];
+  modeleBomId?: number;
+  pctSecurite?: number;
+  tailles?: ITaillesCommande;
 }
 
 export interface IBesoinCommande {

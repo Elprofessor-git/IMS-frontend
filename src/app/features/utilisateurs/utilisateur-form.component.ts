@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,7 +14,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
-import { UtilisateurService, User, Role } from './utilisateur.service';
+import { UtilisateurService, User } from './utilisateur.service';
+import { CustomRoleService, CustomRole } from './custom-role.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
@@ -40,11 +42,14 @@ import { Observable, of } from 'rxjs';
   styleUrls: ['./utilisateur-form.component.scss']
 })
 export class UtilisateurFormComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private utilisateurService: UtilisateurService,
+    private customRoleService: CustomRoleService,
     private notificationService: NotificationService
   ) {}
 
@@ -54,7 +59,7 @@ export class UtilisateurFormComponent implements OnInit {
   loading = false;
   hidePassword = true;
   hideConfirmPassword = true;
-  availableRoles: Role[] = [];
+  availableRoles: CustomRole[] = [];
   availableManagers: User[] = []; // Assuming a User[] type for managers
   currentUser: User | null = null;
   selectedAvatar: string | ArrayBuffer | null = null;
@@ -93,7 +98,7 @@ export class UtilisateurFormComponent implements OnInit {
       nomUtilisateur: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9_.-]*$')]],
       motDePasse: ['', [Validators.required, Validators.minLength(8), Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$')]],
       confirmerMotDePasse: ['', [Validators.required]],
-      roleId: [[], Validators.required],
+      roleId: [null, Validators.required],
       forceChangePassword: [false],
       activerNotifications: [true],
       activerDoubleAuthentification: [false],
@@ -130,13 +135,14 @@ export class UtilisateurFormComponent implements OnInit {
   }
 
   private loadRoles(): void {
-    this.utilisateurService.getRoles().subscribe(roles => {
+    this.customRoleService.getAll().subscribe(roles => {
       this.availableRoles = roles;
     });
   }
 
   private checkEditMode(): void {
     this.route.paramMap.pipe(
+      takeUntilDestroyed(this.destroyRef),
       switchMap(params => {
         this.userId = params.get('id');
         if (this.userId) {
@@ -152,17 +158,10 @@ export class UtilisateurFormComponent implements OnInit {
       })
     ).subscribe(user => {
       if (user) {
-        // Map backend user model to the form model
-        // Map role names from user.roles to role IDs for the form
-        const roleIds = this.availableRoles
-          .filter(role => user.roles.includes(role.name))
-          .map(role => role.id);
-
         const formValue = {
           ...user,
           nomUtilisateur: user.userName,
-          roleId: roleIds,
-          // Map other fields if names differ
+          roleId: (user as any).roleId ?? null
         };
         this.currentUser = user;
         this.utilisateurForm.patchValue(formValue);
@@ -184,11 +183,9 @@ export class UtilisateurFormComponent implements OnInit {
     this.loading = true;
     const formValue = this.utilisateurForm.getRawValue();
 
-    // Map form model to backend DTO
     const userData: any = {
       ...formValue,
-      userName: formValue.nomUtilisateur,
-      roles: formValue.roleId
+      userName: formValue.nomUtilisateur
     };
 
     // Do not send password if it's empty in edit mode

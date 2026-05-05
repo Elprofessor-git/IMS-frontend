@@ -18,6 +18,10 @@ export const utilisateursRoutes: Routes = [
     loadComponent: () => import('./role-form.component').then(m => m.RoleFormComponent)
   },
   {
+    path: 'roles/:id/permissions',
+    loadComponent: () => import('./role-permissions.component').then(m => m.RolePermissionsComponent)
+  },
+  {
     path: 'roles/:id',
     loadComponent: () => import('./role-form.component').then(m => m.RoleFormComponent)
   },
