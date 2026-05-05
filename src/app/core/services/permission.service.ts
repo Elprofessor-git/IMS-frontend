@@ -17,7 +17,7 @@ export class PermissionService {
       tap(p => this.perms.next(p)),
       map(() => void 0),
       catchError(() => {
-        this.perms.next([]);
+        this.perms.next([{ module: 'dashboard', canAccess: true, canWrite: false }]);
         return of(void 0);
       })
     );
