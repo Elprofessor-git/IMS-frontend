@@ -75,3 +75,6 @@ htmlcov/
 *.tar.zst.angular/
 .angular/
 node_modules/
+node_modules/
+node_modules_old/
+.angular/
