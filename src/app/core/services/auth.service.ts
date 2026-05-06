@@ -22,7 +22,9 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    this.initializeAuth();
+    // initializeAuth() is called after construction via APP_INITIALIZER
+    // to avoid circular dependency: constructor → HTTP → interceptor → inject(AuthService)
+    setTimeout(() => this.initializeAuth(), 0);
   }
 
   private initializeAuth(): void {
