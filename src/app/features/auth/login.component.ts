@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
+import { PermissionService } from '../../core/services/permission.service';
 import { LoginRequest } from '../../core/auth/auth.model';
 
 @Component({
@@ -181,6 +182,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private permissionService: PermissionService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {
@@ -215,13 +217,15 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (user) => {
           this.isSubmitting = false;
-          
-          
-          this.snackBar.open('Connexion réussie', 'Fermer', {
-            duration: 2000,
-            panelClass: ['success-snackbar']
+          this.permissionService.loadMyPermissions().subscribe({
+            next: () => {
+              this.snackBar.open('Connexion réussie', 'Fermer', { duration: 2000 });
+              this.router.navigate(['/dashboard']);
+            },
+            error: () => {
+              this.router.navigate(['/dashboard']);
+            }
           });
-          this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.isSubmitting = false;
