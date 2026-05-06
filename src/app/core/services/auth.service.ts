@@ -30,7 +30,12 @@ export class AuthService {
   private initializeAuth(): void {
     const token = this.getToken();
     if (token && !this.isTokenExpired(token)) {
-      this.loadCurrentUser().subscribe();
+      const user = this.getUserFromToken(token);
+      if (user) {
+        this.currentUserSubject.next(user);
+      } else {
+        this.clearSession();
+      }
     }
   }
 
@@ -155,17 +160,39 @@ export class AuthService {
       );
   }
 
-  private loadCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${environment.apiUrl}/Auth/me`).pipe(
-      tap(user => {
-        this.currentUserSubject.next(user);
-      }),
-      catchError(error => {
-        console.error('Failed to load user', error);
-        this.clearSession();
-        return throwError(() => new Error('Impossible de charger le profil utilisateur'));
-      })
-    );
+  private getUserFromToken(token: string): User | null {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      // ASP.NET Core JwtSecurityTokenHandler sérialise ClaimTypes vers noms courts
+      const id =
+        payload['sub'] ||
+        payload['nameid'] ||
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+        payload['UserId'] || '';
+
+      const email =
+        payload['email'] ||
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || '';
+
+      const nom =
+        payload['unique_name'] ||
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '';
+
+      const rawRole =
+        payload['role'] ||
+        payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+      const roles: string[] = rawRole
+        ? (Array.isArray(rawRole) ? rawRole : [rawRole])
+        : [];
+
+      if (!id || !email) return null;
+
+      return { id, email, nom, prenom: '', roles };
+    } catch {
+      return null;
+    }
   }
 
   private setSession(user: User, token: string, refreshToken?: string): void {
