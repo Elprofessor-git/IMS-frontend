@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { map, tap, switchMap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
@@ -30,12 +30,7 @@ export class AuthService {
   private initializeAuth(): void {
     const token = this.getToken();
     if (token && !this.isTokenExpired(token)) {
-      const user = this.getUserFromToken(token);
-      if (user) {
-        this.currentUserSubject.next(user);
-      } else {
-        this.clearSession();
-      }
+      this.loadCurrentUser().subscribe();
     }
   }
 
@@ -160,39 +155,14 @@ export class AuthService {
       );
   }
 
-  private getUserFromToken(token: string): User | null {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-
-      // ASP.NET Core JwtSecurityTokenHandler sérialise ClaimTypes vers noms courts
-      const id =
-        payload['sub'] ||
-        payload['nameid'] ||
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
-        payload['UserId'] || '';
-
-      const email =
-        payload['email'] ||
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || '';
-
-      const nom =
-        payload['unique_name'] ||
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '';
-
-      const rawRole =
-        payload['role'] ||
-        payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-
-      const roles: string[] = rawRole
-        ? (Array.isArray(rawRole) ? rawRole : [rawRole])
-        : [];
-
-      if (!id || !email) return null;
-
-      return { id, email, nom, prenom: '', roles };
-    } catch {
-      return null;
-    }
+  private loadCurrentUser(): Observable<User> {
+    return this.http.get<User>(`${environment.apiUrl}/Auth/me`).pipe(
+      tap(user => this.currentUserSubject.next(user)),
+      catchError(() => {
+        this.clearSession();
+        return of(null as any);
+      })
+    );
   }
 
   private setSession(user: User, token: string, refreshToken?: string): void {
