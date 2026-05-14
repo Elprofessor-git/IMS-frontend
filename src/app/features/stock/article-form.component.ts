@@ -129,6 +129,24 @@ import { Article } from '../../shared/models/stock.model';
               </mat-select>
               <mat-icon matSuffix>straighten</mat-icon>
             </mat-form-field>
+            <!-- Zone upload image -->
+            <div class="image-upload-section">
+              <div class="image-preview" *ngIf="imagePreview">
+                <img [src]="imagePreview" alt="Aperçu">
+                <button mat-icon-button type="button" class="remove-btn" (click)="removeImage()" matTooltip="Supprimer l'image">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="image-placeholder" *ngIf="!imagePreview">
+                <mat-icon>image</mat-icon>
+                <span>Aucune image sélectionnée</span>
+              </div>
+              <button mat-stroked-button type="button" (click)="fileInput.click()">
+                <mat-icon>upload</mat-icon>
+                Choisir une image
+              </button>
+              <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)">
+            </div>
           </form>
         </mat-card-content>
 
@@ -189,6 +207,53 @@ import { Article } from '../../shared/models/stock.model';
       margin-right: 8px;
     }
 
+    .image-upload-section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 16px;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+    }
+
+    .image-preview {
+      position: relative;
+      display: inline-block;
+    }
+
+    .image-preview img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid #ddd;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      background: white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .image-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #999;
+      padding: 12px;
+    }
+
+    .image-placeholder mat-icon {
+      font-size: 48px;
+      height: 48px;
+      width: 48px;
+    }
+
     @media (max-width: 768px) {
       .form-container {
         margin: 10px;
@@ -209,6 +274,8 @@ export class ArticleFormComponent implements OnInit {
 
   articleForm: FormGroup;
   isSubmitting = false;
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
 
   constructor() {
     this.articleForm = this.fb.group({
@@ -249,12 +316,16 @@ export class ArticleFormComponent implements OnInit {
     
     this.articleService.create(articleData).subscribe({
       next: (response) => {
-        this.isSubmitting = false;
-        this.snackBar.open('Article créé avec succès!', 'Fermer', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-        this.router.navigate(['/stock/articles']);
+        if (this.selectedFile && response?.id) {
+          this.uploadImage(response.id, () => this.router.navigate(['/stock/articles']));
+        } else {
+          this.isSubmitting = false;
+          this.snackBar.open('Article créé avec succès!', 'Fermer', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+          this.router.navigate(['/stock/articles']);
+        }
       },
       error: (error) => {
         this.isSubmitting = false;
@@ -271,6 +342,35 @@ export class ArticleFormComponent implements OnInit {
           duration: 5000,
           panelClass: ['error-snackbar']
         });
+      }
+    });
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    this.selectedFile = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => { this.imagePreview = reader.result as string; };
+    reader.readAsDataURL(this.selectedFile);
+  }
+
+  removeImage(): void {
+    this.selectedFile = null;
+    this.imagePreview = null;
+  }
+
+  private uploadImage(articleId: number, onDone: () => void): void {
+    this.articleService.uploadImage(articleId, this.selectedFile!).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.snackBar.open('Article créé avec succès!', 'Fermer', { duration: 3000 });
+        onDone();
+      },
+      error: () => {
+        this.isSubmitting = false;
+        this.snackBar.open('Article créé mais erreur lors de l\'upload image', 'Fermer', { duration: 4000 });
+        onDone();
       }
     });
   }

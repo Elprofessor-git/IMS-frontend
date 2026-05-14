@@ -312,6 +312,59 @@
     </mat-card-content>
   </mat-card>
 
+  <!-- Documents & Factures -->
+  <mat-card class="documents-card" *ngIf="importation" style="margin-bottom: 24px;">
+    <mat-card-header>
+      <div mat-card-avatar class="documents-icon">
+        <mat-icon>attach_file</mat-icon>
+      </div>
+      <mat-card-title>Documents &amp; Factures joints</mat-card-title>
+      <mat-card-subtitle>{{ documents.length }} fichier(s)</mat-card-subtitle>
+      <div class="card-actions">
+        <button mat-icon-button (click)="uploadDocument()" matTooltip="Joindre un document" [disabled]="loadingDocuments">
+          <mat-icon>upload_file</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content>
+
+      <div *ngIf="loadingDocuments" style="display:flex;align-items:center;gap:12px;padding:12px 0;color:#666">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span>Chargement...</span>
+      </div>
+
+      <div *ngIf="!loadingDocuments && documents.length === 0" style="display:flex;align-items:center;gap:8px;color:#999;padding:12px 0">
+        <mat-icon>folder_open</mat-icon>
+        <span>Aucun document joint</span>
+      </div>
+
+      <div *ngFor="let doc of documents" style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px;margin-bottom:8px;border:1px solid #e9ecef">
+        <mat-icon style="color:#1976d2">{{ doc.typeFichier?.startsWith('image') ? 'image' : 'picture_as_pdf' }}</mat-icon>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <span style="font-weight:500;font-size:0.9rem">{{ doc.nomFichier }}</span>
+          <span style="font-size:0.75rem;color:#888">{{ doc.typeFichier }} · {{ (doc.tailleOctets / 1024) | number:'1.0-0' }} Ko · {{ doc.dateAjout | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <button mat-icon-button color="primary" (click)="telechargerDocument(doc.id)" matTooltip="Télécharger">
+          <mat-icon>download</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="supprimerDocument(doc.id)" matTooltip="Supprimer">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid #eee;margin-top:8px">
+        <span *ngIf="pendingFileName" style="display:flex;align-items:center;gap:4px;color:#388e3c;font-size:0.85rem">
+          <mat-icon>check_circle</mat-icon>{{ pendingFileName }}
+        </span>
+        <button mat-stroked-button color="primary" (click)="uploadDocument()" [disabled]="loadingDocuments">
+          <mat-icon>upload_file</mat-icon>
+          Joindre facture / document
+        </button>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+
   <!-- Notes et commentaires -->
   <mat-card class="notes-card" *ngIf="importation">
     <mat-card-header>

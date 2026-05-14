@@ -21,6 +21,7 @@ import { MatDividerModule } from '@angular/material/divider';
 
 import { ArticleService } from '../../core/services/article.service';
 import { Article } from '../../shared/models/stock.model';
+import { environment } from '../../../environments/environment';
 
 interface ArticleStats {
   totalArticles: number;
@@ -63,6 +64,8 @@ interface Categorie {
 export class ArticlesComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  apiBaseUrl = environment.apiUrl.replace('/api', '');
 
   // Table configuration
   displayedColumns: string[] = ['image', 'designation', 'categorie', 'prix', 'statut', 'actions'];

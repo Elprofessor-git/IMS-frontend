@@ -2,24 +2,55 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { BaseApiService } from '../../core/services/base-api.service';
+import { environment } from '../../../environments/environment';
+
+export interface DocumentImportation {
+  id: number;
+  importationId: number;
+  nomFichier: string;
+  cheminFichier: string;
+  typeFichier?: string;
+  tailleOctets: number;
+  dateAjout: Date;
+  ajoutePar?: string;
+}
 
 export interface IImportation {
   id?: number;
-  referenceImportation?: string; 
+  referenceImportation?: string;
   reference?: string;
   fournisseurId: number;
   dateImportation: Date;
   modeExpedition: string;
   statut: string;
-  montantTotal?: number; 
+  montantTotal?: number;
   notes?: string;
-  lignesImportation?: LigneImportation[]; 
+  lignesImportation?: LigneImportation[];
   produits?: any[];
-  documents?: { type: string; url: string; dateUpload: Date; }[];
+  documents?: DocumentImportation[];
   modifications?: { date: Date; utilisateurId: number; description: string; }[];
   fournisseur?: any;
   createdAt?: Date;
   updatedAt?: Date;
+  // Champs étendus (HTML externe)
+  numeroImportation?: string;
+  paysOrigine?: string;
+  portDepart?: string;
+  portArrivee?: string;
+  dateExpedition?: Date;
+  dateArriveePrevue?: Date;
+  factureCommerciale?: boolean;
+  connaissement?: boolean;
+  certificatOrigine?: boolean;
+  listeColisage?: boolean;
+  dateCommande?: Date;
+  dateDedouanement?: Date;
+  dateReception?: Date;
+  valeurMarchandises?: number;
+  fraisTransport?: number;
+  droitsDouane?: number;
+  tva?: number;
+  autresFrais?: number;
 }
 
 export interface ILigneImportation {
@@ -64,12 +95,23 @@ export class ImportationService extends BaseApiService<Importation> {
       .pipe(tap(() => this.refreshImportations()));
   }
 
-  uploadDocument(id: number, type: string, file: File): Observable<void> {
+  getDocuments(importationId: number): Observable<DocumentImportation[]> {
+    return this.http.get<DocumentImportation[]>(`${this.apiUrl}/${importationId}/Documents`);
+  }
+
+  uploadDocument(importationId: number, file: File): Observable<DocumentImportation> {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-    return this.http.post<void>(`${this.apiUrl}/${id}/documents`, formData)
-      .pipe(tap(() => this.refreshImportations()));
+    formData.append('file', file, file.name);
+    return this.http.post<DocumentImportation>(`${this.apiUrl}/${importationId}/Documents`, formData);
+  }
+
+  telechargerDocumentUrl(docId: number): string {
+    const base = environment.apiUrl.replace('/api', '');
+    return `${base}/api/Importation/Documents/${docId}/Telecharger`;
+  }
+
+  supprimerDocument(docId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/Documents/${docId}`);
   }
 
   affecterACommande(id: number, affectations: any[]): Observable<void> {
