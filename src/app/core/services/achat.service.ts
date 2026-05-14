@@ -49,46 +49,12 @@ export class AchatService extends BaseApiService<Achat> {
   }
 
   // Méthodes spécifiques aux achats
-  getByFournisseur(fournisseurId: number): Observable<Achat[]> {
-    return this.http.get<Achat[]>(`${this.apiUrl}/fournisseur/${fournisseurId}`);
-  }
-
   getByStatut(statut: string): Observable<Achat[]> {
-    return this.http.get<Achat[]>(`${this.apiUrl}/statut/${statut}`);
+    return this.http.get<Achat[]>(`${this.apiUrl}/Statut/${statut}`);
   }
 
-  getByDateRange(dateDebut: Date, dateFin: Date): Observable<Achat[]> {
-    return this.http.get<Achat[]>(`${this.apiUrl}/daterange`, {
-      params: {
-        dateDebut: dateDebut.toISOString(),
-        dateFin: dateFin.toISOString()
-      }
-    });
-  }
-
-  updateStatut(id: number, statut: string): Observable<Achat> {
-    return this.http.patch<Achat>(`${this.apiUrl}/${id}/statut`, { statut });
-  }
-
-  confirmerLivraison(id: number, dateLivraison: Date): Observable<Achat> {
-    return this.http.patch<Achat>(`${this.apiUrl}/${id}/livraison`, { dateLivraison });
-  }
-
-  // Gestion des lignes d'achat
-  getLignesAchat(achatId: number): Observable<LigneAchat[]> {
-    return this.http.get<LigneAchat[]>(`${this.apiUrl}/${achatId}/lignes`);
-  }
-
-  addLigneAchat(achatId: number, ligne: Omit<LigneAchat, 'id' | 'achatId'>): Observable<LigneAchat> {
-    return this.http.post<LigneAchat>(`${this.apiUrl}/${achatId}/lignes`, ligne);
-  }
-
-  updateLigneAchat(achatId: number, ligneId: number, ligne: Partial<LigneAchat>): Observable<LigneAchat> {
-    return this.http.put<LigneAchat>(`${this.apiUrl}/${achatId}/lignes/${ligneId}`, ligne);
-  }
-
-  deleteLigneAchat(achatId: number, ligneId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${achatId}/lignes/${ligneId}`);
+  confirmerLivraison(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/Livrer`, {});
   }
 
   // Méthodes de calcul
@@ -177,73 +143,17 @@ export class AchatService extends BaseApiService<Achat> {
     return errors;
   }
 
-  // Méthodes de statistiques
-  getStatistiques(dateDebut?: Date, dateFin?: Date): Observable<any> {
-    const url = `${this.apiUrl}/statistiques`;
-    const params: any = {};
-
-    if (dateDebut) {
-      params.dateDebut = dateDebut.toISOString();
-    }
-    if (dateFin) {
-      params.dateFin = dateFin.toISOString();
-    }
-
-    return this.http.get(url, { params });
-  }
-
-  getAchatsRecents(limit = 10): Observable<Achat[]> {
-    return this.http.get<Achat[]>(`${this.apiUrl}/recents?limit=${limit}`);
-  }
-
-  getAchatsEnRetard(): Observable<Achat[]> {
-    return this.http.get<Achat[]>(`${this.apiUrl}/retard`);
-  }
-
-  // Méthodes de suivi
-  getSuiviAchats(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/suivi`);
-  }
-
-  getAchatsParFournisseur(fournisseurId: number): Observable<Achat[]> {
-    return this.http.get<Achat[]>(`${this.apiUrl}/fournisseur/${fournisseurId}/historique`);
-  }
-
-  // Méthodes de génération de documents
-  genererBonCommande(achatId: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${achatId}/bon-commande`, { responseType: 'blob' });
-  }
-
-  genererFacture(achatId: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${achatId}/facture`, { responseType: 'blob' });
+  getAchatsParFournisseur(fournisseurId: number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/Fournisseur/${fournisseurId}/Historique`);
   }
 
   // Méthodes de workflow
-  validerAchat(achatId: number): Observable<Achat> {
-    return this.http.patch<Achat>(`${this.apiUrl}/${achatId}/valider`, {});
+  validerAchat(achatId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${achatId}/Confirmer`, {});
   }
 
-  annulerAchat(achatId: number, motif: string): Observable<Achat> {
-    return this.http.patch<Achat>(`${this.apiUrl}/${achatId}/annuler`, { motif });
-  }
-
-  // Méthodes de recherche avancée
-  rechercherAchats(criteres: any): Observable<Achat[]> {
-    return this.http.post<Achat[]>(`${this.apiUrl}/recherche`, criteres);
-  }
-
-  // Méthodes de duplication
-  dupliquerAchat(achatId: number): Observable<Achat> {
-    return this.http.post<Achat>(`${this.apiUrl}/${achatId}/dupliquer`, {});
-  }
-
-  // Méthodes de notification
-  getNotificationsAchats(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/notifications`);
-  }
-
-  marquerCommeLue(notificationId: number): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/notifications/${notificationId}/lue`, {});
+  annulerAchat(achatId: number, motif: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${achatId}`);
   }
 }
 

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, retry, tap } from 'rxjs/operators';
 import { BaseApiService } from '../../core/services/base-api.service';
+import { environment } from '../../../environments/environment';
 
 // --- Interfaces Matching Backend Models (issues du core) ---
 
@@ -131,10 +132,11 @@ export class StockService extends BaseApiService<Stock> {
   }
 
   createMouvement(mouvement: Partial<MouvementStock>): Observable<MouvementStock> {
-      return this.http.post<MouvementStock>(`${this.apiUrl}/MouvementStock`, mouvement).pipe(
-        tap(() => this.refreshStocks()),
-        catchError(this.handleError)
-      );
+    const mouvementUrl = `${environment.apiUrl}/MouvementStock`;
+    return this.http.post<MouvementStock>(mouvementUrl, mouvement).pipe(
+      tap(() => this.refreshStocks()),
+      catchError(this.handleError)
+    );
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
@@ -167,18 +169,6 @@ export class StockService extends BaseApiService<Stock> {
       }),
       catchError(() => { return []; }) // Ignorer silencieusement si l'API n'est pas dispo
     ).subscribe();
-  }
-
-  reserveStock(articleId: number, quantity: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/reserve`, { articleId, quantity }).pipe(
-      tap(() => this.refreshStocks())
-    );
-  }
-
-  releaseStock(articleId: number, quantity: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/release`, { articleId, quantity }).pipe(
-      tap(() => this.refreshStocks())
-    );
   }
 
   private checkAlertThresholds(stocks: Stock[]): void {

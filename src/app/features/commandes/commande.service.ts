@@ -53,31 +53,9 @@ export class CommandeService extends BaseApiService<CommandeClient> {
       .pipe(tap(() => this.refreshCommandes()));
   }
 
-  updateStatutCommande(id: number, statut: string): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}/statut`, { statut })
-      .pipe(tap(() => this.refreshCommandes()));
-  }
-
-  verifierDisponibiliteStock(commande: any): Observable<boolean> {
-    return this.http.post<boolean>(`${this.apiUrl}/verifier-stock`, commande);
-  }
-
-  reserverStock(commandeId: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${commandeId}/reserver-stock`, {})
-      .pipe(tap(() => this.refreshCommandes()));
-  }
-
   // --- Méthodes synchrones (issues du core) ---
   getByStatut(statut: string): Observable<CommandeClient[]> {
     return this.http.get<CommandeClient[]>(`${this.apiUrl}/Statut/${statut}`);
-  }
-
-  getByClient(clientId: number): Observable<CommandeClient[]> {
-    return this.http.get<CommandeClient[]>(`${this.apiUrl}/ByClient/${clientId}`);
-  }
-
-  getByPlateforme(plateformeId: number): Observable<CommandeClient[]> {
-    return this.http.get<CommandeClient[]>(`${this.apiUrl}/ByPlateforme/${plateformeId}`);
   }
 
   validerRessources(id: number): Observable<any> {
@@ -97,14 +75,6 @@ export class CommandeService extends BaseApiService<CommandeClient> {
     return this.http.post(`${this.apiUrl}/${id}/CalculerBesoins`, {});
   }
 
-  getDashboard(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/Dashboard`);
-  }
-
-  getBesoins(commandeId: number): Observable<BesoinCommande[]> {
-    return this.http.get<BesoinCommande[]>(`${this.apiUrl}/${commandeId}/Besoins`);
-  }
-
   ajouterBesoin(commandeId: number, besoin: Partial<BesoinCommande>): Observable<BesoinCommande> {
     return this.http.post<BesoinCommande>(`${this.apiUrl}/${commandeId}/Besoins`, besoin);
   }
@@ -117,15 +87,4 @@ export class CommandeService extends BaseApiService<CommandeClient> {
     return this.http.delete<void>(`${this.apiUrl}/${commandeId}/Besoins/${besoinId}`);
   }
 
-  filtrerCommandes(filtres: any): Observable<CommandeClient[]> {
-    let url = `${this.apiUrl}/Filtrer?`;
-    const params: string[] = [];
-    Object.keys(filtres).forEach(key => {
-      if (filtres[key]) {
-        params.push(`${key}=${filtres[key] instanceof Date ? filtres[key].toISOString() : encodeURIComponent(filtres[key])}`);
-      }
-    });
-    url += params.join('&');
-    return this.http.get<CommandeClient[]>(url);
-  }
 }

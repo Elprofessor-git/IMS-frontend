@@ -30,17 +30,17 @@ export class MouvementStockService {
   }
 
   refreshMouvements(): void {
-    this.http.get<MouvementStock[]>(`${environment.apiUrl}/api/mouvementStock`)
+    this.http.get<MouvementStock[]>(`${environment.apiUrl}/MouvementStock`)
       .subscribe(mouvements => this.mouvementsSubject.next(mouvements));
   }
 
   createMouvement(mouvement: Omit<MouvementStock, 'id'>): Observable<MouvementStock> {
-    return this.http.post<MouvementStock>(`${environment.apiUrl}/api/mouvementStock`, mouvement)
+    return this.http.post<MouvementStock>(`${environment.apiUrl}/MouvementStock`, mouvement)
       .pipe(tap(() => this.refreshMouvements()));
   }
 
   getMouvementsByStock(stockId: number): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${environment.apiUrl}/api/mouvementStock/stock/${stockId}`);
+    return this.http.get<MouvementStock[]>(`${environment.apiUrl}/MouvementStock/ByStock/${stockId}`);
   }
 }
 

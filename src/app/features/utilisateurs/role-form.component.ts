@@ -111,16 +111,21 @@ export class RoleFormComponent implements OnInit {
 
   private loadRole(id: string): void {
     this.loading = true;
-    this.utilisateurService.getRole(id).subscribe({
-      next: (role) => {
+    this.utilisateurService.getRoles().subscribe({
+      next: (roles) => {
+        const role = roles.find(r => r.id === id);
+        if (!role) {
+          this.notificationService.error('Rôle introuvable');
+          this.loading = false;
+          return;
+        }
         this.roleForm.patchValue({
           nom: role.name,
           description: role.description,
           niveau: role.estAdministrateur ? '1' : '4',
-          actif: true // Les rôles Identity sont actifs par défaut dans ce système
+          actif: true
         });
 
-        // Mapping des permissions booléennes vers les cases à cocher
         if (role.peutGererStock) {
           this.roleForm.get('permission_stock_write')?.setValue(true);
         }

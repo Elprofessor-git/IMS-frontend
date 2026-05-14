@@ -318,7 +318,7 @@ export class CommandeDetailsComponent implements OnInit {
   lancerCommande(): void {
     if (!this.commandeId) return;
     this.isLancing = true;
-    this.commandeService.changerStatut(Number(this.commandeId), 'EnCours').subscribe({
+    this.commandeService.genererTaches(Number(this.commandeId)).subscribe({
       next: () => {
         this.snackBar.open('Commande lancée en production', 'OK', { duration: 3000 });
         this.chargerEtCalculer();

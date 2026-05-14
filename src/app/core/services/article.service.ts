@@ -18,7 +18,7 @@ export class ArticleService extends BaseApiService<Article> {
   // Méthodes spécifiques aux articles
   // Surcharge pour être robuste aux différents formats de réponse possibles du backend
   override getAll(): Observable<Article[]> {
-    return this.http.get<any>(this.apiUrl).pipe(
+    return this.http.get<any>(`${this.apiUrl}?pageNumber=1&pageSize=1000`).pipe(
       map(resp => {
         if (Array.isArray(resp)) return resp;
         if (resp && resp.items && Array.isArray(resp.items)) return resp.items;

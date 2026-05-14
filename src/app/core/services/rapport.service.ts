@@ -40,7 +40,7 @@ export class RapportService extends BaseApiService<any> {
       params = params.set('dateFin', dateFin.toISOString());
     }
 
-    return this.http.get<MouvementStatistiques>(`${this.apiUrl}/${this.endpoint}/Statistiques`, { params })
+    return this.http.get<MouvementStatistiques>(`${this.apiUrl}/Statistiques`, { params })
       .pipe(
         catchError((error) => {
           console.error('Erreur lors de la récupération des statistiques de mouvements', error);

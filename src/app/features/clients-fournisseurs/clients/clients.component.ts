@@ -134,7 +134,7 @@ export class ClientsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   calculateStatistics(clients: Client[]): void {
     const total = clients.length;
-    const active = clients.filter(c => c.actif).length;
+    const active = clients.filter(c => c.estActif).length;
     const inactive = total - active;
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

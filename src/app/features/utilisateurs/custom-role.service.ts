@@ -27,7 +27,7 @@ export const MODULES = [
 
 @Injectable({ providedIn: 'root' })
 export class CustomRoleService {
-  private apiUrl = `${environment.apiUrl}/CustomRole`;
+  private apiUrl = `${environment.apiUrl}/roles`;
   private permUrl = `${environment.apiUrl}/Permission`;
 
   constructor(private http: HttpClient) {}

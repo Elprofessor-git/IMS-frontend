@@ -275,12 +275,12 @@ import { MatExpansionModule } from '@angular/material/expansion';
                 Annuler
               </button>
 
-              <button mat-raised-button color="primary" (click)="genererBonCommande()">
+              <button mat-raised-button disabled matTooltip="Génération PDF non disponible">
                 <mat-icon>description</mat-icon>
                 Bon de Commande
               </button>
 
-              <button mat-raised-button color="accent" (click)="genererFacture()">
+              <button mat-raised-button disabled matTooltip="Génération PDF non disponible">
                 <mat-icon>receipt</mat-icon>
                 Facture
               </button>
@@ -644,7 +644,7 @@ export class AchatDetailsComponent implements OnInit {
     if (this.achat?.fournisseurId) {
       this.achatService.getAchatsParFournisseur(this.achat.fournisseurId).subscribe({
         next: (historique) => {
-          this.historiqueAchats = historique.slice(0, 10); // Limiter à 10 achats
+          this.historiqueAchats = (historique.achats || []).slice(0, 10);
         },
         error: (error) => {
           console.error('Erreur lors du chargement de l\'historique:', error);
@@ -684,18 +684,7 @@ export class AchatDetailsComponent implements OnInit {
   }
 
   onDuplicate(): void {
-    if (this.achat) {
-      this.achatService.dupliquerAchat(this.achat.id!).subscribe({
-        next: (nouvelAchat) => {
-          this.snackBar.open('Achat dupliqué avec succès', 'Fermer', { duration: 3000 });
-          this.router.navigate(['/achats', nouvelAchat.id, 'edit']);
-        },
-        error: (error) => {
-          console.error('Erreur lors de la duplication:', error);
-          this.snackBar.open('Erreur lors de la duplication', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
+    this.snackBar.open('Duplication non disponible', 'Fermer', { duration: 3000 });
   }
 
   onDelete(): void {
@@ -718,9 +707,9 @@ export class AchatDetailsComponent implements OnInit {
   validerAchat(): void {
     if (this.achat?.id) {
       this.achatService.validerAchat(this.achat.id).subscribe({
-        next: (achat) => {
-          this.achat = achat;
+        next: () => {
           this.snackBar.open('Achat validé avec succès', 'Fermer', { duration: 3000 });
+          this.loadAchat();
         },
         error: (error) => {
           console.error('Erreur lors de la validation:', error);
@@ -732,11 +721,10 @@ export class AchatDetailsComponent implements OnInit {
 
   confirmerLivraison(): void {
     if (this.achat?.id) {
-      const dateLivraison = new Date();
-      this.achatService.confirmerLivraison(this.achat.id, dateLivraison).subscribe({
-        next: (achat) => {
-          this.achat = achat;
+      this.achatService.confirmerLivraison(this.achat.id).subscribe({
+        next: () => {
           this.snackBar.open('Livraison confirmée avec succès', 'Fermer', { duration: 3000 });
+          this.loadAchat();
         },
         error: (error) => {
           console.error('Erreur lors de la confirmation:', error);
@@ -751,9 +739,9 @@ export class AchatDetailsComponent implements OnInit {
       const motif = prompt('Motif de l\'annulation :');
       if (motif) {
         this.achatService.annulerAchat(this.achat.id, motif).subscribe({
-          next: (achat) => {
-            this.achat = achat;
-            this.snackBar.open('Achat annulé avec succès', 'Fermer', { duration: 3000 });
+          next: () => {
+            this.snackBar.open('Achat supprimé avec succès', 'Fermer', { duration: 3000 });
+            this.router.navigate(['/achats']);
           },
           error: (error) => {
             console.error('Erreur lors de l\'annulation:', error);
@@ -765,41 +753,11 @@ export class AchatDetailsComponent implements OnInit {
   }
 
   genererBonCommande(): void {
-    if (this.achat?.id) {
-      this.achatService.genererBonCommande(this.achat.id).subscribe({
-        next: (blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `bon-commande-${this.achat!.referenceAchat}.pdf`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-        },
-        error: (error) => {
-          console.error('Erreur lors de la génération:', error);
-          this.snackBar.open('Erreur lors de la génération du bon de commande', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
+    this.snackBar.open('Génération du bon de commande non disponible', 'Fermer', { duration: 3000 });
   }
 
   genererFacture(): void {
-    if (this.achat?.id) {
-      this.achatService.genererFacture(this.achat.id).subscribe({
-        next: (blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `facture-${this.achat!.referenceAchat}.pdf`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-        },
-        error: (error) => {
-          console.error('Erreur lors de la génération:', error);
-          this.snackBar.open('Erreur lors de la génération de la facture', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
+    this.snackBar.open('Génération de la facture non disponible', 'Fermer', { duration: 3000 });
   }
 
   onBack(): void {

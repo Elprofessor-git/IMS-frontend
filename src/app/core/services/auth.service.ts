@@ -136,23 +136,8 @@ export class AuthService {
   }
 
   logout(): void {
-    const refreshToken = this.getRefreshToken();
-    if (refreshToken) {
-      this.http.post(`${environment.apiUrl}/Auth/logout`, { refreshToken }).subscribe();
-    }
-
     this.clearSession();
     this.router.navigate(['/login']);
-  }
-
-  refreshToken(): Observable<LoginResponse> {
-    const refreshToken = this.getRefreshToken();
-    return this.http.post<LoginResponse>(`${environment.apiUrl}/Auth/refresh`, { refreshToken })
-      .pipe(
-        tap(loginResponse => {
-          this.setSession(loginResponse.user, loginResponse.token, loginResponse.refreshToken);
-        })
-      );
   }
 
   private loadCurrentUser(): Observable<User> {

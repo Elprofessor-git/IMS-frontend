@@ -122,7 +122,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       const { email, password, rememberMe } = this.loginForm.value;
 
       // Attempt login
-      const loginResult = await this.authService.login(email, password).toPromise();
+      const loginResult = await this.authService.login({ email, password }).toPromise();
 
       if (loginResult) {
         // Handle remember me

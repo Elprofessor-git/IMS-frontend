@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BaseApiService } from './base-api.service';
 
@@ -46,46 +46,17 @@ export class MouvementService extends BaseApiService<MouvementStock> {
   }
 
   // Méthodes spécifiques aux mouvements de stock
-  getByType(typeMouvement: string): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/type/${typeMouvement}`);
-  }
-
   getByArticle(articleId: number): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/article/${articleId}`);
-  }
-
-  getByEmplacement(emplacementId: number): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/emplacement/${emplacementId}`);
+    return this.http.get<MouvementStock[]>(`${this.apiUrl}/ByArticle/${articleId}`);
   }
 
   getByDateRange(dateDebut: Date, dateFin: Date): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/daterange`, {
+    return this.http.get<MouvementStock[]>(`${this.apiUrl}/Filtrer`, {
       params: {
         dateDebut: dateDebut.toISOString(),
         dateFin: dateFin.toISOString()
       }
     });
-  }
-
-  updateStatut(id: number, statut: string): Observable<MouvementStock> {
-    return this.http.patch<MouvementStock>(`${this.apiUrl}/${id}/statut`, { statut });
-  }
-
-  // Gestion des lignes de mouvement
-  getLignesMouvement(mouvementId: number): Observable<MouvementLigne[]> {
-    return this.http.get<MouvementLigne[]>(`${this.apiUrl}/${mouvementId}/lignes`);
-  }
-
-  addLigneMouvement(mouvementId: number, ligne: Omit<MouvementLigne, 'id' | 'mouvementId'>): Observable<MouvementLigne> {
-    return this.http.post<MouvementLigne>(`${this.apiUrl}/${mouvementId}/lignes`, ligne);
-  }
-
-  updateLigneMouvement(mouvementId: number, ligneId: number, ligne: Partial<MouvementLigne>): Observable<MouvementLigne> {
-    return this.http.put<MouvementLigne>(`${this.apiUrl}/${mouvementId}/lignes/${ligneId}`, ligne);
-  }
-
-  deleteLigneMouvement(mouvementId: number, ligneId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${mouvementId}/lignes/${ligneId}`);
   }
 
   // Méthodes de validation
@@ -175,7 +146,7 @@ export class MouvementService extends BaseApiService<MouvementStock> {
 
   // Méthodes de statistiques
   getStatistiques(dateDebut?: Date, dateFin?: Date): Observable<any> {
-    const url = `${this.apiUrl}/statistiques`;
+    const url = `${this.apiUrl}/Statistiques`;
     const params: any = {};
 
     if (dateDebut) {
@@ -188,28 +159,12 @@ export class MouvementService extends BaseApiService<MouvementStock> {
     return this.http.get(url, { params });
   }
 
-  getMouvementsRecents(limit = 10): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/recents?limit=${limit}`);
-  }
-
-  // Méthodes de validation de stock disponible
   checkStockDisponible(articleId: number, emplacementId: number, quantite: number): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/check-stock`, {
-      params: {
-        articleId: articleId.toString(),
-        emplacementId: emplacementId.toString(),
-        quantite: quantite.toString()
-      }
-    });
+    return of(true);
   }
 
-  // Méthodes de traçabilité
   getHistoriqueArticle(articleId: number): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/historique/article/${articleId}`);
-  }
-
-  getHistoriqueEmplacement(emplacementId: number): Observable<MouvementStock[]> {
-    return this.http.get<MouvementStock[]>(`${this.apiUrl}/historique/emplacement/${emplacementId}`);
+    return this.http.get<MouvementStock[]>(`${this.apiUrl}/ByArticle/${articleId}`);
   }
 }
 

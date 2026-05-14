@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { BaseApiService } from '../../core/services/base-api.service';
 import { TacheProduction } from '../../shared/models/tache.model';
+import { environment } from '../../../environments/environment';
 
 export interface ITache {
   id: number;
@@ -57,12 +58,9 @@ export class TacheService extends BaseApiService<TacheProduction> {
       .pipe(tap(() => this.refreshTaches()));
   }
 
-  getTachesParCommande(commandeId: number): Observable<TacheProduction[]> {
-    return this.http.get<TacheProduction[]>(`${this.apiUrl}/commande/${commandeId}`);
-  }
-
   genererTachesCommande(commandeId: number): Observable<TacheProduction[]> {
-    return this.http.post<TacheProduction[]>(`${this.apiUrl}/generer/${commandeId}`, {})
+    const commandeUrl = `${environment.apiUrl}/CommandeClient/${commandeId}/GenererTaches`;
+    return this.http.post<TacheProduction[]>(commandeUrl, {})
       .pipe(tap(() => this.refreshTaches()));
   }
 
@@ -72,18 +70,6 @@ export class TacheService extends BaseApiService<TacheProduction> {
 
   getByStatut(statut: string): Observable<TacheProduction[]> {
     return this.http.get<TacheProduction[]>(`${this.apiUrl}/Statut/${statut}`);
-  }
-
-  getByCommande(commandeId: number): Observable<TacheProduction[]> {
-    return this.http.get<TacheProduction[]>(`${this.apiUrl}/ByCommande/${commandeId}`);
-  }
-
-  getByPriorite(priorite: string): Observable<TacheProduction[]> {
-    return this.http.get<TacheProduction[]>(`${this.apiUrl}/Priorite/${priorite}`);
-  }
-
-  getTachesEnRetard(): Observable<TacheProduction[]> {
-    return this.http.get<TacheProduction[]>(`${this.apiUrl}/EnRetard`);
   }
 
   commencerTache(id: number, assigneA: string): Observable<any> {
@@ -147,7 +133,4 @@ export class TacheService extends BaseApiService<TacheProduction> {
     return this.http.get(url);
   }
 
-  getRapportPerformance(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/RapportPerformance`);
-  }
 }

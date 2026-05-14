@@ -126,14 +126,6 @@ export class ArticlesComponent implements OnInit {
         this.loading = false;
       }
     });
-
-    // Load categories (mock data for now)
-    this.categories = [
-      { id: 1, nom: 'Tissus' },
-      { id: 2, nom: 'Accessoires' },
-      { id: 3, nom: 'Fils' },
-      { id: 4, nom: 'Boutons' }
-    ];
   }
 
   calculateStats(): void {

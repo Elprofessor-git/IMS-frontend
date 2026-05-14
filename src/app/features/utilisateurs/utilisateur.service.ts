@@ -65,10 +65,6 @@ export class UtilisateurService {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`);
   }
 
-  createUser(user: Partial<User>): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/users`, user);
-  }
-
   updateUser(id: string, user: Partial<User>): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/users/${id}`, user);
   }
@@ -78,10 +74,6 @@ export class UtilisateurService {
   }
 
   // Role methods
-  getRole(id: string): Observable<Role> {
-    return this.http.get<Role>(`${environment.apiUrl}/roles/${id}`);
-  }
-
   getRoles(): Observable<Role[]> {
     return this.http.get<Role[]>(`${environment.apiUrl}/roles`);
   }

@@ -14,18 +14,6 @@ export class PlateformeService extends BaseApiService<Plateforme> {
     super(http);
   }
 
-  // Méthodes spécifiques aux plateformes
-  getActives(): Observable<Plateforme[]> {
-    return this.http.get<Plateforme[]>(`${this.apiUrl}/Actives`);
-  }
-
-  activerPlateforme(id: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${id}/Activer`, {});
-  }
-
-  desactiverPlateforme(id: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${id}/Desactiver`, {});
-  }
 }
 
 

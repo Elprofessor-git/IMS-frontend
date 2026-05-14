@@ -210,18 +210,8 @@ export class UtilisateurFormComponent implements OnInit {
         }
       });
     } else {
-      this.utilisateurService.createUser(userData).subscribe({
-        next: () => {
-          this.loading = false;
-          this.notificationService.success('Utilisateur créé avec succès');
-          this.router.navigate(['/utilisateurs']);
-        },
-        error: (err: any) => {
-          this.loading = false;
-          this.notificationService.error('Erreur lors de la création de l\'utilisateur');
-          console.error('Erreur lors de la création', err);
-        }
-      });
+      this.loading = false;
+      this.notificationService.error('Création d\'utilisateur non disponible');
     }
   }
 
