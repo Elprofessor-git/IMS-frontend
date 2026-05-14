@@ -65,7 +65,7 @@ export class ArticlesComponent implements OnInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   // Table configuration
-  displayedColumns: string[] = ['image', 'designation', 'reference', 'categorie', 'prix', 'statut', 'actions'];
+  displayedColumns: string[] = ['image', 'designation', 'categorie', 'prix', 'statut', 'actions'];
   dataSource = new MatTableDataSource<Article>([]);
 
   // Pagination
