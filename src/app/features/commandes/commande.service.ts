@@ -22,6 +22,38 @@ export interface ILigneCommande {
   statut: 'EN_ATTENTE' | 'STOCK_RESERVE' | 'EN_PRODUCTION' | any;
 }
 
+export interface ConfigTaille {
+  id?: number;
+  commandeId?: number;
+  taille: string;
+  quantite: number;
+}
+
+export interface BomLigne {
+  id?: number;
+  commandeId?: number;
+  articleId: number;
+  article?: any;
+  quantiteParPiece: number;
+  unite?: string;
+}
+
+export interface ResultatCalcul {
+  id?: number;
+  commandeId?: number;
+  articleId: number;
+  article?: any;
+  besoinBrut: number;
+  margeAppliquee: number;
+  besoinFinal: number;
+  qteAchat: number;
+  qteImport: number;
+  qteStockReserve: number;
+  qteDisponible: number;
+  manque: number;
+  estSuffisant: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -85,6 +117,30 @@ export class CommandeService extends BaseApiService<CommandeClient> {
 
   supprimerBesoin(commandeId: number, besoinId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${commandeId}/Besoins/${besoinId}`);
+  }
+
+  getTailles(commandeId: number): Observable<ConfigTaille[]> {
+    return this.http.get<ConfigTaille[]>(`${this.apiUrl}/${commandeId}/Tailles`);
+  }
+
+  setTailles(commandeId: number, tailles: ConfigTaille[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${commandeId}/Tailles`, tailles);
+  }
+
+  getBom(commandeId: number): Observable<BomLigne[]> {
+    return this.http.get<BomLigne[]>(`${this.apiUrl}/${commandeId}/Bom`);
+  }
+
+  setBom(commandeId: number, bom: BomLigne[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${commandeId}/Bom`, bom);
+  }
+
+  calculer(commandeId: number, margeAppliquee: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${commandeId}/Calculer`, { margeAppliquee });
+  }
+
+  getResultatCalcul(commandeId: number): Observable<ResultatCalcul[]> {
+    return this.http.get<ResultatCalcul[]>(`${this.apiUrl}/${commandeId}/ResultatCalcul`);
   }
 
 }

@@ -18,6 +18,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CommandeService } from './commande.service';
 import { ClientService } from '../../core/services/client.service';
 import { ModeleBomService, ModeleBom } from './modele-bom.service';
+import { PlateformeService } from '../../core/services/plateforme.service';
+import { MarqueService, Marque } from './marque.service';
 
 @Component({
   selector: 'app-commande-form',
@@ -91,6 +93,26 @@ import { ModeleBomService, ModeleBom } from './modele-bom.service';
                 <input matInput [matDatepicker]="picker2" formControlName="dateLivraisonPrevue">
                 <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
                 <mat-datepicker #picker2></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Plateforme</mat-label>
+                <mat-select formControlName="plateformeId" (selectionChange)="onPlateformeChange($event.value)">
+                  <mat-option [value]="null">-- Toutes --</mat-option>
+                  <mat-option *ngFor="let p of plateformes" [value]="p.id">{{ p.nom }}</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>business</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Marque</mat-label>
+                <mat-select formControlName="marqueId">
+                  <mat-option [value]="null">-- Aucune marque --</mat-option>
+                  <mat-option *ngFor="let m of marquesFiltrees" [value]="m.id">{{ m.nom }}</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>label</mat-icon>
               </mat-form-field>
             </div>
 
@@ -236,6 +258,8 @@ export class CommandeFormComponent implements OnInit {
   private commandeService = inject(CommandeService);
   private clientService = inject(ClientService);
   private bomService = inject(ModeleBomService);
+  private plateformeService = inject(PlateformeService);
+  private marqueService = inject(MarqueService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
@@ -245,6 +269,8 @@ export class CommandeFormComponent implements OnInit {
   isSubmitting = false;
   clients: any[] = [];
   modelesBom: ModeleBom[] = [];
+  plateformes: any[] = [];
+  marquesFiltrees: Marque[] = [];
   taillesList = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   nbPieces = 0;
 
@@ -254,6 +280,8 @@ export class CommandeFormComponent implements OnInit {
       clientId: ['', Validators.required],
       dateCommande: [new Date(), Validators.required],
       dateLivraisonPrevue: [null],
+      plateformeId: [null],
+      marqueId: [null],
       statut: ['EnAttente', Validators.required],
       priorite: ['Normale'],
       modeleBomId: [null, Validators.required],
@@ -271,6 +299,7 @@ export class CommandeFormComponent implements OnInit {
     this.generateNumeroCommande();
     this.loadClients();
     this.loadModelesBom();
+    this.loadPlateformes();
   }
 
   private generateNumeroCommande(): void {
@@ -294,6 +323,24 @@ export class CommandeFormComponent implements OnInit {
       next: (data) => this.modelesBom = data,
       error: () => {}
     });
+  }
+
+  private loadPlateformes(): void {
+    this.plateformeService.getAll().subscribe({
+      next: (data) => this.plateformes = data,
+      error: () => {}
+    });
+  }
+
+  onPlateformeChange(plateformeId: number | null): void {
+    this.marquesFiltrees = [];
+    this.commandeForm.patchValue({ marqueId: null });
+    if (plateformeId) {
+      this.marqueService.getByPlateforme(plateformeId).subscribe({
+        next: (data) => this.marquesFiltrees = data.filter(m => m.estActive),
+        error: () => {}
+      });
+    }
   }
 
   onBomChange(bomId: number | null): void {
