@@ -8,7 +8,7 @@ export interface IUser {
   id: string;
   userName: string;
   email: string;
-  roles: string[];
+  roles: string[] | null | undefined;
   prenom?: string;
   nom?: string;
   telephone?: string;

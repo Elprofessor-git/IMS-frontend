@@ -93,7 +93,7 @@ export class UtilisateursComponent implements OnInit {
         this.totalItems = users.length;
         // Update stats based on real data
         this.stats.totalUsers = users.length;
-        this.stats.adminUsers = users.filter(u => u.roles.includes('ADMIN')).length;
+        this.stats.adminUsers = users.filter(u => (u.roles || []).includes('ADMIN')).length;
         // TODO: Add logic for active/online users if available from API
         this.loading = false;
       },
