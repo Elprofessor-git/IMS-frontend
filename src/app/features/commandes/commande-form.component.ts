@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,12 +14,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, ActivatedRoute } from '@angular/router';
+import { forkJoin, Observable, of } from 'rxjs';
 
 import { CommandeService } from './commande.service';
 import { ClientService } from '../../core/services/client.service';
-import { ModeleBomService, ModeleBom } from './modele-bom.service';
 import { PlateformeService } from '../../core/services/plateforme.service';
 import { MarqueService, Marque } from './marque.service';
+import { ArticleService } from '../../core/services/article.service';
+
+interface TailleLigne { taille: string; quantite: number; }
+interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: string; }
 
 @Component({
   selector: 'app-commande-form',
@@ -27,6 +31,7 @@ import { MarqueService, Marque } from './marque.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -140,40 +145,39 @@ import { MarqueService, Marque } from './marque.service';
 
             <mat-divider class="section-divider"></mat-divider>
 
-            <!-- Modèle BOM -->
-            <div class="section-header">
-              <mat-icon>account_tree</mat-icon>
-              <h3>Modèle de fabrication (BOM)</h3>
-              <a mat-icon-button routerLink="/commandes/modeles-bom" matTooltip="Gérer les modèles BOM" target="_blank">
-                <mat-icon>open_in_new</mat-icon>
-              </a>
-            </div>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Modèle BOM</mat-label>
-              <mat-select formControlName="modeleBomId" required (selectionChange)="onBomChange($event.value)">
-                <mat-option [value]="null">-- Sélectionner un modèle --</mat-option>
-                <mat-option *ngFor="let bom of modelesBom" [value]="bom.id">
-                  {{ bom.nom }} ({{ bom.fournitures?.length || 0 }} fournitures)
-                </mat-option>
-              </mat-select>
-              <mat-error *ngIf="commandeForm.get('modeleBomId')?.hasError('required')">Modèle BOM requis</mat-error>
-            </mat-form-field>
-
-            <mat-divider class="section-divider"></mat-divider>
-
             <!-- Quantités par taille -->
             <div class="section-header">
               <mat-icon>straighten</mat-icon>
               <h3>Quantités par taille</h3>
             </div>
 
-            <div formGroupName="tailles" class="tailles-grid">
-              <mat-form-field appearance="outline" *ngFor="let taille of taillesList" class="taille-field">
-                <mat-label>{{ taille }}</mat-label>
-                <input matInput type="number" [formControlName]="taille" min="0" (input)="recalculerTotal()">
-              </mat-form-field>
+            <div class="taille-list">
+              <div *ngFor="let t of taillesDynamiques; let i = index" class="taille-row">
+                <mat-form-field appearance="outline" class="taille-input">
+                  <mat-label>Taille</mat-label>
+                  <input matInput [(ngModel)]="t.taille" [ngModelOptions]="{standalone: true}"
+                         placeholder="S, M, L, 36, 38...">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="qte-input">
+                  <mat-label>Quantité</mat-label>
+                  <input matInput type="number" min="0"
+                         [(ngModel)]="t.quantite" [ngModelOptions]="{standalone: true}"
+                         (ngModelChange)="recalculerTotal()">
+                </mat-form-field>
+                <button mat-icon-button color="warn" type="button" (click)="removeTaille(i)"
+                        matTooltip="Supprimer cette taille">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <div *ngIf="taillesDynamiques.length === 0" class="empty-hint">
+                <mat-icon>info</mat-icon> Aucune taille. Cliquez sur "+ Ajouter taille".
+              </div>
             </div>
+
+            <button mat-stroked-button type="button" color="primary" (click)="addTaille()" class="add-btn">
+              <mat-icon>add</mat-icon> Ajouter taille
+            </button>
 
             <div class="total-pieces-row">
               <mat-icon>inventory_2</mat-icon>
@@ -181,6 +185,49 @@ import { MarqueService, Marque } from './marque.service';
               <strong class="total-pieces-value">{{ nbPieces }}</strong>
               <span>&nbsp;pcs</span>
             </div>
+
+            <mat-divider class="section-divider"></mat-divider>
+
+            <!-- Nomenclature BOM -->
+            <div class="section-header">
+              <mat-icon>account_tree</mat-icon>
+              <h3>Nomenclature (BOM)</h3>
+            </div>
+
+            <div class="bom-list">
+              <div *ngFor="let b of bomLignes; let i = index" class="bom-row">
+                <mat-form-field appearance="outline" class="article-select">
+                  <mat-label>Article / Fourniture</mat-label>
+                  <mat-select [(ngModel)]="b.articleId" [ngModelOptions]="{standalone: true}">
+                    <mat-option *ngFor="let a of articles" [value]="a.id">
+                      {{ a.designation }} ({{ a.unite }})
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="qte-input">
+                  <mat-label>Qté / pièce</mat-label>
+                  <input matInput type="number" min="0" step="0.001"
+                         [(ngModel)]="b.quantiteParPiece" [ngModelOptions]="{standalone: true}">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="unite-input">
+                  <mat-label>Unité</mat-label>
+                  <input matInput [(ngModel)]="b.unite" [ngModelOptions]="{standalone: true}"
+                         placeholder="m, kg, pcs...">
+                </mat-form-field>
+                <button mat-icon-button color="warn" type="button" (click)="removeBomLigne(i)"
+                        matTooltip="Supprimer cette fourniture">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <div *ngIf="bomLignes.length === 0" class="empty-hint">
+                <mat-icon>info</mat-icon> Aucune fourniture. Cliquez sur "+ Ajouter fourniture".
+              </div>
+            </div>
+
+            <button mat-stroked-button type="button" color="primary" (click)="addBomLigne()" class="add-btn">
+              <mat-icon>add</mat-icon> Ajouter fourniture
+            </button>
 
             <mat-divider class="section-divider"></mat-divider>
 
@@ -217,7 +264,7 @@ import { MarqueService, Marque } from './marque.service';
             Annuler
           </button>
           <button mat-raised-button color="accent" type="button"
-                  [disabled]="!commandeForm.get('modeleBomId')?.value || nbPieces === 0"
+                  [disabled]="nbPieces === 0"
                   (click)="voirFaisabilite()">
             <mat-icon>fact_check</mat-icon>
             Vérifier faisabilité
@@ -241,15 +288,32 @@ import { MarqueService, Marque } from './marque.service';
     .section-header { display: flex; align-items: center; gap: 8px; margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #e3f2fd; }
     .section-header h3 { margin: 0; flex: 1; color: #1976d2; font-size: 1rem; }
     .section-divider { margin: 8px 0 4px; }
-    .tailles-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-    .taille-field { width: calc(16.66% - 10px); min-width: 80px; }
-    .total-pieces-row { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: #e3f2fd; border-radius: 8px; margin-bottom: 12px; color: #333; }
+
+    /* Tailles dynamiques */
+    .taille-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .taille-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .taille-input { width: 180px; }
+    .qte-input { width: 130px; }
+
+    /* BOM dynamique */
+    .bom-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .bom-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .article-select { flex: 1; min-width: 220px; }
+    .unite-input { width: 110px; }
+
+    .add-btn { margin-bottom: 16px; }
+    .empty-hint { display: flex; align-items: center; gap: 8px; color: #999; padding: 8px 0; font-size: 0.875rem; }
+
+    .total-pieces-row { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: #e3f2fd; border-radius: 8px; margin: 8px 0 12px; color: #333; }
     .total-pieces-value { font-size: 1.3rem; color: #1976d2; }
+
     mat-card-actions { padding: 16px 24px; gap: 12px; display: flex; justify-content: flex-end; }
+
     @media (max-width: 768px) {
       .form-row { flex-direction: column; }
       .half-width { width: 100%; }
-      .taille-field { width: calc(33% - 8px); }
+      .taille-row, .bom-row { flex-direction: column; align-items: flex-start; }
+      .taille-input, .qte-input, .article-select, .unite-input { width: 100%; }
     }
   `]
 })
@@ -257,9 +321,9 @@ export class CommandeFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private commandeService = inject(CommandeService);
   private clientService = inject(ClientService);
-  private bomService = inject(ModeleBomService);
   private plateformeService = inject(PlateformeService);
   private marqueService = inject(MarqueService);
+  private articleService = inject(ArticleService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
@@ -267,11 +331,14 @@ export class CommandeFormComponent implements OnInit {
   commandeForm: FormGroup;
   isEdit = false;
   isSubmitting = false;
+
   clients: any[] = [];
-  modelesBom: ModeleBom[] = [];
   plateformes: any[] = [];
   marquesFiltrees: Marque[] = [];
-  taillesList = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  articles: any[] = [];
+
+  taillesDynamiques: TailleLigne[] = [];
+  bomLignes: BomLigneSaisie[] = [];
   nbPieces = 0;
 
   constructor() {
@@ -284,10 +351,6 @@ export class CommandeFormComponent implements OnInit {
       marqueId: [null],
       statut: ['EnAttente', Validators.required],
       priorite: ['Normale'],
-      modeleBomId: [null, Validators.required],
-      tailles: this.fb.group({
-        XS: [0], S: [0], M: [0], L: [0], XL: [0], XXL: [0]
-      }),
       pctSecurite: [5, [Validators.min(0), Validators.max(100)]],
       notes: ['']
     });
@@ -298,8 +361,8 @@ export class CommandeFormComponent implements OnInit {
   ngOnInit(): void {
     this.generateNumeroCommande();
     this.loadClients();
-    this.loadModelesBom();
     this.loadPlateformes();
+    this.loadArticles();
   }
 
   private generateNumeroCommande(): void {
@@ -312,24 +375,15 @@ export class CommandeFormComponent implements OnInit {
   }
 
   private loadClients(): void {
-    this.clientService.getAll().subscribe({
-      next: (data) => this.clients = data,
-      error: () => {}
-    });
-  }
-
-  private loadModelesBom(): void {
-    this.bomService.getAll().subscribe({
-      next: (data) => this.modelesBom = data,
-      error: () => {}
-    });
+    this.clientService.getAll().subscribe({ next: (data) => this.clients = data, error: () => {} });
   }
 
   private loadPlateformes(): void {
-    this.plateformeService.getAll().subscribe({
-      next: (data) => this.plateformes = data,
-      error: () => {}
-    });
+    this.plateformeService.getAll().subscribe({ next: (data) => this.plateformes = data, error: () => {} });
+  }
+
+  private loadArticles(): void {
+    this.articleService.getAll().subscribe({ next: (data) => this.articles = data, error: () => {} });
   }
 
   onPlateformeChange(plateformeId: number | null): void {
@@ -343,19 +397,30 @@ export class CommandeFormComponent implements OnInit {
     }
   }
 
-  onBomChange(bomId: number | null): void {
-    // Réinitialiser les tailles quand le BOM change
-    if (!bomId) {
-      this.commandeForm.get('tailles')?.reset({ XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 });
-      this.nbPieces = 0;
-    }
+  // --- Tailles ---
+  addTaille(): void {
+    this.taillesDynamiques.push({ taille: '', quantite: 0 });
+  }
+
+  removeTaille(i: number): void {
+    this.taillesDynamiques.splice(i, 1);
+    this.recalculerTotal();
   }
 
   recalculerTotal(): void {
-    const tailles = this.commandeForm.get('tailles')?.value || {};
-    this.nbPieces = Object.values(tailles).reduce((s: number, v: any) => s + (Number(v) || 0), 0);
+    this.nbPieces = this.taillesDynamiques.reduce((s, t) => s + (Number(t.quantite) || 0), 0);
   }
 
+  // --- BOM ---
+  addBomLigne(): void {
+    this.bomLignes.push({ articleId: 0, quantiteParPiece: 0, unite: '' });
+  }
+
+  removeBomLigne(i: number): void {
+    this.bomLignes.splice(i, 1);
+  }
+
+  // --- Actions ---
   voirFaisabilite(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -376,18 +441,34 @@ export class CommandeFormComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const payload = { ...this.commandeForm.value, nbPieces: this.nbPieces };
+    const payload = { ...this.commandeForm.value };
 
     this.commandeService.createCommande(payload).subscribe({
       next: (commande: any) => {
-        this.snackBar.open('Ordre de fabrication créé avec succès', 'OK', { duration: 3000 });
-        this.router.navigate(['/commandes', commande.id, 'details']);
+        const id = commande.id;
+        const taillesValides = this.taillesDynamiques.filter(t => t.taille.trim() && t.quantite > 0);
+        const bomValides = this.bomLignes.filter(b => b.articleId > 0 && b.quantiteParPiece > 0);
+
+        const saves: Observable<any>[] = [];
+        if (taillesValides.length > 0) saves.push(this.commandeService.setTailles(id, taillesValides));
+        if (bomValides.length > 0) saves.push(this.commandeService.setBom(id, bomValides));
+
+        const afterSave = () => {
+          this.snackBar.open('Ordre de fabrication créé avec succès', 'OK', { duration: 3000 });
+          this.router.navigate(['/commandes', id, 'details']);
+          this.isSubmitting = false;
+        };
+
+        if (saves.length > 0) {
+          forkJoin(saves).subscribe({ next: afterSave, error: afterSave });
+        } else {
+          afterSave();
+        }
       },
       error: (err) => {
         this.snackBar.open(err?.error?.message || 'Erreur serveur', 'Fermer', { duration: 5000 });
         this.isSubmitting = false;
-      },
-      complete: () => { this.isSubmitting = false; }
+      }
     });
   }
 
