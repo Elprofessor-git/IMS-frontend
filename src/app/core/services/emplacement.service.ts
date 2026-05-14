@@ -40,6 +40,18 @@ export class EmplacementService extends BaseApiService<Emplacement> {
     super(http);
   }
 
+  override getAll(): Observable<Emplacement[]> {
+    return of([]);
+  }
+
+  override getById(_id: number): Observable<Emplacement> {
+    return of(null as any);
+  }
+
+  override delete(_id: number): Observable<void> {
+    return of(undefined as unknown as void);
+  }
+
   getByType(_typeEmplacement: string): Observable<Emplacement[]> {
     return of([]);
   }

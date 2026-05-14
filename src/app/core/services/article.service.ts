@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 import { Article } from '../../shared/models/stock.model';
 import { PaginatedResponse } from '../../shared/models/common.model';
@@ -57,11 +57,11 @@ export class ArticleService extends BaseApiService<Article> {
 
   // Catégories
   getCategories(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/Categories`);
+    return of([]);
   }
 
-  getSousCategories(categorie: string): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/SousCategories/${encodeURIComponent(categorie)}`);
+  getSousCategories(_categorie: string): Observable<string[]> {
+    return of([]);
   }
 }
 
