@@ -13,11 +13,14 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, ActivatedRoute } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import { ImportationService } from './importation.service';
 import { FournisseurService } from '../../core/services/fournisseur.service';
 import { ArticleService } from '../../core/services/article.service';
+import { CommandeService } from '../commandes/commande.service';
 
 @Component({
   selector: 'app-importation-form',
@@ -37,7 +40,8 @@ import { ArticleService } from '../../core/services/article.service';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    MatChipsModule
+    MatChipsModule,
+    MatTooltipModule
   ],
   template: `
     <div class="importation-form-container">
@@ -47,13 +51,12 @@ import { ArticleService } from '../../core/services/article.service';
             <mat-icon>flight_land</mat-icon>
             {{ isEditMode ? 'Modifier' : 'Nouvelle' }} Importation
           </mat-card-title>
-          <mat-card-subtitle>
-            Gestion des importations de marchandises
-          </mat-card-subtitle>
+          <mat-card-subtitle>Gestion des importations de marchandises</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
           <form [formGroup]="importationForm" (ngSubmit)="onSubmit()">
+
             <!-- Informations générales -->
             <div class="form-section">
               <h3>Informations Générales</h3>
@@ -67,9 +70,7 @@ import { ArticleService } from '../../core/services/article.service';
                 <mat-form-field appearance="outline">
                   <mat-label>Fournisseur</mat-label>
                   <mat-select formControlName="fournisseurId">
-                    <mat-option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
-                      {{ fournisseur.nom }}
-                    </mat-option>
+                    <mat-option *ngFor="let f of fournisseurs" [value]="f.id">{{ f.nom }}</mat-option>
                   </mat-select>
                   <mat-icon matSuffix>business</mat-icon>
                 </mat-form-field>
@@ -115,16 +116,17 @@ import { ArticleService } from '../../core/services/article.service';
               <div class="section-header">
                 <h3>Articles Importés</h3>
                 <button mat-raised-button color="primary" type="button" (click)="addLigne()">
-                  <mat-icon>add</mat-icon>
-                  Ajouter Article
+                  <mat-icon>add</mat-icon> Ajouter Article
                 </button>
               </div>
 
               <div formArrayName="lignesImportation">
-                <div *ngFor="let ligne of lignesImportationArray.controls; let i = index" [formGroupName]="i" class="ligne-item">
+                <div *ngFor="let ligne of lignesImportationArray.controls; let i = index"
+                     [formGroupName]="i" class="ligne-item">
                   <div class="ligne-header">
                     <h4>Article {{ i + 1 }}</h4>
-                    <button mat-icon-button color="warn" type="button" (click)="removeLigne(i)" [disabled]="lignesImportationArray.length === 1">
+                    <button mat-icon-button color="warn" type="button" (click)="removeLigne(i)"
+                            [disabled]="lignesImportationArray.length === 1">
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
@@ -134,9 +136,20 @@ import { ArticleService } from '../../core/services/article.service';
                       <mat-label>Article</mat-label>
                       <mat-select formControlName="articleId">
                         <mat-option *ngFor="let article of articles" [value]="article.id">
-                          {{ article.nom }}
+                          {{ article.designation || article.nom }}
                         </mat-option>
                       </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Commande client liée</mat-label>
+                      <mat-select formControlName="commandeClientId">
+                        <mat-option [value]="null">-- Aucune --</mat-option>
+                        <mat-option *ngFor="let c of commandeClients" [value]="c.id">
+                          {{ c.numeroCommande }}{{ c.titreCommande ? ' — ' + c.titreCommande : '' }}
+                        </mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>link</mat-icon>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
@@ -161,6 +174,35 @@ import { ArticleService } from '../../core/services/article.service';
               </div>
             </div>
 
+            <mat-divider></mat-divider>
+
+            <!-- Documents à joindre -->
+            <div class="form-section">
+              <h3><mat-icon>attach_file</mat-icon> Documents joints</h3>
+
+              <div class="upload-zone" (click)="fileInput.click()">
+                <mat-icon>cloud_upload</mat-icon>
+                <span>Cliquez pour ajouter des fichiers (PDF, Excel, image)</span>
+                <input #fileInput type="file" multiple accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png"
+                       style="display:none" (change)="onFilesSelected($event)">
+              </div>
+
+              <div *ngIf="selectedFiles.length > 0" class="file-list">
+                <div *ngFor="let f of selectedFiles; let i = index" class="file-item">
+                  <mat-icon>insert_drive_file</mat-icon>
+                  <span class="file-name">{{ f.name }}</span>
+                  <span class="file-size">({{ (f.size / 1024) | number:'1.0-0' }} Ko)</span>
+                  <button mat-icon-button color="warn" type="button" (click)="removeFile(i)"
+                          matTooltip="Supprimer ce fichier">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <p *ngIf="selectedFiles.length === 0" class="upload-hint">
+                Aucun fichier sélectionné. Les fichiers seront joints après création.
+              </p>
+            </div>
+
             <!-- Résumé -->
             <div class="form-section summary">
               <h3>Résumé</h3>
@@ -168,6 +210,10 @@ import { ArticleService } from '../../core/services/article.service';
                 <div class="summary-item">
                   <span class="label">Nombre d'articles:</span>
                   <span class="value">{{ lignesImportationArray.length }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Fichiers à joindre:</span>
+                  <span class="value">{{ selectedFiles.length }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="label">Montant total:</span>
@@ -179,10 +225,10 @@ import { ArticleService } from '../../core/services/article.service';
             <!-- Actions -->
             <div class="form-actions">
               <button mat-button type="button" (click)="onCancel()">
-                <mat-icon>cancel</mat-icon>
-                Annuler
+                <mat-icon>cancel</mat-icon> Annuler
               </button>
-              <button mat-raised-button color="primary" type="submit" [disabled]="!importationForm.valid || isSubmitting">
+              <button mat-raised-button color="primary" type="submit"
+                      [disabled]="!importationForm.valid || isSubmitting">
                 <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
                 <span *ngIf="!isSubmitting">
                   <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
@@ -196,114 +242,37 @@ import { ArticleService } from '../../core/services/article.service';
     </div>
   `,
   styles: [`
-    .importation-form-container {
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+    .importation-form-container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .form-section { margin-bottom: 30px; }
+    .form-section h3 { margin-bottom: 16px; color: #333; display: flex; align-items: center; gap: 8px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+    .ligne-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #fafafa; }
+    .ligne-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .ligne-header h4 { margin: 0; color: #1976d2; }
 
-    .form-section {
-      margin-bottom: 30px;
-    }
+    /* Upload */
+    .upload-zone { border: 2px dashed #90caf9; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; color: #1976d2; display: flex; align-items: center; justify-content: center; gap: 12px; transition: background 0.2s; margin-bottom: 12px; }
+    .upload-zone:hover { background: #e3f2fd; }
+    .upload-zone mat-icon { font-size: 32px; height: 32px; width: 32px; }
+    .file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .file-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #f5f5f5; border-radius: 6px; }
+    .file-name { flex: 1; font-size: 0.875rem; }
+    .file-size { color: #999; font-size: 0.8rem; }
+    .upload-hint { color: #999; font-size: 0.875rem; margin: 4px 0; }
 
-    .form-section h3 {
-      margin-bottom: 16px;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-    }
-
-    .ligne-item {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
-      background-color: #fafafa;
-    }
-
-    .ligne-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .ligne-header h4 {
-      margin: 0;
-      color: #1976d2;
-    }
-
-    .summary {
-      background-color: #f5f5f5;
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-    }
-
-    .summary-item .label {
-      font-weight: 500;
-      color: #666;
-    }
-
-    .summary-item .value {
-      font-weight: 600;
-      color: #1976d2;
-      font-size: 1.1em;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
-
-    mat-divider {
-      margin: 30px 0;
-    }
+    .summary { background: #f5f5f5; padding: 20px; border-radius: 8px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+    .summary-item .label { font-weight: 500; color: #666; }
+    .summary-item .value { font-weight: 600; color: #1976d2; font-size: 1.1em; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    mat-divider { margin: 30px 0; }
 
     @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-actions {
-        flex-direction: column;
-      }
-
-      .section-header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-      }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column; }
+      .section-header { flex-direction: column; gap: 12px; align-items: stretch; }
     }
   `]
 })
@@ -315,12 +284,15 @@ export class ImportationFormComponent implements OnInit {
 
   fournisseurs: any[] = [];
   articles: any[] = [];
+  commandeClients: any[] = [];
+  selectedFiles: File[] = [];
 
   constructor(
     private fb: FormBuilder,
     private importationService: ImportationService,
     private fournisseurService: FournisseurService,
     private articleService: ArticleService,
+    private commandeService: CommandeService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
@@ -340,9 +312,9 @@ export class ImportationFormComponent implements OnInit {
     this.generateReferenceImportation();
     this.loadFournisseurs();
     this.loadArticles();
-    this.addLigne(); // Ajouter une ligne par défaut
+    this.loadCommandeClients();
+    this.addLigne();
 
-    // Vérifier si on est en mode édition
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.isEditMode = true;
@@ -351,22 +323,16 @@ export class ImportationFormComponent implements OnInit {
       }
     });
 
-    // Calculer automatiquement les montants
-    this.lignesImportationArray.valueChanges.subscribe(() => {
-      this.calculateMontants();
-    });
+    this.lignesImportationArray.valueChanges.subscribe(() => this.calculateMontants());
   }
 
   private generateReferenceImportation(): void {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    
-    this.importationForm.patchValue({
-      referenceImportation: `IMP-${year}${month}${day}-${random}`
-    });
+    const y = today.getFullYear();
+    const m = (today.getMonth() + 1).toString().padStart(2, '0');
+    const d = today.getDate().toString().padStart(2, '0');
+    const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    this.importationForm.patchValue({ referenceImportation: `IMP-${y}${m}${d}-${rand}` });
   }
 
   get lignesImportationArray(): FormArray {
@@ -374,81 +340,53 @@ export class ImportationFormComponent implements OnInit {
   }
 
   addLigne(): void {
-    const ligne = this.fb.group({
+    this.lignesImportationArray.push(this.fb.group({
       articleId: ['', Validators.required],
+      commandeClientId: [null],
       quantite: [1, [Validators.required, Validators.min(1)]],
       prixUnitaire: [0, [Validators.required, Validators.min(0)]],
       montantLigne: [0, Validators.required]
-    });
-
-    this.lignesImportationArray.push(ligne);
+    }));
   }
 
   removeLigne(index: number): void {
-    if (this.lignesImportationArray.length > 1) {
-      this.lignesImportationArray.removeAt(index);
-    }
+    if (this.lignesImportationArray.length > 1) this.lignesImportationArray.removeAt(index);
   }
 
   calculateMontants(): void {
-    this.lignesImportationArray.controls.forEach(control => {
-      const quantite = control.get('quantite')?.value || 0;
-      const prixUnitaire = control.get('prixUnitaire')?.value || 0;
-      const montantLigne = quantite * prixUnitaire;
-      control.get('montantLigne')?.setValue(montantLigne, { emitEvent: false });
+    this.lignesImportationArray.controls.forEach(ctrl => {
+      const montant = (ctrl.get('quantite')?.value || 0) * (ctrl.get('prixUnitaire')?.value || 0);
+      ctrl.get('montantLigne')?.setValue(montant, { emitEvent: false });
     });
   }
 
   getMontantTotal(): number {
-    return this.lignesImportationArray.controls.reduce((total, control) => {
-      return total + (control.get('montantLigne')?.value || 0);
-    }, 0);
+    return this.lignesImportationArray.controls.reduce((s, ctrl) => s + (ctrl.get('montantLigne')?.value || 0), 0);
   }
 
+  // --- Fichiers ---
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+    Array.from(input.files).forEach(f => this.selectedFiles.push(f));
+    input.value = '';
+  }
+
+  removeFile(i: number): void {
+    this.selectedFiles.splice(i, 1);
+  }
+
+  // --- Chargements ---
   loadFournisseurs(): void {
-    // Simuler le chargement des fournisseurs en attendant l'API
-    this.fournisseurs = [
-      { id: 1, nom: 'Fournisseur Textile A', code: 'FTA001', pays: 'France' },
-      { id: 2, nom: 'Fournisseur Textile B', code: 'FTB002', pays: 'Italie' },
-      { id: 3, nom: 'Fournisseur Textile C', code: 'FTC003', pays: 'Espagne' }
-    ];
-    
-    // Tentative de chargement depuis l'API
-    this.fournisseurService.getAll().subscribe({
-      next: (fournisseurs) => {
-        if (fournisseurs && fournisseurs.length > 0) {
-          this.fournisseurs = fournisseurs;
-        }
-      },
-      error: (error) => {
-        console.warn('API fournisseurs non disponible, utilisation des données simulées:', error);
-        // On garde les données simulées
-      }
-    });
+    this.fournisseurService.getAll().subscribe({ next: (data) => { if (data?.length) this.fournisseurs = data; }, error: () => {} });
   }
 
   loadArticles(): void {
-    // Simuler le chargement des articles en attendant l'API
-    this.articles = [
-      { id: 1, nom: 'T-shirt coton bio', reference: 'TSH-BIO-001', prix: 25.99 },
-      { id: 2, nom: 'Pantalon jean stretch', reference: 'PAN-JEA-002', prix: 65.50 },
-      { id: 3, nom: 'Veste cuir synthétique', reference: 'VES-CUI-003', prix: 120.00 },
-      { id: 4, nom: 'Robe été coton', reference: 'ROB-ETE-004', prix: 45.99 },
-      { id: 5, nom: 'Pull laine mérinos', reference: 'PUL-LAI-005', prix: 89.99 }
-    ];
-    
-    // Tentative de chargement depuis l'API
-    this.articleService.getAll().subscribe({
-      next: (articles) => {
-        if (articles && articles.length > 0) {
-          this.articles = articles;
-        }
-      },
-      error: (error) => {
-        console.warn('API articles non disponible, utilisation des données simulées:', error);
-        // On garde les données simulées
-      }
-    });
+    this.articleService.getAll().subscribe({ next: (data) => { if (data?.length) this.articles = data; }, error: () => {} });
+  }
+
+  loadCommandeClients(): void {
+    this.commandeService.getAll().subscribe({ next: (data) => this.commandeClients = data, error: () => {} });
   }
 
   loadImportation(id: number): void {
@@ -462,83 +400,69 @@ export class ImportationFormComponent implements OnInit {
           statut: importation.statut,
           notes: importation.notes
         });
-
-        // Charger les lignes d'importation
         this.lignesImportationArray.clear();
-        importation.lignesImportation?.forEach((ligne: any) => {
-          const ligneGroup = this.fb.group({
+        (importation as any).lignesImportation?.forEach((ligne: any) => {
+          this.lignesImportationArray.push(this.fb.group({
             articleId: [ligne.articleId, Validators.required],
+            commandeClientId: [ligne.commandeClientId ?? null],
             quantite: [ligne.quantite, [Validators.required, Validators.min(1)]],
             prixUnitaire: [ligne.prixUnitaire, [Validators.required, Validators.min(0)]],
             montantLigne: [ligne.montantLigne, Validators.required]
-          });
-          this.lignesImportationArray.push(ligneGroup);
+          }));
         });
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement de l\'importation:', error);
-        this.snackBar.open('Erreur lors du chargement de l\'importation', 'Fermer', { duration: 3000 });
-      }
+      error: () => this.snackBar.open('Erreur lors du chargement', 'Fermer', { duration: 3000 })
     });
   }
 
   onSubmit(): void {
-    if (this.importationForm.valid) {
-      this.isSubmitting = true;
-
-      const importationData = {
-        ...this.importationForm.value,
-        montantTotal: this.getMontantTotal()
-      };
-
-      
-
-      // Tentative d'appel API réel
-      const request = this.isEditMode && this.importationId
-        ? this.importationService.update(this.importationId, importationData)
-        : this.importationService.create(importationData);
-
-      request.subscribe({
-        next: (result) => {
-          this.snackBar.open(
-            `Importation ${this.isEditMode ? 'modifiée' : 'créée'} avec succès!`,
-            'OK',
-            { duration: 3000, panelClass: ['success-snackbar'] }
-          );
-          this.router.navigate(['/importations']);
-        },
-        error: (err) => {
-          const msg = err?.error?.message || err?.error?.title || 'Erreur serveur';
-          console.error('Erreur API Importation:', err);
-          this.snackBar.open(msg, 'Fermer', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-          this.isSubmitting = false;
-        },
-        complete: () => {
-          this.isSubmitting = false;
-        }
-      });
-    } else {
+    if (!this.importationForm.valid) {
       this.markFormGroupTouched();
       this.snackBar.open('Veuillez corriger les erreurs dans le formulaire', 'Fermer', { duration: 3000 });
+      return;
     }
+
+    this.isSubmitting = true;
+    const importationData = { ...this.importationForm.value, montantTotal: this.getMontantTotal() };
+
+    const request = this.isEditMode && this.importationId
+      ? this.importationService.update(this.importationId, importationData)
+      : this.importationService.create(importationData);
+
+    request.subscribe({
+      next: (result: any) => {
+        const id = result?.id ?? this.importationId;
+        if (!this.isEditMode && id && this.selectedFiles.length > 0) {
+          const uploads = this.selectedFiles.map(f => this.importationService.uploadDocument(id, f));
+          forkJoin(uploads).subscribe({
+            next: () => this.afterSuccess(),
+            error: () => {
+              this.snackBar.open('Importation créée mais erreur lors de l\'upload de certains fichiers', 'OK', { duration: 5000 });
+              this.router.navigate(['/importations']);
+              this.isSubmitting = false;
+            }
+          });
+        } else {
+          this.afterSuccess();
+        }
+      },
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || err?.error?.title || 'Erreur serveur', 'Fermer', { duration: 5000 });
+        this.isSubmitting = false;
+      }
+    });
+  }
+
+  private afterSuccess(): void {
+    this.snackBar.open(`Importation ${this.isEditMode ? 'modifiée' : 'créée'} avec succès!`, 'OK', { duration: 3000 });
+    this.router.navigate(['/importations']);
+    this.isSubmitting = false;
   }
 
   private markFormGroupTouched(): void {
-    Object.keys(this.importationForm.controls).forEach(key => {
-      const control = this.importationForm.get(key);
-      control?.markAsTouched();
-    });
-
-    // Marquer aussi les contrôles des lignes d'importation
+    Object.keys(this.importationForm.controls).forEach(key => this.importationForm.get(key)?.markAsTouched());
     this.lignesImportationArray.controls.forEach(group => {
-      if (group instanceof FormGroup) {
-        Object.keys(group.controls).forEach(key => {
-          group.get(key)?.markAsTouched();
-        });
-      }
+      if (group instanceof FormGroup) Object.keys(group.controls).forEach(k => group.get(k)?.markAsTouched());
     });
   }
 
@@ -546,5 +470,3 @@ export class ImportationFormComponent implements OnInit {
     this.router.navigate(['/importations']);
   }
 }
-
-

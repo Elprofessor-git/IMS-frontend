@@ -285,6 +285,14 @@
             </td>
           </ng-container>
 
+          <!-- Commande client -->
+          <ng-container matColumnDef="commandeClient">
+            <th mat-header-cell *matHeaderCellDef>Commande client</th>
+            <td mat-cell *matCellDef="let ligne">
+              {{ ligne.commandeClient?.numeroCommande || (ligne.commandeClientId ? '#' + ligne.commandeClientId : '—') }}
+            </td>
+          </ng-container>
+
           <!-- Actions -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>

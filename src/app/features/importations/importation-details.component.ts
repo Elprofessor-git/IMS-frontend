@@ -45,7 +45,7 @@ import { ImportationService, Importation, DocumentImportation } from './importat
 export class ImportationDetailsComponent implements OnInit {
   importation: Importation | null = null;
   loading = true;
-  displayedColumns: string[] = ['article', 'quantite', 'prixUnitaire', 'total', 'statut', 'actions'];
+  displayedColumns: string[] = ['article', 'quantite', 'prixUnitaire', 'total', 'statut', 'commandeClient', 'actions'];
 
   documents: DocumentImportation[] = [];
   loadingDocuments = false;
@@ -69,6 +69,10 @@ export class ImportationDetailsComponent implements OnInit {
 
   loadImportation(): void {
     const id = this.route.snapshot.paramMap.get('id');
+    if (!id || isNaN(+id)) {
+      this.router.navigate(['/importations']);
+      return;
+    }
     if (id) {
       this.importationService.getById(+id).subscribe({
         next: (importation) => {
