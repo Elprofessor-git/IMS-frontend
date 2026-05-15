@@ -71,6 +71,13 @@ import { ArticleService } from '../../core/services/article.service';
             <button mat-button color="primary" (click)="editerCommande()">
               <mat-icon>edit</mat-icon> Modifier
             </button>
+            <button mat-raised-button color="accent"
+                    (click)="verifierFaisabilite()"
+                    [disabled]="verificationEnCours">
+              <mat-spinner *ngIf="verificationEnCours" diameter="18"></mat-spinner>
+              <mat-icon *ngIf="!verificationEnCours">fact_check</mat-icon>
+              <span *ngIf="!verificationEnCours">Vérifier faisabilité</span>
+            </button>
             <button mat-raised-button color="primary"
                     *ngIf="toutSuffisant && calculDone"
                     (click)="lancerCommande()"
@@ -386,6 +393,7 @@ export class CommandeDetailsComponent implements OnInit {
   commande: any = null;
   loading = false;
   isLancing = false;
+  verificationEnCours = false;
 
   // Onglet 2 — Tailles
   tailles: ConfigTaille[] = [];
@@ -435,6 +443,7 @@ export class CommandeDetailsComponent implements OnInit {
 
   // --- Tailles ---
   loadTailles(): void {
+    if (!this.commandeId || isNaN(+this.commandeId)) return;
     this.commandeService.getTailles(Number(this.commandeId)).subscribe({
       next: (data) => { this.tailles = data; this.recalcTotal(); },
       error: () => {}
@@ -476,6 +485,7 @@ export class CommandeDetailsComponent implements OnInit {
 
   // --- BOM ---
   loadBom(): void {
+    if (!this.commandeId || isNaN(+this.commandeId)) return;
     this.commandeService.getBom(Number(this.commandeId)).subscribe({
       next: (data) => this.bomLignes = data,
       error: () => {}
@@ -526,6 +536,7 @@ export class CommandeDetailsComponent implements OnInit {
   }
 
   loadResultat(): void {
+    if (!this.commandeId || isNaN(+this.commandeId)) return;
     this.commandeService.getResultatCalcul(Number(this.commandeId)).subscribe({
       next: (data) => {
         this.resultats = data;
@@ -534,6 +545,45 @@ export class CommandeDetailsComponent implements OnInit {
         this.manques = data.filter(r => !r.estSuffisant);
       },
       error: () => {}
+    });
+  }
+
+  // --- Vérifier faisabilité (séquentiel : tailles → BOM → calculer) ---
+  verifierFaisabilite(): void {
+    const id = Number(this.commandeId);
+    const taillesValides = this.tailles.filter(t => t.taille.trim() && t.quantite > 0);
+    const bomValides = this.bomLignes.filter(b => b.articleId > 0 && b.quantiteParPiece > 0);
+    if (taillesValides.length === 0) {
+      this.snackBar.open('Ajoutez au moins une taille avec une quantité > 0', 'OK', { duration: 4000 });
+      return;
+    }
+    this.verificationEnCours = true;
+    this.commandeService.setTailles(id, taillesValides).subscribe({
+      next: () => {
+        this.commandeService.setBom(id, bomValides).subscribe({
+          next: () => {
+            this.commandeService.calculer(id, this.marge).subscribe({
+              next: () => {
+                this.verificationEnCours = false;
+                this.loadResultat();
+                this.snackBar.open('Faisabilité calculée', 'OK', { duration: 3000 });
+              },
+              error: (err) => {
+                this.snackBar.open(err?.error?.message || 'Erreur calcul', 'Fermer', { duration: 5000 });
+                this.verificationEnCours = false;
+              }
+            });
+          },
+          error: (err) => {
+            this.snackBar.open(err?.error?.message || 'Erreur sauvegarde BOM', 'Fermer', { duration: 5000 });
+            this.verificationEnCours = false;
+          }
+        });
+      },
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Erreur sauvegarde tailles', 'Fermer', { duration: 5000 });
+        this.verificationEnCours = false;
+      }
     });
   }
 

@@ -269,12 +269,6 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
             <mat-icon>cancel</mat-icon>
             Annuler
           </button>
-          <button mat-raised-button color="accent" type="button"
-                  [disabled]="nbPieces === 0"
-                  (click)="voirFaisabilite()">
-            <mat-icon>fact_check</mat-icon>
-            Vérifier faisabilité
-          </button>
           <button mat-raised-button color="primary"
                   [disabled]="commandeForm.invalid || isSubmitting || nbPieces === 0"
                   (click)="onSubmit()">
@@ -428,45 +422,6 @@ export class CommandeFormComponent implements OnInit {
   }
 
   // --- Actions ---
-  voirFaisabilite(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.router.navigate(['/commandes', id, 'details']);
-      return;
-    }
-    if (this.commandeForm.invalid) {
-      Object.keys(this.commandeForm.controls).forEach(k => this.commandeForm.get(k)?.markAsTouched());
-      this.snackBar.open('Veuillez remplir les champs obligatoires', 'OK', { duration: 4000 });
-      return;
-    }
-    if (this.nbPieces === 0) {
-      this.snackBar.open('Veuillez saisir au moins une pièce dans les tailles', 'OK', { duration: 4000 });
-      return;
-    }
-    this.isSubmitting = true;
-    const payload = { ...this.commandeForm.value };
-    this.commandeService.createCommande(payload).subscribe({
-      next: (commande: any) => {
-        const newId = commande.id;
-        const taillesValides = this.taillesDynamiques.filter(t => t.taille.trim() && t.quantite > 0);
-        const bomValides = this.bomLignes.filter(b => b.articleId > 0 && b.quantiteParPiece > 0);
-        const saves: Observable<any>[] = [];
-        if (taillesValides.length > 0) saves.push(this.commandeService.setTailles(newId, taillesValides));
-        if (bomValides.length > 0) saves.push(this.commandeService.setBom(newId, bomValides));
-        const goToDetails = () => { this.isSubmitting = false; this.router.navigate(['/commandes', newId, 'details']); };
-        if (saves.length > 0) {
-          forkJoin(saves).subscribe({ next: goToDetails, error: goToDetails });
-        } else {
-          goToDetails();
-        }
-      },
-      error: (err) => {
-        this.snackBar.open(err?.error?.message || 'Erreur lors de la sauvegarde', 'Fermer', { duration: 5000 });
-        this.isSubmitting = false;
-      }
-    });
-  }
-
   onSubmit(): void {
     if (this.commandeForm.invalid || this.isSubmitting) {
       Object.keys(this.commandeForm.controls).forEach(k => this.commandeForm.get(k)?.markAsTouched());
