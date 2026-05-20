@@ -27,116 +27,115 @@ import { ChatbotService, ChatMessage } from './chatbot.service';
     MatTooltipModule
   ],
   template: `
-    <div class="chatbot-panel" [class.open]="isOpen">
+    <!-- ÉLÉMENT 1 — Bulle ronde toujours visible -->
+    <button class="chat-bubble-btn" (click)="toggleChat()" [matTooltip]="isOpen ? 'Fermer' : 'Ouvrir l\\'assistant IA'">
+      <mat-icon>{{ isOpen ? 'close' : 'chat' }}</mat-icon>
+      <span *ngIf="unreadCount > 0 && !isOpen" class="unread-badge">{{ unreadCount }}</span>
+    </button>
 
-      <!-- Toggle button -->
-      <button class="toggle-btn" (click)="toggle()" [matTooltip]="isOpen ? 'Fermer' : 'Ouvrir l\\'assistant IA'">
-        <mat-icon>{{ isOpen ? 'close' : 'smart_toy' }}</mat-icon>
-        <span *ngIf="!isOpen" class="toggle-label">Assistant IA</span>
-        <span *ngIf="unreadCount > 0 && !isOpen" class="unread-badge">{{ unreadCount }}</span>
-      </button>
+    <!-- ÉLÉMENT 2 — Panneau conditionnel -->
+    <div class="chat-panel" *ngIf="isOpen">
 
-      <!-- Panel body -->
-      <div class="panel-body" *ngIf="isOpen">
-        <div class="panel-header">
-          <mat-icon class="header-icon">smart_toy</mat-icon>
-          <span>Assistant IA</span>
-          <a routerLink="/chatbot" class="fullscreen-link" matTooltip="Plein écran">
-            <mat-icon>open_in_full</mat-icon>
-          </a>
+      <div class="panel-header">
+        <mat-icon class="header-icon">smart_toy</mat-icon>
+        <span>Assistant IA</span>
+        <a routerLink="/chatbot" class="fullscreen-link" matTooltip="Plein écran">
+          <mat-icon>open_in_full</mat-icon>
+        </a>
+      </div>
+
+      <div class="panel-messages" #panelMessages>
+        <div *ngIf="messages.length === 0" class="panel-welcome">
+          Posez votre question...
         </div>
-
-        <div class="panel-messages" #panelMessages>
-          <div *ngIf="messages.length === 0" class="panel-welcome">
-            Posez votre question...
-          </div>
-          <div *ngFor="let msg of messages"
-               class="panel-bubble"
-               [class.user-bubble]="msg.isUser"
-               [class.bot-bubble]="!msg.isUser">
-            {{ msg.text }}
-          </div>
-          <div *ngIf="isLoading" class="panel-bubble bot-bubble loading">
-            <mat-spinner diameter="12"></mat-spinner>
-            <span>IA en cours...</span>
-          </div>
+        <div *ngFor="let msg of messages"
+             class="panel-bubble"
+             [class.user-bubble]="msg.isUser"
+             [class.bot-bubble]="!msg.isUser">
+          {{ msg.text }}
         </div>
-
-        <div class="panel-input">
-          <input class="panel-input-field"
-                 [(ngModel)]="newMessage"
-                 (keyup.enter)="envoyer()"
-                 [disabled]="isLoading"
-                 placeholder="Votre message...">
-          <button mat-icon-button color="primary"
-                  (click)="envoyer()"
-                  [disabled]="!newMessage.trim() || isLoading">
-            <mat-icon>send</mat-icon>
-          </button>
+        <div *ngIf="isLoading" class="panel-bubble bot-bubble loading">
+          <mat-spinner diameter="12"></mat-spinner>
+          <span>IA en cours...</span>
         </div>
+      </div>
+
+      <div class="panel-input">
+        <input class="panel-input-field"
+               [(ngModel)]="newMessage"
+               (keyup.enter)="envoyer()"
+               [disabled]="isLoading"
+               placeholder="Votre message...">
+        <button mat-icon-button color="primary"
+                (click)="envoyer()"
+                [disabled]="!newMessage.trim() || isLoading">
+          <mat-icon>send</mat-icon>
+        </button>
       </div>
     </div>
   `,
   styles: [`
-    .chatbot-panel {
+    /* ÉLÉMENT 1 — Bulle ronde */
+    .chat-bubble-btn {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      z-index: 1000;
-      width: 350px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-      border-radius: 16px;
-      background: #fff;
-    }
-
-    /* Toggle button */
-    .toggle-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(79,70,229,0.5);
+      z-index: 1001;
       display: flex;
       align-items: center;
-      gap: 8px;
-      width: 100%;
-      padding: 10px 16px;
-      border: none;
-      background: #e3f2fd;
-      color: #1976d2;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: background 0.2s;
-      position: relative;
+      justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .toggle-btn:hover { background: #bbdefb; }
-    .toggle-btn mat-icon { font-size: 20px; height: 20px; width: 20px; }
-    .toggle-label { flex: 1; text-align: left; }
+    .chat-bubble-btn:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(79,70,229,0.6); }
+    .chat-bubble-btn mat-icon { font-size: 24px; height: 24px; width: 24px; }
     .unread-badge {
       position: absolute;
-      right: 12px;
-      top: 6px;
+      top: 2px;
+      right: 2px;
       background: #f44336;
       color: white;
       border-radius: 10px;
-      padding: 1px 6px;
-      font-size: 0.7rem;
+      padding: 1px 5px;
+      font-size: 0.68rem;
       font-weight: 700;
+      line-height: 1.4;
     }
 
-    /* Panel body */
-    .panel-body {
+    /* ÉLÉMENT 2 — Panneau */
+    .chat-panel {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      width: 350px;
+      height: 480px;
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      z-index: 1000;
       display: flex;
       flex-direction: column;
-      height: 300px;
-      border-top: 1px solid #e0e0e0;
+      overflow: hidden;
     }
 
+    /* Header */
     .panel-header {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
-      background: #1976d2;
+      padding: 10px 14px;
+      background: #4F46E5;
       color: white;
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       font-weight: 500;
+      flex-shrink: 0;
     }
     .header-icon { font-size: 18px; height: 18px; width: 18px; }
     .fullscreen-link {
@@ -153,32 +152,33 @@ import { ChatbotService, ChatMessage } from './chatbot.service';
     .panel-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 8px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      background: #fafafa;
+      background: #f8f8fc;
     }
-    .panel-welcome { color: #aaa; font-size: 0.8rem; text-align: center; padding: 20px 0; }
+    .panel-welcome { color: #aaa; font-size: 0.8rem; text-align: center; padding: 24px 0; }
 
     .panel-bubble {
-      max-width: 90%;
-      padding: 6px 10px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      line-height: 1.4;
+      max-width: 88%;
+      padding: 7px 11px;
+      border-radius: 14px;
+      font-size: 0.82rem;
+      line-height: 1.45;
       word-break: break-word;
+      white-space: pre-wrap;
     }
     .user-bubble {
       align-self: flex-end;
-      background: #1976d2;
+      background: #4F46E5;
       color: white;
       border-bottom-right-radius: 3px;
     }
     .bot-bubble {
       align-self: flex-start;
-      background: #e0e0e0;
-      color: #333;
+      background: #e8e8f0;
+      color: #222;
       border-bottom-left-radius: 3px;
     }
     .loading {
@@ -193,21 +193,22 @@ import { ChatbotService, ChatMessage } from './chatbot.service';
     .panel-input {
       display: flex;
       align-items: center;
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-top: 1px solid #e0e0e0;
       background: white;
       gap: 4px;
+      flex-shrink: 0;
     }
     .panel-input-field {
       flex: 1;
       border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 6px 12px;
-      font-size: 0.8rem;
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
       outline: none;
       background: #f5f5f5;
     }
-    .panel-input-field:focus { border-color: #1976d2; background: white; }
+    .panel-input-field:focus { border-color: #4F46E5; background: white; }
     .panel-input-field:disabled { opacity: 0.6; }
   `]
 })
@@ -246,7 +247,7 @@ export class ChatbotPanelComponent implements OnInit, OnDestroy, AfterViewChecke
     this.sub.unsubscribe();
   }
 
-  toggle(): void {
+  toggleChat(): void {
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       this.lastSeenCount = this.messages.filter(m => !m.isUser).length;

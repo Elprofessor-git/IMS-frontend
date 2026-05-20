@@ -230,7 +230,7 @@
           <ng-container matColumnDef="itemsCount">
             <th mat-header-cell *matHeaderCellDef>Articles</th>
             <td mat-cell *matCellDef="let order">
-              <span class="items-count">{{ order.detailsCommande?.length || 0 }} articles</span>
+              <span class="items-count">{{ order.besoins?.length ?? 0 }} articles</span>
             </td>
           </ng-container>
 

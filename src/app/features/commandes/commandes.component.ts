@@ -231,37 +231,34 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
   // Status helper methods
   getStatusClass(status: string): string {
     switch (status) {
-      case 'En_Attente': return 'status-pending';
-      case 'Confirmee': return 'status-confirmed';
-      case 'En_Preparation': return 'status-preparation';
-      case 'Expediee': return 'status-shipped';
-      case 'Livree': return 'status-delivered';
-      case 'Annulee': return 'status-cancelled';
-      default: return 'status-pending';
+      case 'EnAttente':    return 'status-pending';
+      case 'Prete':        return 'status-confirmed';
+      case 'EnProduction': return 'status-preparation';
+      case 'Terminee':     return 'status-delivered';
+      case 'Annulee':      return 'status-cancelled';
+      default:             return 'status-pending';
     }
   }
 
   getStatusIcon(status: string): string {
     switch (status) {
-      case 'En_Attente': return 'hourglass_empty';
-      case 'Confirmee': return 'check_circle';
-      case 'En_Preparation': return 'build';
-      case 'Expediee': return 'local_shipping';
-      case 'Livree': return 'done_all';
-      case 'Annulee': return 'cancel';
-      default: return 'help';
+      case 'EnAttente':    return 'hourglass_empty';
+      case 'Prete':        return 'check_circle';
+      case 'EnProduction': return 'build';
+      case 'Terminee':     return 'done_all';
+      case 'Annulee':      return 'cancel';
+      default:             return 'help';
     }
   }
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'En_Attente': return 'En Attente';
-      case 'Confirmee': return 'Confirmée';
-      case 'En_Preparation': return 'En Préparation';
-      case 'Expediee': return 'Expédiée';
-      case 'Livree': return 'Livrée';
-      case 'Annulee': return 'Annulée';
-      default: return 'Inconnu';
+      case 'EnAttente':    return 'En Attente';
+      case 'Prete':        return 'Prête';
+      case 'EnProduction': return 'En Production';
+      case 'Terminee':     return 'Terminée';
+      case 'Annulee':      return 'Annulée';
+      default:             return status || 'Inconnu';
     }
   }
 
