@@ -98,7 +98,7 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
     pending: 0,
     confirmed: 0,
     shipped: 0,
-    totalRevenue: 0
+    totalMontant: 0
   };
 
   constructor(
@@ -126,20 +126,38 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
   loadOrders(): void {
     this.loading = true;
 
-    const filters = {
-      search: this.searchTerm,
-      status: this.selectedStatus,
-      startDate: this.dateRange.start,
-      endDate: this.dateRange.end,
-      page: this.currentPage,
-      pageSize: this.pageSize
-    };
-
     this.commandeService.getAll().subscribe({
       next: (orders) => {
-        this.dataSource.data = orders;
-        this.totalOrders = orders.length;
-        this.calculateStatistics(orders);
+        let filtered = orders;
+
+        if (this.searchTerm.trim()) {
+          const term = this.searchTerm.toLowerCase();
+          filtered = filtered.filter(o =>
+            o.numeroCommande?.toLowerCase().includes(term) ||
+            o.client?.nom?.toLowerCase().includes(term) ||
+            o.client?.prenom?.toLowerCase().includes(term)
+          );
+        }
+
+        if (this.selectedStatus) {
+          filtered = filtered.filter(o => o.statut === this.selectedStatus);
+        }
+
+        if (this.dateRange.start) {
+          filtered = filtered.filter(o =>
+            new Date(o.dateCreation) >= this.dateRange.start!
+          );
+        }
+
+        if (this.dateRange.end) {
+          filtered = filtered.filter(o =>
+            new Date(o.dateCreation) <= this.dateRange.end!
+          );
+        }
+
+        this.dataSource.data = filtered;
+        this.totalOrders = filtered.length;
+        this.calculateStatistics(filtered);
         this.loading = false;
       },
       error: (error) => {
@@ -154,13 +172,13 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
     const pending = orders.filter(o => o.statut === StatutCommande.EnAttente).length;
     const confirmed = orders.filter(o => o.statut === StatutCommande.Prete).length;
     const shipped = orders.filter(o => o.statut === StatutCommande.Livree).length;
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.montantTotal || 0), 0);
+    const totalMontant = orders.reduce((sum, o) => sum + (o.montantTotal || 0), 0);
 
     this.statistics = {
       pending,
       confirmed,
       shipped,
-      totalRevenue
+      totalMontant
     };
   }
 

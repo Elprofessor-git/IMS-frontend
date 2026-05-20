@@ -9,7 +9,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { AchatService } from '../../core/services/achat.service';
 
 interface KpiData {
