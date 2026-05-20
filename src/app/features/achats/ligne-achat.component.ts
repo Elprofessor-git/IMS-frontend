@@ -123,7 +123,7 @@ import { ArticleService } from '../../core/services/article.service';
                   <span class="value">{{ selectedArticle.prixAchat | currency:'EUR' }}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="label">Prix de vente :</span>
+                  <span class="label">Prix unitaire :</span>
                   <span class="value">{{ selectedArticle.prixVente | currency:'EUR' }}</span>
                 </div>
                 <div class="detail-item">

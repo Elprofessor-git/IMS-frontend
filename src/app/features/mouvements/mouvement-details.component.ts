@@ -194,7 +194,7 @@ import { MouvementService, MouvementStock } from '../../core/services/mouvement.
                 </div>
 
                 <div class="info-item">
-                  <span class="label">Prix de vente :</span>
+                  <span class="label">Prix unitaire :</span>
                   <span class="value">{{ mouvement.article.prixVente | currency:'EUR' }}</span>
                 </div>
               </div>

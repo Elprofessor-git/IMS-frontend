@@ -11,8 +11,8 @@ export const rapportsRoutes: Routes = [
     loadComponent: () => import('./rapport-stock.component').then(m => m.RapportStockComponent)
   },
   {
-    path: 'ventes',
-    loadComponent: () => import('./rapport-ventes.component').then(m => m.RapportVentesComponent)
+    path: 'achats',
+    loadComponent: () => import('./rapport-achats.component').then(m => m.RapportAchatsComponent)
   },
   {
     path: 'analytics',

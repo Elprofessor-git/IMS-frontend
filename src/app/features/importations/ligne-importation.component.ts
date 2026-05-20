@@ -109,7 +109,7 @@ import { ArticleService } from '../../core/services/article.service';
                   <span class="value">{{ selectedArticle.quantiteStock || 0 }}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="label">Prix de vente :</span>
+                  <span class="label">Prix unitaire :</span>
                   <span class="value">{{ selectedArticle.prixVente | currency:'EUR' }}</span>
                 </div>
               </div>
@@ -266,7 +266,7 @@ export class LigneImportationComponent implements OnInit {
     if (articleId) {
       this.selectedArticle = this.articles.find(a => a.id === articleId);
       if (this.selectedArticle && !this.isEditMode) {
-        // Suggérer le prix de vente comme prix unitaire par défaut
+        // Suggérer le prix unitaire par défaut
         this.ligneForm.patchValue({
           prixUnitaire: this.selectedArticle.prixVente || 0
         });

@@ -42,7 +42,7 @@ export interface IStock {
 export type Stock = IStock;
 
 export enum TypeMouvement { Entree, Sortie, Transfert, Ajustement, Reservation, Liberation }
-export enum OrigineMouvement { Achat, Vente, Production, Transfert, Ajustement, Inventaire }
+export enum OrigineMouvement { Achat, Production, Transfert, Ajustement, Inventaire }
 
 export interface IMouvementStock {
     id: number;

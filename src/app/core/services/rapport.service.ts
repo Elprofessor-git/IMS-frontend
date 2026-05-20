@@ -49,9 +49,9 @@ export class RapportService extends BaseApiService<any> {
       );
   }
 
-    // TODO: Implement methods for other report types (ventes, analytics)
+    // TODO: Implement methods for other report types (achats, analytics)
     // For example:
-    // getRapportVentes(): Observable<any> { ... }
+    // getRapportAchats(): Observable<any> { ... }
     // getAnalyticsData(): Observable<any> { ... }
 }
 

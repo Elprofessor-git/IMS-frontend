@@ -208,7 +208,7 @@ export class SidebarComponent {
       icon: 'analytics',
       children: [
         { label: 'Rapports de Stock', icon: 'assessment', route: '/rapports/stock' },
-        { label: "Rapport d'achats", icon: 'receipt_long', route: '/rapports/ventes' },
+        { label: "Rapport d'achats", icon: 'receipt_long', route: '/rapports/achats' },
         { label: 'Analytics', icon: 'insights', route: '/rapports/analytics' }
       ],
       permission: 'rapports'

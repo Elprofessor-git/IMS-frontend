@@ -1,0 +1,249 @@
+<div class="rapport-achats-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1>
+        <mat-icon>shopping_basket</mat-icon>
+        Rapport des Achats
+      </h1>
+      <p class="subtitle">Analyse des achats fournisseurs</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Date début</mat-label>
+          <input matInput [matDatepicker]="pickerDebut" [(ngModel)]="dateDebut">
+          <mat-datepicker-toggle matIconSuffix [for]="pickerDebut"></mat-datepicker-toggle>
+          <mat-datepicker #pickerDebut></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Date fin</mat-label>
+          <input matInput [matDatepicker]="pickerFin" [(ngModel)]="dateFin">
+          <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFin></mat-datepicker>
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="applyFilters()">
+          <mat-icon>filter_list</mat-icon>
+          Appliquer
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Spinner de chargement -->
+  <div *ngIf="isLoading" class="loading-center">
+    <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- KPI Cards -->
+    <div class="kpi-section">
+      <mat-card class="kpi-card revenue">
+        <mat-card-content>
+          <div class="kpi-icon">
+            <mat-icon>euro_symbol</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <h3>{{ montantTotal | currency:'EUR':'symbol':'1.2-2' }}</h3>
+            <p>Montant Total HT</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card orders">
+        <mat-card-content>
+          <div class="kpi-icon">
+            <mat-icon>receipt_long</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <h3>{{ nbAchats }}</h3>
+            <p>Nombre d'Achats</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card average">
+        <mat-card-content>
+          <div class="kpi-icon">
+            <mat-icon>store</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <h3>{{ topFournisseur }}</h3>
+            <p>Top Fournisseur</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="kpi-card customers">
+        <mat-card-content>
+          <div class="kpi-icon">
+            <mat-icon>calendar_month</mat-icon>
+          </div>
+          <div class="kpi-info">
+            <h3>{{ topMois }}</h3>
+            <p>Mois le plus actif</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Tableaux de synthèse -->
+    <div class="synthese-grid">
+      <!-- Par fournisseur -->
+      <mat-card class="synthese-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>store</mat-icon>
+            Par Fournisseur
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="parFournisseur" class="synthese-table">
+            <ng-container matColumnDef="nom">
+              <th mat-header-cell *matHeaderCellDef>Fournisseur</th>
+              <td mat-cell *matCellDef="let row">{{ row.nom }}</td>
+            </ng-container>
+            <ng-container matColumnDef="nbAchats">
+              <th mat-header-cell *matHeaderCellDef>Achats</th>
+              <td mat-cell *matCellDef="let row">{{ row.nbAchats }}</td>
+            </ng-container>
+            <ng-container matColumnDef="montantTotal">
+              <th mat-header-cell *matHeaderCellDef>Montant</th>
+              <td mat-cell *matCellDef="let row">{{ row.montantTotal | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="colsFournisseur"></tr>
+            <tr mat-row *matRowDef="let row; columns: colsFournisseur;"></tr>
+          </table>
+          <div *ngIf="parFournisseur.length === 0" class="empty-state">
+            <mat-icon>store_mall_directory</mat-icon>
+            <p>Aucune donnée</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Par mois -->
+      <mat-card class="synthese-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>calendar_today</mat-icon>
+            Par Mois
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="parMois" class="synthese-table">
+            <ng-container matColumnDef="label">
+              <th mat-header-cell *matHeaderCellDef>Mois</th>
+              <td mat-cell *matCellDef="let row">{{ row.label }}</td>
+            </ng-container>
+            <ng-container matColumnDef="nbAchats">
+              <th mat-header-cell *matHeaderCellDef>Achats</th>
+              <td mat-cell *matCellDef="let row">{{ row.nbAchats }}</td>
+            </ng-container>
+            <ng-container matColumnDef="montantTotal">
+              <th mat-header-cell *matHeaderCellDef>Montant</th>
+              <td mat-cell *matCellDef="let row">{{ row.montantTotal | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="colsMois"></tr>
+            <tr mat-row *matRowDef="let row; columns: colsMois;"></tr>
+          </table>
+          <div *ngIf="parMois.length === 0" class="empty-state">
+            <mat-icon>event_note</mat-icon>
+            <p>Aucune donnée</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Par statut -->
+      <mat-card class="synthese-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>fact_check</mat-icon>
+            Par Statut
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="parStatut" class="synthese-table">
+            <ng-container matColumnDef="statut">
+              <th mat-header-cell *matHeaderCellDef>Statut</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip>{{ row.statut }}</mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="nbAchats">
+              <th mat-header-cell *matHeaderCellDef>Achats</th>
+              <td mat-cell *matCellDef="let row">{{ row.nbAchats }}</td>
+            </ng-container>
+            <ng-container matColumnDef="montantTotal">
+              <th mat-header-cell *matHeaderCellDef>Montant</th>
+              <td mat-cell *matCellDef="let row">{{ row.montantTotal | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="colsStatut"></tr>
+            <tr mat-row *matRowDef="let row; columns: colsStatut;"></tr>
+          </table>
+          <div *ngIf="parStatut.length === 0" class="empty-state">
+            <mat-icon>pending_actions</mat-icon>
+            <p>Aucune donnée</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Tableau de détail -->
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>list_alt</mat-icon>
+          Détail des Achats
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-container">
+          <table mat-table [dataSource]="detailSource" matSort class="detail-table">
+            <ng-container matColumnDef="referenceAchat">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Référence</th>
+              <td mat-cell *matCellDef="let row">{{ row.referenceAchat }}</td>
+            </ng-container>
+            <ng-container matColumnDef="fournisseur">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Fournisseur</th>
+              <td mat-cell *matCellDef="let row">{{ row.fournisseur?.nom ?? '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="dateAchat">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+              <td mat-cell *matCellDef="let row">{{ row.dateAchat | date:'dd/MM/yyyy' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="montantHT">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Montant HT</th>
+              <td mat-cell *matCellDef="let row">{{ row.montantHT | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="montantTotal">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Montant TTC</th>
+              <td mat-cell *matCellDef="let row">{{ row.montantTotal | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="statut">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip>{{ row.statut }}</mat-chip>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="colsDetail"></tr>
+            <tr mat-row *matRowDef="let row; columns: colsDetail;"></tr>
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell empty-row" [attr.colspan]="colsDetail.length">Aucun achat sur cette période</td>
+            </tr>
+          </table>
+        </div>
+        <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+</div>

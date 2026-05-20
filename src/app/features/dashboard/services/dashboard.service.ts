@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { DashboardData, StockAlert, RecentActivity } from '../models/dashboard.model';
@@ -33,19 +33,12 @@ interface ApiStockAlert {
 }
 
 // Interfaces pour les activités récentes
-interface ApiCommandeClient {
-  id: number;
-  numeroCommande: string;
-  dateCreation: string;
-  client: { nom: string };
-  montantTotal: number;
-}
-
 interface ApiAchat {
   id: number;
   numeroAchat: string;
   dateCreation: string;
   fournisseur: { nom: string };
+  montantTotal: number;
 }
 
 interface ApiMouvementStock {
@@ -73,7 +66,6 @@ export class DashboardService {
     const stockAlerts$ = this.http.get<ApiStockAlert[]>(`${this.apiUrl}/Stock/Alertes`);
 
     // Recent Activities
-    const recentOrders$ = this.http.get<ApiCommandeClient[]>(`${this.apiUrl}/CommandeClient`);
     const recentPurchases$ = this.http.get<ApiAchat[]>(`${this.apiUrl}/Achat`);
     const recentMovements$ = this.http.get<ApiMouvementStock[]>(`${this.apiUrl}/MouvementStock`);
 
@@ -85,7 +77,6 @@ export class DashboardService {
       tasks: tasks$.pipe(catchError(() => of({ enCours: 0 }))),
       stockAlerts: stockAlerts$.pipe(catchError(() => of([]))),
       // Recent activities calls
-      recentOrders: recentOrders$.pipe(catchError(() => of([]))),
       recentPurchases: recentPurchases$.pipe(catchError(() => of([]))),
       recentMovements: recentMovements$.pipe(catchError(() => of([])))
     }).pipe(
@@ -106,15 +97,6 @@ export class DashboardService {
         })) ?? [];
 
         // 3. Mapper et combiner les activités récentes
-        const salesActivities: RecentActivity[] = results.recentOrders.map(o => ({
-          id: `vente-${o.id}`,
-          type: 'vente',
-          description: `Vente #${o.numeroCommande}`,
-          timestamp: new Date(o.dateCreation),
-          user: o.client?.nom ?? 'Client',
-          details: { amount: o.montantTotal }
-        }));
-
         const purchaseActivities: RecentActivity[] = results.recentPurchases.map(p => ({
           id: `achat-${p.id}`,
           type: 'achat',
@@ -135,7 +117,7 @@ export class DashboardService {
             details: { reason: m.motif }
           }));
 
-        const recentActivities = [...salesActivities, ...purchaseActivities, ...adjustmentActivities]
+        const recentActivities = [...purchaseActivities, ...adjustmentActivities]
           .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
           .slice(0, 10);
 
@@ -149,7 +131,7 @@ export class DashboardService {
           ],
           stockAlerts: mappedStockAlerts,
           recentActivities: recentActivities,
-          salesChart: this.createSalesChart(results.recentOrders),
+          achatsChart: this.createAchatsChart(results.recentPurchases),
         };
 
         return dashboardData;
@@ -157,35 +139,35 @@ export class DashboardService {
     );
   }
 
-  private createSalesChart(orders: ApiCommandeClient[]) {
-    const monthlySales = new Map<string, number>();
+  private createAchatsChart(purchases: ApiAchat[]) {
+    const monthlyAchats = new Map<string, number>();
     const monthNames = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    orders.forEach(order => {
-      const date = new Date(order.dateCreation);
+    purchases.forEach(achat => {
+      const date = new Date(achat.dateCreation);
       const month = date.getMonth();
       const year = date.getFullYear();
       const key = `${year}-${month.toString().padStart(2, '0')}`;
 
-      const currentSales = monthlySales.get(key) ?? 0;
-      monthlySales.set(key, currentSales + order.montantTotal);
+      const current = monthlyAchats.get(key) ?? 0;
+      monthlyAchats.set(key, current + achat.montantTotal);
     });
 
-    const sortedKeys = Array.from(monthlySales.keys()).sort().slice(-6); // Get last 6 months
+    const sortedKeys = Array.from(monthlyAchats.keys()).sort().slice(-6);
 
     const labels = sortedKeys.map(key => {
-      const [year, monthIndex] = key.split('-');
-      return `${monthNames[parseInt(monthIndex, 10)]}`;
+      const [, monthIndex] = key.split('-');
+      return monthNames[parseInt(monthIndex, 10)];
     });
 
-    const data = sortedKeys.map(key => monthlySales.get(key) ?? 0);
+    const data = sortedKeys.map(key => monthlyAchats.get(key) ?? 0);
 
     return {
-      labels: labels,
+      labels,
       datasets: [
         {
-          label: 'Ventes Mensuelles',
-          data: data,
+          label: 'Achats Mensuels',
+          data,
           borderColor: '#4F46E5',
           backgroundColor: 'rgba(79, 70, 229, 0.1)',
           fill: true

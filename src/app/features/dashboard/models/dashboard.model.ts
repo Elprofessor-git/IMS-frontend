@@ -9,7 +9,7 @@ export interface IStatCard {
 
 export interface IRecentActivity {
   id: string;
-  type: 'vente' | 'achat' | 'ajustement';
+  type: 'achat' | 'ajustement';
   description: string;
   timestamp: Date;
   user: string;
@@ -24,7 +24,7 @@ export interface IStockAlert {
   severity: 'low' | 'critical';
 }
 
-export interface ISalesChartData {
+export interface IAchatsChartData {
   labels: string[];
   datasets: {
     label: string;
@@ -37,7 +37,7 @@ export interface ISalesChartData {
 
 export interface IDashboardData {
   stats: StatCard[];
-  salesChart: SalesChartData;
+  achatsChart: AchatsChartData;
   stockAlerts: StockAlert[];
   recentActivities: RecentActivity[];
 }
@@ -49,5 +49,5 @@ export interface IDashboardData {
 export type StatCard = IStatCard;
 export type RecentActivity = IRecentActivity;
 export type StockAlert = IStockAlert;
-export type SalesChartData = ISalesChartData;
+export type AchatsChartData = IAchatsChartData;
 export type DashboardData = IDashboardData;

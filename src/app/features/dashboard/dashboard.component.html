@@ -74,7 +74,7 @@
         </mat-card-header>
         <mat-card-content>
           <div *ngFor="let activity of data.recentActivities" class="activity-item">
-            <mat-icon class="activity-icon">{{ activity.type === 'vente' ? 'local_mall' : (activity.type === 'achat' ? 'shopping_basket' : 'build') }}</mat-icon>
+            <mat-icon class="activity-icon">{{ activity.type === 'achat' ? 'shopping_basket' : 'build' }}</mat-icon>
             <div class="activity-details">
               <span class="description">{{ activity.description }}</span>
               <span class="meta">par {{ activity.user }} - {{ activity.timestamp | date:'shortTime' }}</span>
@@ -83,15 +83,14 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Sales Chart -->
+      <!-- Achats Chart -->
       <mat-card class="sales-chart-card">
         <mat-card-header>
-          <mat-card-title>Analytics des achats</mat-card-title>
+          <mat-card-title>Achats Mensuels</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="chart-placeholder">
-            <!-- Chart.js canvas will go here -->
-            <p>Le graphique des ventes sera implémenté ici.</p>
+            <p>Le graphique des achats sera implémenté ici.</p>
           </div>
         </mat-card-content>
       </mat-card>
