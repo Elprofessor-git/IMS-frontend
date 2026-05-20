@@ -19,6 +19,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AchatService, Achat, LigneAchat } from '../../core/services/achat.service';
 import { FournisseurService } from '../../core/services/fournisseur.service';
 import { ArticleService } from '../../core/services/article.service';
+import { CommandeService } from '../commandes/commande.service';
 
 @Component({
   selector: 'app-achat-form',
@@ -164,8 +165,18 @@ import { ArticleService } from '../../core/services/article.service';
                         <mat-option *ngFor="let article of articles" [value]="article.id">
                           {{ article.nom }} - {{ article.reference }}
                         </mat-option>
-            </mat-select>
-          </mat-form-field>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Commande (optionnel)</mat-label>
+                      <mat-select formControlName="commandeClientId">
+                        <mat-option [value]="null">Stock libre</mat-option>
+                        <mat-option *ngFor="let c of commandes" [value]="c.id">
+                          {{ c.numeroCommande }} — {{ c.titreCommande }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
 
                     <mat-form-field appearance="outline">
                       <mat-label>Quantité</mat-label>
@@ -455,6 +466,7 @@ export class AchatFormComponent implements OnInit {
 
   fournisseurs: any[] = [];
   articles: any[] = [];
+  commandes: any[] = [];
   selectedFournisseur: any = null;
 
   constructor(
@@ -462,6 +474,7 @@ export class AchatFormComponent implements OnInit {
     private achatService: AchatService,
     private fournisseurService: FournisseurService,
     private articleService: ArticleService,
+    private commandeService: CommandeService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
@@ -483,6 +496,7 @@ export class AchatFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadFournisseurs();
     this.loadArticles();
+    this.loadCommandes();
     this.addLigne(); // Ajouter une ligne par défaut
 
     // Vérifier si on est en mode édition
@@ -502,6 +516,7 @@ export class AchatFormComponent implements OnInit {
   addLigne(): void {
     const ligne = this.fb.group({
       articleId: ['', Validators.required],
+      commandeClientId: [null],
       quantite: [1, [Validators.required, Validators.min(1)]],
       prixUnitaire: [0, [Validators.required, Validators.min(0)]],
       montantHT: [0, Validators.required],
@@ -560,6 +575,14 @@ export class AchatFormComponent implements OnInit {
     }, 0);
   }
 
+  loadCommandes(): void {
+    this.commandeService.getAll().subscribe({
+      next: (data) => this.commandes = data.filter(c =>
+        c.statut !== 'Terminee' && c.statut !== 'Annulee'),
+      error: () => {}
+    });
+  }
+
   loadFournisseurs(): void {
     this.fournisseurService.getAll().subscribe({
       next: (fournisseurs) => {
@@ -604,6 +627,7 @@ export class AchatFormComponent implements OnInit {
         achat.lignesAchat?.forEach((ligne: any) => {
           const ligneGroup = this.fb.group({
             articleId: [ligne.articleId, Validators.required],
+            commandeClientId: [ligne.commandeClientId ?? null],
             quantite: [ligne.quantite, [Validators.required, Validators.min(1)]],
             prixUnitaire: [ligne.prixUnitaire, [Validators.required, Validators.min(0)]],
             montantHT: [ligne.montantHT, Validators.required],

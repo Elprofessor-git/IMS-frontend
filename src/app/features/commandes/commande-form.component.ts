@@ -69,6 +69,7 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
               <mat-label>Nom / Description de la commande</mat-label>
               <input matInput formControlName="titreCommande" placeholder="Ex: Collection Été 2026 - Marque X">
               <mat-icon matSuffix>title</mat-icon>
+              <mat-error *ngIf="commandeForm.get('titreCommande')?.hasError('required')">Nom requis</mat-error>
             </mat-form-field>
 
             <div class="form-row">
@@ -100,8 +101,8 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="half-width">
-                <mat-label>Date de livraison prévue</mat-label>
-                <input matInput [matDatepicker]="picker2" formControlName="dateLivraisonPrevue">
+                <mat-label>Date de livraison souhaitée</mat-label>
+                <input matInput [matDatepicker]="picker2" formControlName="dateLivraisonSouhaitee">
                 <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
                 <mat-datepicker #picker2></mat-datepicker>
               </mat-form-field>
@@ -131,8 +132,9 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>Statut</mat-label>
                 <mat-select formControlName="statut" required>
-                  <mat-option value="EnAttente">En Attente</mat-option>
-                  <mat-option value="EnCours">En Cours</mat-option>
+                  <mat-option value="EnAttente">En attente</mat-option>
+                  <mat-option value="Prete">Prête</mat-option>
+                  <mat-option value="EnProduction">En production</mat-option>
                   <mat-option value="Terminee">Terminée</mat-option>
                   <mat-option value="Annulee">Annulée</mat-option>
                 </mat-select>
@@ -245,11 +247,11 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
 
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>% Sécurité</mat-label>
-              <input matInput type="number" formControlName="pctSecurite" min="0" max="100">
+              <input matInput type="number" formControlName="pctSecurite" min="0" max="20">
               <span matSuffix>%</span>
               <mat-hint>Marge ajoutée aux besoins calculés (défaut : 5 %)</mat-hint>
               <mat-error *ngIf="commandeForm.get('pctSecurite')?.hasError('min')">Minimum 0 %</mat-error>
-              <mat-error *ngIf="commandeForm.get('pctSecurite')?.hasError('max')">Maximum 100 %</mat-error>
+              <mat-error *ngIf="commandeForm.get('pctSecurite')?.hasError('max')">Maximum 20 %</mat-error>
             </mat-form-field>
 
             <mat-divider class="section-divider"></mat-divider>
@@ -330,6 +332,7 @@ export class CommandeFormComponent implements OnInit {
 
   commandeForm: FormGroup;
   isEdit = false;
+  commandeId: number | null = null;
   isSubmitting = false;
 
   clients: any[] = [];
@@ -344,26 +347,32 @@ export class CommandeFormComponent implements OnInit {
   constructor() {
     this.commandeForm = this.fb.group({
       numeroCommande: [''],
-      titreCommande: [''],
+      titreCommande: ['', Validators.required],
       clientId: ['', Validators.required],
       dateCommande: [new Date(), Validators.required],
-      dateLivraisonPrevue: [null],
+      dateLivraisonSouhaitee: [null],
       plateformeId: [null],
       marqueId: [null],
       statut: ['EnAttente', Validators.required],
       priorite: ['Normale'],
-      pctSecurite: [5, [Validators.min(0), Validators.max(100)]],
+      pctSecurite: [5, [Validators.min(0), Validators.max(20)]],
       notes: ['']
     });
 
-    this.isEdit = this.route.snapshot.paramMap.has('id');
+    const idParam = this.route.snapshot.paramMap.get('id');
+    this.isEdit = !!idParam;
+    this.commandeId = idParam ? +idParam : null;
   }
 
   ngOnInit(): void {
-    this.generateNumeroCommande();
     this.loadClients();
     this.loadPlateformes();
     this.loadArticles();
+    if (this.isEdit && this.commandeId) {
+      this.loadCommandeExistante();
+    } else {
+      this.generateNumeroCommande();
+    }
   }
 
   private generateNumeroCommande(): void {
@@ -385,6 +394,45 @@ export class CommandeFormComponent implements OnInit {
 
   private loadArticles(): void {
     this.articleService.getAll().subscribe({ next: (data) => this.articles = data, error: () => {} });
+  }
+
+  private loadCommandeExistante(): void {
+    this.commandeService.getById(this.commandeId!).subscribe({
+      next: (commande: any) => {
+        this.commandeForm.patchValue({
+          numeroCommande:         commande.numeroCommande,
+          titreCommande:          commande.titreCommande,
+          clientId:               commande.clientId,
+          dateCommande:           commande.dateCommande ? new Date(commande.dateCommande) : null,
+          dateLivraisonSouhaitee: commande.dateLivraisonSouhaitee ? new Date(commande.dateLivraisonSouhaitee) : null,
+          plateformeId:           commande.plateformeId ?? null,
+          marqueId:               commande.marqueId ?? null,
+          statut:                 commande.statut,
+          priorite:               commande.priorite ?? 'Normale',
+          pctSecurite:            commande.pctSecurite ?? 5,
+          notes:                  commande.notesSpeciales ?? ''
+        });
+        if (commande.plateformeId) {
+          this.onPlateformeChange(commande.plateformeId);
+        }
+      },
+      error: () => this.snackBar.open('Erreur chargement commande', 'Fermer', { duration: 3000 })
+    });
+
+    this.commandeService.getTailles(this.commandeId!).subscribe({
+      next: (tailles) => {
+        this.taillesDynamiques = tailles.map(t => ({ taille: t.taille, quantite: t.quantite }));
+        this.recalculerTotal();
+      },
+      error: () => {}
+    });
+
+    this.commandeService.getBom(this.commandeId!).subscribe({
+      next: (bom) => {
+        this.bomLignes = bom.map(b => ({ articleId: b.articleId, quantiteParPiece: b.quantiteParPiece, unite: b.unite ?? '' }));
+      },
+      error: () => {}
+    });
   }
 
   onPlateformeChange(plateformeId: number | null): void {
@@ -434,34 +482,50 @@ export class CommandeFormComponent implements OnInit {
 
     this.isSubmitting = true;
     const payload = { ...this.commandeForm.value };
+    const onError = (err: any) => {
+      this.snackBar.open(err?.error?.message || 'Erreur serveur', 'Fermer', { duration: 5000 });
+      this.isSubmitting = false;
+    };
 
-    this.commandeService.createCommande(payload).subscribe({
-      next: (commande: any) => {
-        const id = commande.id;
-        const taillesValides = this.taillesDynamiques.filter(t => t.taille.trim() && t.quantite > 0);
-        const bomValides = this.bomLignes.filter(b => b.articleId > 0 && b.quantiteParPiece > 0);
+    if (this.isEdit && this.commandeId) {
+      this.commandeService.updateCommande(this.commandeId, payload).subscribe({
+        next: () => this.saveTaillesBom(this.commandeId!),
+        error: onError
+      });
+    } else {
+      this.commandeService.createCommande(payload).subscribe({
+        next: (commande: any) => this.saveTaillesBom(commande.id),
+        error: onError
+      });
+    }
+  }
 
-        const saves: Observable<any>[] = [];
-        if (taillesValides.length > 0) saves.push(this.commandeService.setTailles(id, taillesValides));
-        if (bomValides.length > 0) saves.push(this.commandeService.setBom(id, bomValides));
+  private saveTaillesBom(id: number): void {
+    const taillesValides = this.taillesDynamiques.filter(t => t.taille.trim() && t.quantite > 0);
+    const bomValides = this.bomLignes.filter(b => b.articleId > 0 && b.quantiteParPiece > 0);
 
-        const afterSave = () => {
-          this.snackBar.open('Ordre de fabrication créé avec succès', 'OK', { duration: 3000 });
-          this.router.navigate(['/commandes', id, 'details']);
+    const saves: Observable<any>[] = [];
+    if (taillesValides.length > 0) saves.push(this.commandeService.setTailles(id, taillesValides));
+    if (bomValides.length > 0) saves.push(this.commandeService.setBom(id, bomValides));
+
+    const afterSave = () => {
+      const msg = this.isEdit ? 'Ordre de fabrication modifié avec succès' : 'Ordre de fabrication créé avec succès';
+      this.snackBar.open(msg, 'OK', { duration: 3000 });
+      this.router.navigate(['/commandes', id, 'details']);
+      this.isSubmitting = false;
+    };
+
+    if (saves.length > 0) {
+      forkJoin(saves).subscribe({
+        next: () => afterSave(),
+        error: () => {
+          this.snackBar.open('Erreur sauvegarde tailles/BOM', 'Fermer', { duration: 5000 });
           this.isSubmitting = false;
-        };
-
-        if (saves.length > 0) {
-          forkJoin(saves).subscribe({ next: afterSave, error: afterSave });
-        } else {
-          afterSave();
         }
-      },
-      error: (err) => {
-        this.snackBar.open(err?.error?.message || 'Erreur serveur', 'Fermer', { duration: 5000 });
-        this.isSubmitting = false;
-      }
-    });
+      });
+    } else {
+      afterSave();
+    }
   }
 
   onCancel(): void {

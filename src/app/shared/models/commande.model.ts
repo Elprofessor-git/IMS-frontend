@@ -23,13 +23,9 @@ export interface IClient {
   commandes?: ICommandeClient[];
 }
 
-export interface ITaillesCommande {
-  XS: number;
-  S: number;
-  M: number;
-  L: number;
-  XL: number;
-  XXL: number;
+export interface IConfigTaille {
+  nom: string;
+  quantite: number;
 }
 
 export interface ICommandeClient {
@@ -48,9 +44,10 @@ export interface ICommandeClient {
   besoins?: IBesoinCommande[];
   taches?: ITacheProduction[];
   achats?: IAchat[];
+  marqueId?: number;
   modeleBomId?: number;
   pctSecurite?: number;
-  tailles?: ITaillesCommande;
+  tailles?: IConfigTaille[];
 }
 
 export interface IBesoinCommande {
@@ -72,14 +69,11 @@ export interface IBesoinCommande {
 }
 
 export enum StatutCommande {
-  Brouillon = 'Brouillon',
-  EnAttente = 'EnAttente',
-  RessourcesValidees = 'RessourcesValidees',
-  Prete = 'Prete',
+  EnAttente    = 'EnAttente',
+  Prete        = 'Prete',
   EnProduction = 'EnProduction',
-  Terminee = 'Terminee',
-  Livree = 'Livree',
-  Annulee = 'Annulee'
+  Terminee     = 'Terminee',
+  Annulee      = 'Annulee'
 }
 
 export enum TypeBesoin {

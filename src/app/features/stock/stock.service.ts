@@ -38,6 +38,8 @@ export interface IStock {
   estValide: boolean;
   seuilAlerte?: number; // Ajouté pour checkAlertThresholds()
   article?: IArticle;
+  commandeClientId?: number;
+  commandeClient?: any;
 }
 export type Stock = IStock;
 

@@ -386,7 +386,11 @@ export class ImportationFormComponent implements OnInit {
   }
 
   loadCommandeClients(): void {
-    this.commandeService.getAll().subscribe({ next: (data) => this.commandeClients = data, error: () => {} });
+    this.commandeService.getAll().subscribe({
+      next: (data) => this.commandeClients = data.filter(c =>
+        c.statut !== 'Terminee' && c.statut !== 'Annulee'),
+      error: () => {}
+    });
   }
 
   loadImportation(id: number): void {

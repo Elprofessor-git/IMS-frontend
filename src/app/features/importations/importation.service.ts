@@ -61,6 +61,7 @@ export interface ILigneImportation {
   prixUnitaire: number;
   montantLigne: number;
   article?: any;
+  commandeClientId?: number;
 }
 
 export type Importation = IImportation;

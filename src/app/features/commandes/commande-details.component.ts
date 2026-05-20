@@ -15,10 +15,16 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, switchMap } from 'rxjs';
 
 import { CommandeService, ConfigTaille, BomLigne, ResultatCalcul } from './commande.service';
 import { ArticleService } from '../../core/services/article.service';
+import { MarqueService } from './marque.service';
+import { AchatService } from '../../core/services/achat.service';
+import { StockService } from '../stock/stock.service';
+import { ImportationService } from '../importations/importation.service';
 
 @Component({
   selector: 'app-commande-details',
@@ -39,7 +45,8 @@ import { ArticleService } from '../../core/services/article.service';
     MatTabsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatExpansionModule
   ],
   template: `
     <div class="details-container">
@@ -59,8 +66,15 @@ import { ArticleService } from '../../core/services/article.service';
               {{ commande.numeroCommande || ('OF #' + commandeId) }}
             </mat-card-title>
             <mat-card-subtitle>
-              Client : {{ commande.client?.nom || commande.clientId }}
-              <ng-container *ngIf="commande.marque"> &nbsp;|&nbsp; Marque : {{ commande.marque.nom }}</ng-container>
+              <ng-container *ngIf="marque?.plateforme">
+                <mat-icon class="sub-icon">store</mat-icon>{{ marque.plateforme.nom }}
+                <mat-icon class="sub-sep">chevron_right</mat-icon>
+              </ng-container>
+              <ng-container *ngIf="marque">
+                <mat-icon class="sub-icon">label</mat-icon>{{ marque.nom }}
+                <mat-icon class="sub-sep">chevron_right</mat-icon>
+              </ng-container>
+              <mat-icon class="sub-icon">person</mat-icon>{{ commande.client?.nom || commande.clientId }}
               &nbsp;|&nbsp; Statut : <strong>{{ commande.statut }}</strong>
             </mat-card-subtitle>
           </mat-card-header>
@@ -100,15 +114,36 @@ import { ArticleService } from '../../core/services/article.service';
               </ng-template>
 
               <div class="tab-content">
+
+                <!-- Hiérarchie Plateforme > Marque > Commande -->
+                <div class="hierarchy-banner" *ngIf="marque">
+                  <ng-container *ngIf="marque.plateforme">
+                    <mat-icon class="hier-icon">store</mat-icon>
+                    <span class="hier-name">{{ marque.plateforme.nom }}</span>
+                    <mat-icon class="hier-sep">chevron_right</mat-icon>
+                  </ng-container>
+                  <mat-icon class="hier-icon">label</mat-icon>
+                  <span class="hier-name">{{ marque.nom }}</span>
+                  <mat-icon class="hier-sep">chevron_right</mat-icon>
+                  <mat-icon class="hier-icon">shopping_cart</mat-icon>
+                  <span class="hier-name hier-current">{{ commande.numeroCommande }}</span>
+                </div>
+
                 <div class="info-grid">
                   <div class="info-row"><span class="label">Numéro :</span><span class="value">{{ commande.numeroCommande }}</span></div>
-                  <div class="info-row"><span class="label">Date commande :</span><span class="value">{{ commande.dateCommande | date:'dd/MM/yyyy' }}</span></div>
-                  <div class="info-row"><span class="label">Livraison prévue :</span><span class="value">{{ commande.dateLivraisonSouhaitee ? (commande.dateLivraisonSouhaitee | date:'dd/MM/yyyy') : '—' }}</span></div>
+                  <div class="info-row"><span class="label">Titre :</span><span class="value">{{ commande.titreCommande }}</span></div>
+                  <div class="info-row"><span class="label">Date création :</span><span class="value">{{ commande.dateCreation | date:'dd/MM/yyyy' }}</span></div>
+                  <div class="info-row"><span class="label">Livraison souhaitée :</span><span class="value">{{ commande.dateLivraisonSouhaitee ? (commande.dateLivraisonSouhaitee | date:'dd/MM/yyyy') : '—' }}</span></div>
                   <div class="info-row"><span class="label">Client :</span><span class="value">{{ commande.client?.nom || commande.clientId }}</span></div>
-                  <div class="info-row" *ngIf="commande.marque"><span class="label">Marque :</span><span class="value">{{ commande.marque.nom }}</span></div>
+                  <div class="info-row" *ngIf="marque?.plateforme"><span class="label">Plateforme :</span><span class="value">{{ marque.plateforme.nom }}</span></div>
+                  <div class="info-row" *ngIf="marque"><span class="label">Marque :</span><span class="value">{{ marque.nom }}</span></div>
                   <div class="info-row"><span class="label">Statut :</span><span class="value"><strong>{{ commande.statut }}</strong></span></div>
-                  <div class="info-row" *ngIf="commande.montantTotal"><span class="label">Montant :</span><span class="value">{{ commande.montantTotal | number:'1.2-2' }} {{ commande.devise || 'EUR' }}</span></div>
-                  <div class="info-row" *ngIf="commande.notesSpeciales"><span class="label">Notes :</span><span class="value">{{ commande.notesSpeciales }}</span></div>
+                  <div class="info-row" *ngIf="commande.montantTotal"><span class="label">Montant :</span><span class="value">{{ commande.montantTotal | number:'1.2-2' }} EUR</span></div>
+                  <div class="info-row" *ngIf="commande.descriptionCommande"><span class="label">Description :</span><span class="value">{{ commande.descriptionCommande }}</span></div>
+                  <div class="info-row" *ngIf="commande.pourcentageRessourcesCouvertes != null">
+                    <span class="label">Ressources couvertes :</span>
+                    <span class="value">{{ commande.pourcentageRessourcesCouvertes | number:'1.0-1' }}%</span>
+                  </div>
                 </div>
               </div>
             </mat-tab>
@@ -216,10 +251,10 @@ import { ArticleService } from '../../core/services/article.service';
               <div class="tab-content">
                 <div class="calcul-header">
                   <mat-form-field appearance="outline" class="marge-field">
-                    <mat-label>Marge de sécurité</mat-label>
-                    <input matInput type="number" min="0" max="100" [(ngModel)]="marge">
+                    <mat-label>% Sécurité</mat-label>
+                    <input matInput type="number" min="0" max="20" [(ngModel)]="pctSecurite">
                     <span matSuffix>%</span>
-                    <mat-hint>Marge ajoutée aux besoins calculés</mat-hint>
+                    <mat-hint>Marge par commande — 0 à 20 %</mat-hint>
                   </mat-form-field>
                   <button mat-raised-button color="accent" [disabled]="calculEnCours" (click)="lancerCalcul()">
                     <mat-spinner *ngIf="calculEnCours" diameter="18"></mat-spinner>
@@ -239,7 +274,7 @@ import { ArticleService } from '../../core/services/article.service';
                   </span>
                 </div>
 
-                <!-- Tableau résultats -->
+                <!-- Tableau résultats agrégés -->
                 <div *ngIf="calculDone && resultats.length > 0" class="result-table-wrap">
                   <table mat-table [dataSource]="resultats" class="result-table">
 
@@ -251,7 +286,7 @@ import { ArticleService } from '../../core/services/article.service';
                     </ng-container>
 
                     <ng-container matColumnDef="besoinFinal">
-                      <th mat-header-cell *matHeaderCellDef>Besoin +{{ marge }}%</th>
+                      <th mat-header-cell *matHeaderCellDef>Besoin +{{ pctSecurite }}%</th>
                       <td mat-cell *matCellDef="let r">{{ r.besoinFinal | number:'1.0-3' }}</td>
                     </ng-container>
 
@@ -294,6 +329,124 @@ import { ArticleService } from '../../core/services/article.service';
                   </table>
                 </div>
 
+                <!-- Stock ventilé détaillé par article (Option B) -->
+                <div *ngIf="calculDone && resultats.length > 0" class="ventile-section-title">
+                  <mat-icon>layers</mat-icon>
+                  <span>Stock ventilé par source</span>
+                  <mat-spinner *ngIf="loadingVentile" diameter="18"></mat-spinner>
+                </div>
+
+                <mat-accordion *ngIf="calculDone && resultats.length > 0 && !loadingVentile"
+                               class="ventile-accordion">
+                  <mat-expansion-panel *ngFor="let r of resultats" class="ventile-panel"
+                                       [class.panel-ko]="!r.estSuffisant">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title class="panel-title">
+                        <mat-icon [style.color]="r.estSuffisant ? '#4caf50' : '#f44336'" class="panel-status-icon">
+                          {{ r.estSuffisant ? 'check_circle' : 'cancel' }}
+                        </mat-icon>
+                        {{ r.article?.designation || ('ID ' + r.articleId) }}
+                      </mat-panel-title>
+                      <mat-panel-description class="panel-desc">
+                        Besoin : {{ r.besoinFinal | number:'1.0-2' }}
+                        &nbsp;/&nbsp; Dispo : {{ r.qteDisponible | number:'1.0-2' }}
+                        <span *ngIf="!r.estSuffisant" class="manque-chip">
+                          Manque : {{ r.manque | number:'1.0-2' }}
+                        </span>
+                      </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <!-- Importations liées — N entrées, une par importation -->
+                    <ng-container *ngFor="let imps of [getImportationsForArticle(r.articleId)]">
+                      <div class="source-block" *ngIf="imps.length > 0">
+                        <div class="source-header">
+                          <mat-icon class="src-icon import-icon">flight_land</mat-icon>
+                          <strong>Importations</strong>
+                        </div>
+                        <div *ngFor="let imp of imps" class="source-row">
+                          <span class="src-ref">
+                            {{ imp.ref }}
+                            <span class="src-meta" *ngIf="imp.date">({{ imp.date | date:'dd/MM/yyyy' }})</span>
+                          </span>
+                          <span class="src-qte">{{ imp.quantite | number:'1.0-3' }} {{ r.article?.unite || '' }}</span>
+                        </div>
+                        <div class="source-subtotal">
+                          Sous-total import :
+                          <strong>{{ getSubtotal(imps) | number:'1.0-3' }} {{ r.article?.unite || '' }}</strong>
+                        </div>
+                      </div>
+                    </ng-container>
+
+                    <!-- Achats liés — N entrées, une par achat -->
+                    <ng-container *ngFor="let achats of [getAchatsForArticle(r.articleId)]">
+                      <div class="source-block" *ngIf="achats.length > 0">
+                        <div class="source-header">
+                          <mat-icon class="src-icon achat-icon">shopping_cart</mat-icon>
+                          <strong>Achats</strong>
+                        </div>
+                        <div *ngFor="let a of achats" class="source-row">
+                          <span class="src-ref">
+                            {{ a.ref }}
+                            <span class="src-meta" *ngIf="a.fournisseur">({{ a.fournisseur }})</span>
+                          </span>
+                          <span class="src-qte">{{ a.quantite | number:'1.0-3' }} {{ r.article?.unite || '' }}</span>
+                        </div>
+                        <div class="source-subtotal">
+                          Sous-total achat :
+                          <strong>{{ getSubtotal(achats) | number:'1.0-3' }} {{ r.article?.unite || '' }}</strong>
+                        </div>
+                      </div>
+                    </ng-container>
+
+                    <!-- Stock réservé — N entrées, un par lot -->
+                    <ng-container *ngFor="let lots of [getStockForArticle(r.articleId)]">
+                      <div class="source-block" *ngIf="lots.length > 0">
+                        <div class="source-header">
+                          <mat-icon class="src-icon stock-icon">inventory_2</mat-icon>
+                          <strong>Stock réservé</strong>
+                        </div>
+                        <div *ngFor="let s of lots" class="source-row">
+                          <span class="src-ref">{{ s.numeroLot || ('LOT-' + s.id) }}</span>
+                          <span class="src-qte">{{ s.quantite | number:'1.0-3' }} {{ r.article?.unite || '' }}</span>
+                        </div>
+                        <div class="source-subtotal">
+                          Sous-total réservé :
+                          <strong>{{ getSubtotal(lots) | number:'1.0-3' }} {{ r.article?.unite || '' }}</strong>
+                        </div>
+                      </div>
+                    </ng-container>
+
+                    <div *ngIf="!hasVentileData(r.articleId)" class="empty-hint">
+                      <mat-icon>info</mat-icon> Aucune source de stock trouvée pour cet article.
+                    </div>
+
+                    <!-- Récapitulatif total par article -->
+                    <div class="ventile-total"
+                         [class.total-ok]="r.estSuffisant"
+                         [class.total-ko]="!r.estSuffisant">
+                      <div class="total-row">
+                        <span>Total disponible</span>
+                        <strong>{{ r.qteDisponible | number:'1.0-3' }} {{ r.article?.unite || '' }}</strong>
+                      </div>
+                      <div class="total-row">
+                        <span>Besoin (+{{ pctSecurite }}% marge)</span>
+                        <strong>{{ r.besoinFinal | number:'1.0-3' }} {{ r.article?.unite || '' }}</strong>
+                      </div>
+                      <div class="total-row result-line"
+                           [class.result-ok]="r.estSuffisant"
+                           [class.result-ko]="!r.estSuffisant">
+                        <mat-icon>{{ r.estSuffisant ? 'check_circle' : 'cancel' }}</mat-icon>
+                        <span *ngIf="r.estSuffisant">
+                          RÉALISABLE — surplus +{{ (r.qteDisponible - r.besoinFinal) | number:'1.0-3' }}
+                        </span>
+                        <span *ngIf="!r.estSuffisant">
+                          NON LANÇABLE — manque {{ r.manque | number:'1.0-3' }}
+                        </span>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </mat-accordion>
+
                 <!-- Liste des manques -->
                 <div *ngIf="calculDone && manques.length > 0" class="manques-section">
                   <h4><mat-icon color="warn">warning</mat-icon> Fournitures insuffisantes</h4>
@@ -328,16 +481,30 @@ import { ArticleService } from '../../core/services/article.service';
     </div>
   `,
   styles: [`
-    .details-container { max-width: 1000px; margin: 20px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
+    .details-container { max-width: 1100px; margin: 20px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
     .loading-center { display: flex; flex-direction: column; align-items: center; padding: 60px; gap: 16px; color: #666; }
+
+    /* Header */
     .header-card mat-card-title { display: flex; align-items: center; gap: 8px; color: #1976d2; }
+    .header-card mat-card-subtitle { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .sub-icon { font-size: 16px; width: 16px; height: 16px; color: #888; }
+    .sub-sep { font-size: 16px; width: 16px; height: 16px; color: #bbb; }
+
+    /* Hierarchy banner */
+    .hierarchy-banner { display: flex; align-items: center; gap: 6px; background: #f5f5f5; border-radius: 8px; padding: 10px 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .hier-icon { font-size: 18px; width: 18px; height: 18px; color: #1976d2; }
+    .hier-sep { font-size: 18px; width: 18px; height: 18px; color: #bbb; }
+    .hier-name { font-size: 0.9rem; color: #444; }
+    .hier-current { font-weight: 700; color: #1976d2; }
+
+    /* Tabs */
     .tabs-card { padding: 0; }
     .tab-content { padding: 24px 20px; }
 
     /* Infos */
     .info-grid { display: flex; flex-direction: column; gap: 10px; max-width: 600px; }
     .info-row { display: flex; gap: 12px; }
-    .label { color: #666; min-width: 160px; font-size: 0.875rem; }
+    .label { color: #666; min-width: 180px; font-size: 0.875rem; }
     .value { font-weight: 500; }
 
     /* Toolbar */
@@ -369,31 +536,69 @@ import { ArticleService } from '../../core/services/article.service';
     .badge-ok { background: #f1f8e9; color: #388e3c; border-left: 6px solid #4caf50; }
     .badge-ko { background: #fff3e0; color: #d32f2f; border-left: 6px solid #f44336; }
     .badge-sub { font-weight: 400; font-size: 0.9rem; }
-    .result-table-wrap { overflow-x: auto; }
+    .result-table-wrap { overflow-x: auto; margin-bottom: 24px; }
     .result-table { width: 100%; }
     .dispo-ok { color: #388e3c; font-weight: 600; }
     .dispo-ko { color: #d32f2f; font-weight: 600; }
     .row-ko { background: #fff3e0; }
+
+    /* Ventilé */
+    .ventile-section-title { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600; color: #444; margin: 8px 0 12px; }
+    .ventile-accordion { margin-bottom: 24px; }
+    .ventile-panel { margin-bottom: 6px; }
+    .panel-ko { border-left: 4px solid #f44336; }
+    .panel-title { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .panel-status-icon { font-size: 18px; width: 18px; height: 18px; }
+    .panel-desc { display: flex; align-items: center; gap: 8px; color: #555; font-size: 0.85rem; }
+    .manque-chip { background: #ffebee; color: #c62828; border-radius: 12px; padding: 2px 10px; font-size: 0.8rem; font-weight: 600; }
+    .source-block { margin-bottom: 16px; }
+    .source-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: #333; font-size: 0.9rem; font-weight: 600; }
+    .src-icon { font-size: 18px; width: 18px; height: 18px; }
+    .achat-icon { color: #1976d2; }
+    .stock-icon { color: #388e3c; }
+    .import-icon { color: #f57c00; }
+    .source-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; background: #fafafa; border-radius: 4px; margin-bottom: 3px; font-size: 0.875rem; }
+    .src-ref { color: #555; display: flex; align-items: center; gap: 4px; }
+    .src-meta { color: #888; font-size: 0.8rem; }
+    .src-qte { font-weight: 600; color: #1976d2; white-space: nowrap; }
+    .source-subtotal { display: flex; justify-content: flex-end; gap: 6px; padding: 4px 10px; font-size: 0.85rem; color: #555; border-top: 1px dashed #ddd; margin-top: 4px; }
+    .source-subtotal strong { color: #333; }
+    .ventile-total { margin-top: 16px; border-top: 2px solid #e0e0e0; padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .total-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding: 2px 4px; }
+    .total-row strong { font-size: 1rem; }
+    .result-line { margin-top: 4px; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .result-ok { background: #f1f8e9; color: #388e3c; }
+    .result-ko { background: #fff3e0; color: #d32f2f; }
+    .total-ok { background: #f9fbe7; border-radius: 8px; padding: 12px 16px; }
+    .total-ko { background: #fff8f5; border-radius: 8px; padding: 12px 16px; }
+
+    /* Manques */
     .manques-section { margin-top: 20px; }
     .manques-section h4 { display: flex; align-items: center; gap: 6px; color: #d32f2f; margin-bottom: 12px; }
     .manque-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 0; border-bottom: 1px solid #eee; }
     .manque-row:last-child { border-bottom: none; }
     .manque-detail { color: #666; font-size: 0.875rem; }
     .manque-val { color: #d32f2f; font-weight: 600; }
+
     .error-card mat-card-content { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px; }
 
     @media (max-width: 768px) {
       .taille-row, .bom-row { flex-direction: column; align-items: flex-start; }
       .article-select, .taille-input, .quantite-input, .qte-input, .unite-input { width: 100%; }
+      .hierarchy-banner { font-size: 0.85rem; }
     }
   `]
 })
 export class CommandeDetailsComponent implements OnInit {
-  commandeId: string | null = null;
+  // ÉTAPE 6 — number au lieu de string | null
+  commandeId = 0;
   commande: any = null;
   loading = false;
   isLancing = false;
   verificationEnCours = false;
+
+  // ÉTAPE 2 — Hiérarchie
+  marque: any = null;
 
   // Onglet 2 — Tailles
   tailles: ConfigTaille[] = [];
@@ -406,7 +611,7 @@ export class CommandeDetailsComponent implements OnInit {
   savingBom = false;
 
   // Onglet 4 — Calcul
-  marge = 5;
+  pctSecurite = 5;
   calculEnCours = false;
   calculDone = false;
   resultats: ResultatCalcul[] = [];
@@ -414,37 +619,80 @@ export class CommandeDetailsComponent implements OnInit {
   manques: ResultatCalcul[] = [];
   colonnesResultat = ['article', 'besoinFinal', 'qteAchat', 'qteImport', 'qteStockReserve', 'qteDisponible', 'statut'];
 
+  // ÉTAPE 4 — Stock ventilé
+  achatsLies: any[] = [];
+  stockReserve: any[] = [];
+  importationsLiees: any[] = [];
+  loadingVentile = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private commandeService: CommandeService,
     private articleService: ArticleService,
+    private marqueService: MarqueService,
+    private achatService: AchatService,
+    private stockService: StockService,
+    private importationService: ImportationService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.commandeId = this.route.snapshot.paramMap.get('id');
-    if (this.commandeId) {
-      this.loadCommande();
-      this.loadTailles();
-      this.loadBom();
-      this.loadResultat();
-    }
+    const idParam = this.route.snapshot.paramMap.get('id');
+    this.commandeId = idParam ? +idParam : 0;
+    if (!this.commandeId) { return; }
+    this.loadCommande();
+    this.loadTailles();
+    this.loadBom();
+    this.loadResultat();
+    this.loadStockVentile();
     this.articleService.getAll().subscribe({ next: (data) => this.articles = data, error: () => {} });
   }
 
   private loadCommande(): void {
     this.loading = true;
-    this.commandeService.getById(Number(this.commandeId)).subscribe({
-      next: (c) => { this.commande = c; this.loading = false; },
+    this.commandeService.getById(this.commandeId).subscribe({
+      next: (c) => {
+        this.commande = c;
+        this.pctSecurite = c.pctSecurite ?? 5;
+        this.loading = false;
+        if (c.marqueId) { this.loadMarque(c.marqueId); }
+      },
       error: () => { this.loading = false; }
+    });
+  }
+
+  // ÉTAPE 2 — Marque inclut plateforme via GET /api/Marque/{id}
+  private loadMarque(marqueId: number): void {
+    this.marqueService.getById(marqueId).subscribe({
+      next: (m) => { this.marque = m; },
+      error: () => {}
+    });
+  }
+
+  // ÉTAPE 4 — Stock ventilé : forkJoin des 3 sources
+  loadStockVentile(): void {
+    this.loadingVentile = true;
+    forkJoin({
+      achats: this.achatService.getByCommande(this.commandeId),
+      stocks: this.stockService.getStocksReserves(),
+      importations: this.importationService.getAll()
+    }).subscribe({
+      next: ({ achats, stocks, importations }) => {
+        this.achatsLies = achats;
+        this.stockReserve = (stocks as any[]).filter(s => s.commandeClientId === this.commandeId);
+        this.importationsLiees = (importations as any[]).filter(imp =>
+          imp.lignesImportation?.some((l: any) => l.commandeClientId === this.commandeId)
+        );
+        this.loadingVentile = false;
+      },
+      error: () => { this.loadingVentile = false; }
     });
   }
 
   // --- Tailles ---
   loadTailles(): void {
-    if (!this.commandeId || isNaN(+this.commandeId)) return;
-    this.commandeService.getTailles(Number(this.commandeId)).subscribe({
+    this.commandeService.getTailles(this.commandeId).subscribe({
       next: (data) => { this.tailles = data; this.recalcTotal(); },
       error: () => {}
     });
@@ -470,7 +718,7 @@ export class CommandeDetailsComponent implements OnInit {
       return;
     }
     this.savingTailles = true;
-    this.commandeService.setTailles(Number(this.commandeId), valides).subscribe({
+    this.commandeService.setTailles(this.commandeId, valides).subscribe({
       next: () => {
         this.snackBar.open('Tailles sauvegardées', 'OK', { duration: 3000 });
         this.savingTailles = false;
@@ -485,8 +733,7 @@ export class CommandeDetailsComponent implements OnInit {
 
   // --- BOM ---
   loadBom(): void {
-    if (!this.commandeId || isNaN(+this.commandeId)) return;
-    this.commandeService.getBom(Number(this.commandeId)).subscribe({
+    this.commandeService.getBom(this.commandeId).subscribe({
       next: (data) => this.bomLignes = data,
       error: () => {}
     });
@@ -507,7 +754,7 @@ export class CommandeDetailsComponent implements OnInit {
       return;
     }
     this.savingBom = true;
-    this.commandeService.setBom(Number(this.commandeId), valides).subscribe({
+    this.commandeService.setBom(this.commandeId, valides).subscribe({
       next: () => {
         this.snackBar.open('BOM sauvegardée', 'OK', { duration: 3000 });
         this.savingBom = false;
@@ -523,7 +770,9 @@ export class CommandeDetailsComponent implements OnInit {
   // --- Calcul ---
   lancerCalcul(): void {
     this.calculEnCours = true;
-    this.commandeService.calculer(Number(this.commandeId), this.marge).subscribe({
+    this.commandeService.updateCommande(this.commandeId, { ...this.commande, pctSecurite: this.pctSecurite }).pipe(
+      switchMap(() => this.commandeService.calculer(this.commandeId, this.pctSecurite))
+    ).subscribe({
       next: () => {
         this.calculEnCours = false;
         this.loadResultat();
@@ -536,21 +785,21 @@ export class CommandeDetailsComponent implements OnInit {
   }
 
   loadResultat(): void {
-    if (!this.commandeId || isNaN(+this.commandeId)) return;
-    this.commandeService.getResultatCalcul(Number(this.commandeId)).subscribe({
-      next: (data) => {
-        this.resultats = data;
-        this.calculDone = data.length > 0;
-        this.toutSuffisant = data.length > 0 && data.every(r => r.estSuffisant);
-        this.manques = data.filter(r => !r.estSuffisant);
-      },
+    this.commandeService.getResultatCalcul(this.commandeId).subscribe({
+      next: (data) => this.updateResultats(data),
       error: () => {}
     });
   }
 
-  // --- Vérifier faisabilité (séquentiel : tailles → BOM → calculer) ---
+  private updateResultats(data: ResultatCalcul[]): void {
+    this.resultats = data;
+    this.calculDone = data.length > 0;
+    this.toutSuffisant = data.length > 0 && data.every(r => r.estSuffisant);
+    this.manques = data.filter(r => !r.estSuffisant);
+  }
+
+  // ÉTAPE 3 — Séquence switchMap : tailles → BOM → pctSecurite → calculer → résultat
   verifierFaisabilite(): void {
-    const id = Number(this.commandeId);
     const taillesValides = this.tailles.filter(t => t.taille.trim() && t.quantite > 0);
     const bomValides = this.bomLignes.filter(b => b.articleId > 0 && b.quantiteParPiece > 0);
     if (taillesValides.length === 0) {
@@ -558,40 +807,83 @@ export class CommandeDetailsComponent implements OnInit {
       return;
     }
     this.verificationEnCours = true;
-    this.commandeService.setTailles(id, taillesValides).subscribe({
-      next: () => {
-        this.commandeService.setBom(id, bomValides).subscribe({
-          next: () => {
-            this.commandeService.calculer(id, this.marge).subscribe({
-              next: () => {
-                this.verificationEnCours = false;
-                this.loadResultat();
-                this.snackBar.open('Faisabilité calculée', 'OK', { duration: 3000 });
-              },
-              error: (err) => {
-                this.snackBar.open(err?.error?.message || 'Erreur calcul', 'Fermer', { duration: 5000 });
-                this.verificationEnCours = false;
-              }
-            });
-          },
-          error: (err) => {
-            this.snackBar.open(err?.error?.message || 'Erreur sauvegarde BOM', 'Fermer', { duration: 5000 });
-            this.verificationEnCours = false;
-          }
-        });
+    this.commandeService.setTailles(this.commandeId, taillesValides).pipe(
+      switchMap(() => this.commandeService.setBom(this.commandeId, bomValides)),
+      switchMap(() => this.commandeService.updateCommande(this.commandeId, { ...this.commande, pctSecurite: this.pctSecurite })),
+      switchMap(() => this.commandeService.calculer(this.commandeId, this.pctSecurite)),
+      switchMap(() => this.commandeService.getResultatCalcul(this.commandeId))
+    ).subscribe({
+      next: (data) => {
+        this.updateResultats(data as ResultatCalcul[]);
+        this.verificationEnCours = false;
+        this.snackBar.open('Faisabilité calculée', 'OK', { duration: 3000 });
       },
       error: (err) => {
-        this.snackBar.open(err?.error?.message || 'Erreur sauvegarde tailles', 'Fermer', { duration: 5000 });
+        this.snackBar.open(err?.error?.message || 'Erreur', 'Fermer', { duration: 5000 });
         this.verificationEnCours = false;
       }
     });
   }
 
+  // ÉTAPE 5 — Helpers stock ventilé par article
+
+  // Un entry par achat (somme des lignes pour cet article dans cet achat)
+  getAchatsForArticle(articleId: number): { ref: string; fournisseur: string; quantite: number }[] {
+    const byAchat = new Map<number, { ref: string; fournisseur: string; quantite: number }>();
+    for (const achat of this.achatsLies) {
+      const lignes: any[] = achat.lignesAchat || achat.lignes || [];
+      const total = lignes
+        .filter((l: any) => l.articleId === articleId)
+        .reduce((s: number, l: any) => s + (l.quantite || 0), 0);
+      if (total > 0) {
+        byAchat.set(achat.id ?? achat.referenceAchat, {
+          ref: achat.referenceAchat || achat.reference || '—',
+          fournisseur: achat.fournisseur?.nom || achat.fournisseur?.raisonSociale || '',
+          quantite: total
+        });
+      }
+    }
+    return [...byAchat.values()];
+  }
+
+  // Un entry par lot de stock réservé
+  getStockForArticle(articleId: number): any[] {
+    return this.stockReserve.filter(s => s.articleId === articleId);
+  }
+
+  // Un entry par importation (somme des lignes liées à cette commande pour cet article)
+  getImportationsForArticle(articleId: number): { ref: string; date: string | null; quantite: number }[] {
+    const result: { ref: string; date: string | null; quantite: number }[] = [];
+    for (const imp of this.importationsLiees) {
+      const lignes: any[] = (imp.lignesImportation || []).filter(
+        (l: any) => l.articleId === articleId && l.commandeClientId === this.commandeId
+      );
+      const total = lignes.reduce((s: number, l: any) => s + (l.quantite || 0), 0);
+      if (total > 0) {
+        result.push({
+          ref: imp.referenceImportation || imp.reference || '—',
+          date: imp.dateImportation || null,
+          quantite: total
+        });
+      }
+    }
+    return result;
+  }
+
+  getSubtotal(items: { quantite: number }[]): number {
+    return items.reduce((s, i) => s + i.quantite, 0);
+  }
+
+  hasVentileData(articleId: number): boolean {
+    return this.getAchatsForArticle(articleId).length > 0 ||
+           this.getStockForArticle(articleId).length > 0 ||
+           this.getImportationsForArticle(articleId).length > 0;
+  }
+
   // --- Navigation ---
   lancerCommande(): void {
-    if (!this.commandeId) return;
     this.isLancing = true;
-    this.commandeService.genererTaches(Number(this.commandeId)).subscribe({
+    this.commandeService.genererTaches(this.commandeId).subscribe({
       next: () => {
         this.snackBar.open('Commande lancée en production', 'OK', { duration: 3000 });
         this.loadCommande();
@@ -605,7 +897,7 @@ export class CommandeDetailsComponent implements OnInit {
   }
 
   editerCommande(): void {
-    this.router.navigate(['/commandes', this.commandeId]);
+    this.router.navigate(['/commandes/edit', this.commandeId]);
   }
 
   goBack(): void {

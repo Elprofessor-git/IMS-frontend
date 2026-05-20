@@ -171,7 +171,7 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
   calculateStatistics(orders: CommandeClient[]): void {
     const pending = orders.filter(o => o.statut === StatutCommande.EnAttente).length;
     const confirmed = orders.filter(o => o.statut === StatutCommande.Prete).length;
-    const shipped = orders.filter(o => o.statut === StatutCommande.Livree).length;
+    const shipped = orders.filter(o => o.statut === StatutCommande.Terminee).length;
     const totalMontant = orders.reduce((sum, o) => sum + (o.montantTotal || 0), 0);
 
     this.statistics = {

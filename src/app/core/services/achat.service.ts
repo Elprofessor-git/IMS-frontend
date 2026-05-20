@@ -36,6 +36,7 @@ export interface ILigneAchat {
   montantTTC: number;
   tauxTVA: number;
   article?: any;
+  commandeClientId?: number;
 }
 
 @Injectable({
@@ -51,6 +52,10 @@ export class AchatService extends BaseApiService<Achat> {
   // Méthodes spécifiques aux achats
   getByStatut(statut: string): Observable<Achat[]> {
     return this.http.get<Achat[]>(`${this.apiUrl}/Statut/${statut}`);
+  }
+
+  getByCommande(commandeId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/ByCommande/${commandeId}`);
   }
 
   confirmerLivraison(id: number): Observable<any> {

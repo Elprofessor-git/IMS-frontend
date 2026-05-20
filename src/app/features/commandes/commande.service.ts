@@ -85,6 +85,11 @@ export class CommandeService extends BaseApiService<CommandeClient> {
       .pipe(tap(() => this.refreshCommandes()));
   }
 
+  updateCommande(id: number, commande: any): Observable<CommandeClient> {
+    return this.http.put<CommandeClient>(`${this.apiUrl}/${id}`, commande)
+      .pipe(tap(() => this.refreshCommandes()));
+  }
+
   // --- Méthodes synchrones (issues du core) ---
   getByStatut(statut: string): Observable<CommandeClient[]> {
     return this.http.get<CommandeClient[]>(`${this.apiUrl}/Statut/${statut}`);
