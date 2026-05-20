@@ -111,7 +111,6 @@ export class ArticlesComponent implements OnInit {
     // Load articles
     this.articleService.getAll().subscribe({
       next: (articles) => {
-        console.log('Articles reçus:', articles);
         try {
           this.articles = articles || [];
           this.dataSource.data = this.articles;

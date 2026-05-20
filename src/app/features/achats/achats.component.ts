@@ -309,22 +309,28 @@ export class AchatsComponent implements OnInit {
 
   validerAchat(achat: Achat): void {
     if (confirm(`Êtes-vous sûr de vouloir valider l'achat "${achat.referenceAchat}" ?`)) {
-      // Implementation for validation
-      this.snackBar.open('Validation en cours de développement', 'Fermer', { duration: 3000 });
+      this.achatService.validerAchat(achat.id!).subscribe({
+        next: () => { this.snackBar.open('Achat validé avec succès', 'Fermer', { duration: 3000 }); this.loadData(); },
+        error: (err) => { this.snackBar.open('Erreur lors de la validation', 'Fermer', { duration: 3000 }); console.error(err); }
+      });
     }
   }
 
   confirmerLivraison(achat: Achat): void {
     if (confirm(`Confirmer la livraison de l'achat "${achat.referenceAchat}" ?`)) {
-      // Implementation for delivery confirmation
-      this.snackBar.open('Confirmation de livraison en cours de développement', 'Fermer', { duration: 3000 });
+      this.achatService.confirmerLivraison(achat.id!).subscribe({
+        next: () => { this.snackBar.open('Livraison confirmée avec succès', 'Fermer', { duration: 3000 }); this.loadData(); },
+        error: (err) => { this.snackBar.open('Erreur lors de la confirmation de livraison', 'Fermer', { duration: 3000 }); console.error(err); }
+      });
     }
   }
 
   annulerAchat(achat: Achat): void {
     if (confirm(`Êtes-vous sûr de vouloir annuler l'achat "${achat.referenceAchat}" ?`)) {
-      // Implementation for cancellation
-      this.snackBar.open('Annulation en cours de développement', 'Fermer', { duration: 3000 });
+      this.achatService.annulerAchat(achat.id!, '').subscribe({
+        next: () => { this.snackBar.open('Achat annulé avec succès', 'Fermer', { duration: 3000 }); this.loadData(); },
+        error: (err) => { this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 }); console.error(err); }
+      });
     }
   }
 

@@ -17,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import { UtilisateurService, User } from './utilisateur.service'; // Import service and User interface
 
@@ -41,7 +42,8 @@ import { UtilisateurService, User } from './utilisateur.service'; // Import serv
     MatChipsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatSnackBarModule
   ],
   templateUrl: './utilisateurs.component.html',
   styleUrls: ['./utilisateurs.component.scss']
@@ -78,7 +80,8 @@ export class UtilisateursComponent implements OnInit {
 
   constructor(
     private utilisateurService: UtilisateurService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -116,7 +119,7 @@ export class UtilisateursComponent implements OnInit {
 
 
   viewUser(user: User): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   // Template methods
@@ -129,11 +132,11 @@ export class UtilisateursComponent implements OnInit {
   }
 
   exportUsers(): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   importUsers(): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   onSearch(): void {
@@ -177,29 +180,28 @@ export class UtilisateursComponent implements OnInit {
   }
 
   deleteUser(user: User): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
-
   resetPassword(user: User): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   // Bulk actions
   activateSelected(): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   deactivateSelected(): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   exportSelected(): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   deleteSelected(): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   // Utility methods
@@ -256,15 +258,15 @@ export class UtilisateursComponent implements OnInit {
 
 
   changeRole(user: User): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   viewUserActivity(user: User): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   viewUserPermissions(user: User): void {
-    
+    this.snackBar.open('Fonctionnalité à venir', 'OK', { duration: 2000 });
   }
 
   bulkActivate(): void {

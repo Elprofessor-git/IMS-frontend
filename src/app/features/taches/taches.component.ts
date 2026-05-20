@@ -232,11 +232,17 @@ export class TachesComponent implements OnInit {
   }
 
   startTask(task: Task): void {
-    this.snackBar.open(`Démarrage de ${task.titre}`, 'Fermer', { duration: 3000 });
+    this.tacheService.commencerTache(task.id!, '').subscribe({
+      next: () => { this.snackBar.open(`Tâche "${task.titre}" démarrée`, 'Fermer', { duration: 3000 }); this.loadTasks(); this.loadStats(); },
+      error: (err) => { this.snackBar.open('Erreur lors du démarrage', 'Fermer', { duration: 3000 }); console.error(err); }
+    });
   }
 
   completeTask(task: Task): void {
-    this.snackBar.open(`${task.titre} marquée comme terminée`, 'Fermer', { duration: 3000 });
+    this.tacheService.terminerTache(task.id!).subscribe({
+      next: () => { this.snackBar.open(`Tâche "${task.titre}" terminée`, 'Fermer', { duration: 3000 }); this.loadTasks(); this.loadStats(); },
+      error: (err) => { this.snackBar.open('Erreur lors de la clôture', 'Fermer', { duration: 3000 }); console.error(err); }
+    });
   }
 
   assignTask(task: Task): void {
@@ -249,7 +255,10 @@ export class TachesComponent implements OnInit {
 
   cancelTask(task: Task): void {
     if (confirm(`Êtes-vous sûr de vouloir annuler ${task.titre} ?`)) {
-      this.snackBar.open('Tâche annulée', 'Fermer', { duration: 3000 });
+      this.tacheService.updateStatut(task.id!, StatutTache.Annule).subscribe({
+        next: () => { this.snackBar.open('Tâche annulée', 'Fermer', { duration: 3000 }); this.loadTasks(); this.loadStats(); },
+        error: (err) => { this.snackBar.open('Erreur lors de l\'annulation', 'Fermer', { duration: 3000 }); console.error(err); }
+      });
     }
   }
 
