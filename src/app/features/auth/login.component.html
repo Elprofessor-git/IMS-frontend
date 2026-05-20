@@ -47,9 +47,6 @@
             <mat-checkbox formControlName="rememberMe">
               Se souvenir de moi
             </mat-checkbox>
-            <a mat-button routerLink="/forgot-password" class="forgot-password-link">
-              Mot de passe oublié ?
-            </a>
           </div>
 
           <!-- Message d'erreur -->
@@ -66,11 +63,6 @@
             <span *ngIf="loading">Connexion...</span>
           </button>
 
-          <!-- Lien d'inscription -->
-          <div class="register-link">
-            <span>Pas encore de compte ?</span>
-            <a mat-button routerLink="/register" color="accent">S'inscrire</a>
-          </div>
         </form>
       </mat-card-content>
     </mat-card>

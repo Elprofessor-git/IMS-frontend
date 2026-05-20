@@ -25,7 +25,7 @@
           <mat-icon>inventory_2</mat-icon>
         </div>
         <div class="kpi-info">
-          <h3>{{consoData?.valeurTotale | currency:'EUR':'symbol':'1.0-0'}}</h3>
+          <h3>{{consoData.valeurTotale | currency:'EUR':'symbol':'1.0-0'}}</h3>
           <p>Valeur totale consommée</p>
         </div>
       </mat-card-content>
@@ -37,7 +37,7 @@
           <mat-icon>move_item</mat-icon>
         </div>
         <div class="kpi-info">
-          <h3>{{consoData?.totalMouvements}}</h3>
+          <h3>{{consoData.totalMouvements}}</h3>
           <p>Mouvements de stock</p>
         </div>
       </mat-card-content>
@@ -49,7 +49,7 @@
           <mat-icon>production_quantity_limits</mat-icon>
         </div>
         <div class="kpi-info">
-          <h3>{{consoData?.totalConsommation}}</h3>
+          <h3>{{consoData.totalConsommation}}</h3>
           <p>Quantité totale consommée</p>
         </div>
       </mat-card-content>
@@ -61,7 +61,7 @@
           <mat-icon>article</mat-icon>
         </div>
         <div class="kpi-info">
-          <h3>{{consoData?.articlesLesPlusUtilises?.length}}</h3>
+          <h3>{{consoData.articlesLesPlusUtilises.length}}</h3>
           <p>Articles différents</p>
         </div>
       </mat-card-content>

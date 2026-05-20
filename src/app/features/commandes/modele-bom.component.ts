@@ -123,7 +123,7 @@ import { ModeleBomService, ModeleBom } from './modele-bom.service';
               {{ bom.nom }}
             </mat-panel-title>
             <mat-panel-description>
-              {{ bom.fournitures?.length || 0 }} fourniture(s)
+              {{ bom.fournitures.length }} fourniture(s)
             </mat-panel-description>
           </mat-expansion-panel-header>
 

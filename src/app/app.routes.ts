@@ -55,6 +55,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard, moduleGuard('mouvements')]
   },
   {
+    path: 'emplacements',
+    loadComponent: () => import('./features/emplacements/emplacements.component').then(m => m.EmplacementsComponent),
+    canActivate: [AuthGuard, moduleGuard('emplacements')]
+  },
+  {
     path: 'utilisateurs',
     loadChildren: () => import('./features/utilisateurs/utilisateurs.routes').then(m => m.utilisateursRoutes),
     canActivate: [AuthGuard, moduleGuard('utilisateurs')]

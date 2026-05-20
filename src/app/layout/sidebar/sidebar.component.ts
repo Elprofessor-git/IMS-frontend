@@ -70,7 +70,11 @@ interface MenuItem {
         </ng-container>
       </mat-nav-list>
 
-      <app-chatbot-panel></app-chatbot-panel>
+      @defer (on interaction) {
+        <app-chatbot-panel />
+      } @placeholder {
+        <div></div>
+      }
     </div>
   `,
   styles: [`
@@ -158,7 +162,8 @@ export class SidebarComponent {
       children: [
         { label: 'Stock', icon: 'storage', route: '/stock' },
         { label: 'Articles', icon: 'category', route: '/stock/articles' },
-        { label: 'Mouvements de Stock', icon: 'swap_horiz', route: '/mouvements' }
+        { label: 'Mouvements de Stock', icon: 'swap_horiz', route: '/mouvements' },
+        { label: 'Emplacements', icon: 'warehouse', route: '/emplacements' }
       ],
       permission: 'stock'
     },
