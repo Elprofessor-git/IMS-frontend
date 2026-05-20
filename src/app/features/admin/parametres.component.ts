@@ -280,23 +280,14 @@ export class ParametresComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Charger les paramètres existants
-    this.loadParametres();
-  }
-
-  loadParametres(): void {
-    // Simuler le chargement des paramètres depuis l'API
-    // En réalité, cela viendrait du backend
+    const saved = localStorage.getItem('ims-parametres');
+    if (saved) this.parametresForm.patchValue(JSON.parse(saved));
   }
 
   onSubmit(): void {
     if (this.parametresForm.valid) {
-      
-      this.snackBar.open('Paramètres sauvegardés avec succès', 'Fermer', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top'
-      });
+      localStorage.setItem('ims-parametres', JSON.stringify(this.parametresForm.value));
+      this.snackBar.open('Paramètres sauvegardés', 'OK', { duration: 3000 });
     }
   }
 

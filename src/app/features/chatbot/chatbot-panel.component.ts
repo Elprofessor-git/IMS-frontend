@@ -79,9 +79,13 @@ import { ChatbotService, ChatMessage } from './chatbot.service';
   `,
   styles: [`
     .chatbot-panel {
-      position: relative;
-      width: 100%;
-      border-top: 1px solid #ddd;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      width: 350px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      border-radius: 16px;
       background: #fff;
     }
 

@@ -9,6 +9,7 @@ import { MatListModule } from '@angular/material/list';
 
 import { HeaderComponent } from './layout/header/header.component';
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
+import { ChatbotPanelComponent } from './features/chatbot/chatbot-panel.component';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +23,8 @@ import { SidebarComponent } from './layout/sidebar/sidebar.component';
     MatButtonModule,
     MatListModule,
     HeaderComponent,
-    SidebarComponent
+    SidebarComponent,
+    ChatbotPanelComponent
   ],
   template: `
     <div class="app-container">
@@ -37,6 +39,9 @@ import { SidebarComponent } from './layout/sidebar/sidebar.component';
           </main>
         </mat-sidenav-content>
       </mat-sidenav-container>
+      @defer (on idle) {
+        <app-chatbot-panel />
+      }
     </div>
   `,
   styles: [`

@@ -5,7 +5,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { PermissionService } from '../../core/services/permission.service';
-import { ChatbotPanelComponent } from '../../features/chatbot/chatbot-panel.component';
 
 interface MenuItem {
   label: string;
@@ -23,8 +22,7 @@ interface MenuItem {
     RouterModule,
     MatListModule,
     MatIconModule,
-    MatExpansionModule,
-    ChatbotPanelComponent
+    MatExpansionModule
   ],
   template: `
     <div class="sidebar-content">
@@ -70,11 +68,6 @@ interface MenuItem {
         </ng-container>
       </mat-nav-list>
 
-      @defer (on interaction) {
-        <app-chatbot-panel />
-      } @placeholder {
-        <div></div>
-      }
     </div>
   `,
   styles: [`
@@ -213,12 +206,6 @@ export class SidebarComponent {
       ],
       permission: 'rapports'
     },
-    {
-      label: 'Chatbot IA',
-      icon: 'smart_toy',
-      route: '/chatbot',
-      permission: 'chatbot'
-    }
   ];
 
   constructor(private permissionService: PermissionService) {}
