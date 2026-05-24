@@ -187,8 +187,9 @@ export class StockComponent implements OnInit, OnDestroy {
   }
 
   validateStock(stock: Stock): void {
-    const user = 'manager';
-    this.stockService.validerStock(stock.id, user).subscribe({
+    const currentUser = this.authService.getCurrentUser();
+    const validePar = currentUser?.email || 'admin';
+    this.stockService.validerStock(stock.id, validePar).subscribe({
       next: () => {
         this.snackBar.open('Stock validé', 'Fermer', { duration: 3000 });
         this.loadStocks();
@@ -198,10 +199,8 @@ export class StockComponent implements OnInit, OnDestroy {
   }
 
   reserveStock(stock: Stock): void {
-    const quantite = prompt('Quantité à réserver ?', '1');
-    const q = quantite ? Number(quantite) : 0;
-    if (!q || q <= 0) { return; }
-    this.stockService.reserverStock(stock.id, q).subscribe({
+    const quantite = 1; // TODO: ouvrir un dialog Material
+    this.stockService.reserverStock(stock.id, quantite).subscribe({
       next: () => {
         this.snackBar.open('Quantité réservée', 'Fermer', { duration: 3000 });
         this.loadStocks();

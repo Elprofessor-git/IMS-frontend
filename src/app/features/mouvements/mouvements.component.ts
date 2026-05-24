@@ -18,10 +18,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
+import { forkJoin } from 'rxjs';
 
 import { MouvementService, MouvementStock } from '../../core/services/mouvement.service';
-import { StockService, Article } from '../stock/stock.service';
-import { EmplacementService, Emplacement } from '../../core/services/emplacement.service';
+import { ArticleService } from '../../core/services/article.service';
+import { Article } from '../../shared/models/stock.model';
 
 interface MouvementStats {
   totalMouvements: number;
@@ -60,8 +61,7 @@ export class MouvementsComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  // Table configuration
-  displayedColumns: string[] = ['date', 'type', 'article', 'quantite', 'emplacements', 'motif', 'utilisateur', 'statut', 'actions'];
+  displayedColumns: string[] = ['date', 'type', 'article', 'quantite', 'motif', 'utilisateur', 'statut', 'actions'];
   dataSource = new MatTableDataSource<MouvementStock>([]);
 
   // Pagination
@@ -73,13 +73,11 @@ export class MouvementsComponent implements OnInit {
   searchTerm = '';
   selectedType = '';
   selectedArticle = '';
-  selectedEmplacement = '';
   selectedPeriode = '';
 
   // Data
   mouvements: MouvementStock[] = [];
   articles: Article[] = [];
-  emplacements: Emplacement[] = [];
   stats: MouvementStats | null = null;
 
   // States
@@ -87,8 +85,7 @@ export class MouvementsComponent implements OnInit {
 
   constructor(
     private mouvementService: MouvementService,
-    private stockService: StockService,
-    private emplacementService: EmplacementService,
+    private articleService: ArticleService,
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
@@ -106,45 +103,23 @@ export class MouvementsComponent implements OnInit {
   loadData(): void {
     this.loading = true;
 
-    // Load mouvements
-    this.mouvementService.getAll().subscribe({
-      next: (mouvements) => {
-        this.mouvements = mouvements;
-        this.dataSource.data = mouvements;
-        this.totalItems = mouvements.length;
+    forkJoin({
+      mouvements: this.mouvementService.getAll(),
+      articles: this.articleService.getAll()
+    }).subscribe({
+      next: (results) => {
+        this.mouvements = results.mouvements;
+        this.dataSource.data = results.mouvements;
+        this.totalItems = results.mouvements.length;
+        this.articles = results.articles;
         this.calculateStats();
+        this.applyFilters();
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement des mouvements:', error);
-        this.snackBar.open('Erreur lors du chargement des mouvements', 'Fermer', { duration: 3000 });
+      error: (err) => {
+        console.error('Erreur chargement mouvements:', err);
+        this.snackBar.open('Erreur lors du chargement', 'Fermer', { duration: 3000 });
         this.loading = false;
-      }
-    });
-
-    // Load articles for filter
-    this.stockService.getAll().subscribe({
-      next: (stocks) => {
-        const articleMap = new Map<number, Article>();
-        stocks.forEach(stock => {
-          if (stock.article && !articleMap.has(stock.article.id)) {
-            articleMap.set(stock.article.id, stock.article);
-          }
-        });
-        this.articles = Array.from(articleMap.values());
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des articles:', error);
-      }
-    });
-
-    // Load emplacements for filter
-    this.emplacementService.getAll().subscribe({
-      next: (emplacements) => {
-        this.emplacements = emplacements;
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des emplacements:', error);
       }
     });
   }
@@ -155,15 +130,9 @@ export class MouvementsComponent implements OnInit {
     const sorties = this.mouvements.filter(m => m.typeMouvement === 'Sortie').length;
     const transferts = this.mouvements.filter(m => m.typeMouvement === 'Transfert').length;
 
-    this.stats = {
-      totalMouvements: total,
-      entrees: entrees,
-      sorties: sorties,
-      transferts: transferts
-    };
+    this.stats = { totalMouvements: total, entrees, sorties, transferts };
   }
 
-  // Search and filters
   onSearch(): void {
     this.applyFilters();
   }
@@ -175,7 +144,6 @@ export class MouvementsComponent implements OnInit {
   applyFilters(): void {
     let filteredData = [...this.mouvements];
 
-    // Search filter
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filteredData = filteredData.filter(mouvement =>
@@ -186,27 +154,16 @@ export class MouvementsComponent implements OnInit {
       );
     }
 
-    // Type filter
     if (this.selectedType) {
       filteredData = filteredData.filter(mouvement => mouvement.typeMouvement === this.selectedType);
     }
 
-    // Article filter
     if (this.selectedArticle) {
       filteredData = filteredData.filter(mouvement =>
         mouvement.articleId?.toString() === this.selectedArticle
       );
     }
 
-    // Emplacement filter
-    if (this.selectedEmplacement) {
-      filteredData = filteredData.filter(mouvement =>
-        mouvement.emplacementSourceId?.toString() === this.selectedEmplacement ||
-        mouvement.emplacementDestinationId?.toString() === this.selectedEmplacement
-      );
-    }
-
-    // Period filter
     if (this.selectedPeriode) {
       const now = new Date();
       const startDate = this.getStartDateForPeriod(this.selectedPeriode, now);
@@ -222,7 +179,6 @@ export class MouvementsComponent implements OnInit {
 
   getStartDateForPeriod(periode: string, now: Date): Date {
     const startDate = new Date(now);
-
     switch (periode) {
       case 'AUJOURD_HUI':
         startDate.setHours(0, 0, 0, 0);
@@ -241,7 +197,6 @@ export class MouvementsComponent implements OnInit {
         startDate.setHours(0, 0, 0, 0);
         break;
     }
-
     return startDate;
   }
 
@@ -249,13 +204,11 @@ export class MouvementsComponent implements OnInit {
     this.searchTerm = '';
     this.selectedType = '';
     this.selectedArticle = '';
-    this.selectedEmplacement = '';
     this.selectedPeriode = '';
     this.dataSource.data = this.mouvements;
     this.totalItems = this.mouvements.length;
   }
 
-  // Pagination
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
@@ -268,7 +221,6 @@ export class MouvementsComponent implements OnInit {
     }
   }
 
-  // Type helpers
   getTypeColor(type: string): string {
     switch (type) {
       case 'Entree': return 'primary';
@@ -299,7 +251,6 @@ export class MouvementsComponent implements OnInit {
     }
   }
 
-  // Quantité helpers
   getQuantiteClass(mouvement: MouvementStock): string {
     switch (mouvement.typeMouvement) {
       case 'Entree': return 'positive';
@@ -313,20 +264,13 @@ export class MouvementsComponent implements OnInit {
   getQuantiteDisplay(mouvement: MouvementStock): string {
     const qty = mouvement.quantite;
     switch (mouvement.typeMouvement) {
-      case 'Entree':
-        return `+${qty}`;
-      case 'Sortie':
-        return `-${qty}`;
-      case 'Transfert':
-        return `${qty}`;
-      case 'Ajustement':
-        return qty > 0 ? `+${qty}` : `${qty}`;
-      default:
-        return `${qty}`;
+      case 'Entree': return `+${qty}`;
+      case 'Sortie': return `-${qty}`;
+      case 'Ajustement': return qty > 0 ? `+${qty}` : `${qty}`;
+      default: return `${qty}`;
     }
   }
 
-  // Status helpers
   getStatutColor(statut: string): string {
     switch (statut) {
       case 'BROUILLON': return 'accent';
@@ -345,7 +289,6 @@ export class MouvementsComponent implements OnInit {
     }
   }
 
-  // Actions
   openMouvementForm(): void {
     this.router.navigate(['/mouvements/nouveau']);
   }
@@ -367,13 +310,13 @@ export class MouvementsComponent implements OnInit {
   }
 
   validerMouvement(mouvement: MouvementStock): void {
-    if (confirm(`Êtes-vous sûr de vouloir valider ce mouvement ?`)) {
+    if (confirm('Êtes-vous sûr de vouloir valider ce mouvement ?')) {
       this.snackBar.open('Validation en cours de développement', 'Fermer', { duration: 3000 });
     }
   }
 
   annulerMouvement(mouvement: MouvementStock): void {
-    if (confirm(`Êtes-vous sûr de vouloir annuler ce mouvement ?`)) {
+    if (confirm('Êtes-vous sûr de vouloir annuler ce mouvement ?')) {
       this.snackBar.open('Annulation en cours de développement', 'Fermer', { duration: 3000 });
     }
   }
@@ -382,5 +325,3 @@ export class MouvementsComponent implements OnInit {
     this.snackBar.open('Fonctionnalité d\'export en cours de développement', 'Fermer', { duration: 3000 });
   }
 }
-
-

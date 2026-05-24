@@ -133,14 +133,14 @@ export class ArticlesComponent implements OnInit {
   calculateStats(): void {
     const total = this.articles.length;
     const actifs = this.articles.filter(a => a.estActif).length;
-    const alertes = this.articles.filter(a => a.seuilAlerte && a.seuilAlerte > 0).length;
-    const critiques = this.articles.filter(a => a.seuilCritique && a.seuilCritique > 0).length;
+    const inactifs = this.articles.filter(a => !a.estActif).length;
+    const avecSeuil = this.articles.filter(a => a.seuilAlerte && a.seuilAlerte > 0).length;
 
     this.stats = {
       totalArticles: total,
       articlesEnStock: actifs,
-      articlesStockFaible: alertes,
-      articlesRupture: critiques
+      articlesStockFaible: inactifs,
+      articlesRupture: avecSeuil
     };
   }
 

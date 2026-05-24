@@ -56,16 +56,6 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Emplacement</mat-label>
-          <mat-select [(ngModel)]="selectedEmplacement" (selectionChange)="onFilterChange()">
-            <mat-option value="">Tous les emplacements</mat-option>
-            <mat-option *ngFor="let emplacement of emplacements" [value]="emplacement.id">
-              {{ emplacement.nom }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
           <mat-label>Période</mat-label>
           <mat-select [(ngModel)]="selectedPeriode" (selectionChange)="onFilterChange()">
             <mat-option value="">Toutes les périodes</mat-option>
@@ -202,26 +192,6 @@
                   {{ getQuantiteDisplay(mouvement) }}
                 </span>
                 <span class="quantite-unit">{{ mouvement.article?.unite || 'unité' }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Colonne Emplacements -->
-          <ng-container matColumnDef="emplacements">
-            <th mat-header-cell *matHeaderCellDef>Emplacements</th>
-            <td mat-cell *matCellDef="let mouvement">
-              <div class="emplacements-info">
-                <div class="emplacement-item" *ngIf="mouvement.emplacementSource">
-                  <mat-icon class="emplacement-icon">location_on</mat-icon>
-                  <span>De: {{ mouvement.emplacementSource.nom }}</span>
-                </div>
-                <div class="emplacement-item" *ngIf="mouvement.emplacementDestination">
-                  <mat-icon class="emplacement-icon">location_on</mat-icon>
-                  <span>Vers: {{ mouvement.emplacementDestination.nom }}</span>
-                </div>
-                <div class="emplacement-item" *ngIf="!mouvement.emplacementSource && !mouvement.emplacementDestination">
-                  <span class="no-emplacement">Non spécifié</span>
-                </div>
               </div>
             </td>
           </ng-container>
