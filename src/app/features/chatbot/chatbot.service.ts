@@ -15,12 +15,14 @@ export interface ChatMessage {
 export interface ChatRequest {
   message: string;
   sessionId: string;
-  language?: string;
+  history?: { role: string; content: string }[];
 }
 
 export interface ChatResponse {
   response: string;
   sessionId: string;
+  success?: boolean;
+  timestamp?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -38,10 +40,20 @@ export class ChatbotService {
   }
 
   sendMessage(text: string): Observable<ChatResponse> {
-    const body: ChatRequest = { message: text, sessionId: this.sessionId };
     const endpoint = this.authService.isAuthenticated()
       ? `${environment.apiUrl}/Chatbot/chat`
       : `${environment.apiUrl}/Chatbot/chat/anonymous`;
+
+    const history = this.messagesSubject.value.map(msg => ({
+      role: msg.isUser ? 'user' : 'assistant',
+      content: msg.text
+    }));
+
+    const body: ChatRequest = {
+      message: text,
+      sessionId: this.sessionId,
+      history: history.length > 0 ? history : undefined
+    };
 
     this.addMessage(text, true);
 
