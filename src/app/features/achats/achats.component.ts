@@ -126,8 +126,8 @@ export class AchatsComponent implements OnInit {
 
   calculateStats(): void {
     const total = this.achats.length;
-    const enAttente = this.achats.filter(a => ['BROUILLON', 'CONFIRME', 'EXPEDIE'].includes(a.statut)).length;
-    const livres = this.achats.filter(a => a.statut === 'LIVRE').length;
+    const enAttente = this.achats.filter(a => ['Brouillon', 'Soumis', 'Confirme'].includes(a.statut)).length;
+    const livres = this.achats.filter(a => a.statut === 'Livre').length;
     const montantTotal = this.achats.reduce((sum, a) => sum + (a.montantTotal || 0), 0);
 
     this.stats = {
@@ -170,7 +170,7 @@ export class AchatsComponent implements OnInit {
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filteredData = filteredData.filter(achat =>
-        achat.referenceAchat.toLowerCase().includes(term) ||
+        ((achat.numeroAchat || achat.referenceAchat || '').toLowerCase().includes(term)) ||
         (achat.fournisseur?.nom && achat.fournisseur.nom.toLowerCase().includes(term))
       );
     }
@@ -251,33 +251,33 @@ export class AchatsComponent implements OnInit {
   // Status helpers
   getStatutColor(statut: string): string {
     switch (statut) {
-      case 'BROUILLON': return 'accent';
-      case 'CONFIRME': return 'primary';
-      case 'EXPEDIE': return 'primary';
-      case 'LIVRE': return 'primary';
-      case 'ANNULE': return 'warn';
+      case 'Brouillon': return 'accent';
+      case 'Soumis': return 'primary';
+      case 'Confirme': return 'primary';
+      case 'Livre': return 'primary';
+      case 'Annule': return 'warn';
       default: return 'accent';
     }
   }
 
   getStatutIcon(statut: string): string {
     switch (statut) {
-      case 'BROUILLON': return 'edit';
-      case 'CONFIRME': return 'check';
-      case 'EXPEDIE': return 'local_shipping';
-      case 'LIVRE': return 'check_circle';
-      case 'ANNULE': return 'cancel';
+      case 'Brouillon': return 'edit';
+      case 'Soumis': return 'send';
+      case 'Confirme': return 'check';
+      case 'Livre': return 'check_circle';
+      case 'Annule': return 'cancel';
       default: return 'help';
     }
   }
 
   getStatutLabel(statut: string): string {
     switch (statut) {
-      case 'BROUILLON': return 'Brouillon';
-      case 'CONFIRME': return 'Confirmé';
-      case 'EXPEDIE': return 'Expédié';
-      case 'LIVRE': return 'Livré';
-      case 'ANNULE': return 'Annulé';
+      case 'Brouillon': return 'Brouillon';
+      case 'Soumis': return 'Soumis';
+      case 'Confirme': return 'Confirmé';
+      case 'Livre': return 'Livré';
+      case 'Annule': return 'Annulé';
       default: return statut;
     }
   }

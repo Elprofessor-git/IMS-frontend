@@ -24,6 +24,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { ImportationService, Importation, LigneImportation } from './importation.service';
 import { FournisseurService } from '../../core/services/fournisseur.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Fournisseur } from '../../shared/models/common.model';
 
 interface ImportationStats {
@@ -101,6 +102,7 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
   constructor(
     private importationService: ImportationService,
     private fournisseurService: FournisseurService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private router: Router
@@ -184,7 +186,7 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
     // Filtre par fournisseur
     if (this.selectedFournisseur) {
       filteredData = filteredData.filter(importation =>
-        importation.fournisseur?.id === this.selectedFournisseur
+        importation.fournisseur?.id?.toString() === this.selectedFournisseur
       );
     }
 
@@ -338,9 +340,7 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
   }
 
   viewImportation(importation: Importation): void {
-    this.snackBar.open(`Affichage des détails de ${importation.referenceImportation}`, 'Fermer', {
-      duration: 3000
-    });
+    this.router.navigate(['/importations', importation.id, 'details']);
   }
 
   editImportation(importation: Importation): void {
@@ -394,7 +394,8 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
   }
 
   valider(importation: Importation): void {
-    this.importationService.validerImportation(importation.id!, 'UI').subscribe({
+    const validePar = this.authService.getCurrentUser()?.email || 'admin';
+    this.importationService.validerImportation(importation.id!, validePar).subscribe({
       next: (res) => {
         this.snackBar.open(res.message, 'Fermer', { duration: 3000 });
         this.loadData();
@@ -425,7 +426,7 @@ export class ImportationsComponent implements OnInit, AfterViewInit {
 
   annulerImportation(importation: Importation): void {
     if (confirm(`Êtes-vous sûr de vouloir annuler l'importation ${importation.referenceImportation} ?`)) {
-      this.updateStatut(importation, 'ANNULE');
+      this.updateStatut(importation, 'Annulee');
     }
   }
 

@@ -6,6 +6,7 @@ import { BaseApiService } from './base-api.service';
 
 export interface IAchat {
   id?: number;
+  numeroAchat?: string;
   referenceAchat: string;
   fournisseurId: number;
   dateAchat: Date;
