@@ -22,7 +22,8 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { RapportService } from '../../core/services/rapport.service';
 import { EmplacementService } from '../../core/services/emplacement.service';
 import { ArticleService } from '../../core/services/article.service';
-import { Stock } from '../../shared/models/stock.model';
+import { StockService, Stock } from '../stock/stock.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-rapport-stock',
@@ -94,7 +95,8 @@ export class RapportStockComponent implements OnInit {
   constructor(
     private rapportService: RapportService,
     private emplacementService: EmplacementService,
-    private articleService: ArticleService
+    private articleService: ArticleService,
+    private stockService: StockService
   ) {}
 
   ngOnInit(): void {
@@ -120,94 +122,88 @@ export class RapportStockComponent implements OnInit {
     }
     this.isLoading = true;
     this.error = null;
-    
-    // Récupérer les stocks réels depuis le service
-    this.articleService.getAll().subscribe(articles => {
-      // Récupérer tous les stocks pour ces articles
-      const stocks: Stock[] = [];
-      
-      articles.forEach(article => {
-        // Simuler un appel pour récupérer le stock de chaque article
-        // Dans une implémentation réelle, vous auriez un endpoint dedicated
-        const stock: Stock = {
-          id: article.id,
-          articleId: article.id,
-          article: article,
-          quantite: 0,
-          quantiteReservee: 0,
-          typeStock: 'Libre' as any, // TypeStock.Libre
-          prixUnitaire: article.prixUnitaireMoyen || 0,
-          dateEntree: new Date(),
-          estValide: true,
-          emplacementPhysique: 'DEF'
+
+    forkJoin({
+      stocks: this.stockService.getAll(),
+      articles: this.articleService.getAll()
+    }).subscribe({
+      next: ({ stocks, articles }) => {
+        // Enrichir les stocks avec les articles si article non inclus
+        const articleMap = new Map(articles.map(a => [a.id, a]));
+        const enriched: Stock[] = stocks.map(s => ({
+          ...s,
+          article: s.article ?? articleMap.get(s.articleId)
+        }));
+
+        // Filtrer selon les critères sélectionnés
+        let stocksFiltres = enriched;
+
+        if (this.selectedCategorie) {
+          stocksFiltres = stocksFiltres.filter(s => s.article?.categorie === this.selectedCategorie);
+        }
+
+        if (this.selectedEmplacement) {
+          stocksFiltres = stocksFiltres.filter(s => s.emplacementPhysique === this.selectedEmplacement);
+        }
+
+        if (this.searchTerm) {
+          const term = this.searchTerm.toLowerCase();
+          stocksFiltres = stocksFiltres.filter(s =>
+            s.article?.designation?.toLowerCase().includes(term) ||
+            s.article?.reference?.toLowerCase().includes(term)
+          );
+        }
+
+        // Calculer les statistiques réelles
+        const valeurTotale = stocksFiltres.reduce((acc, s) => {
+          const prix = s.prixUnitaire || s.article?.prixUnitaireMoyen || 0;
+          return acc + (s.quantite * prix);
+        }, 0);
+
+        const totalArticles = new Set(stocksFiltres.map(s => s.articleId)).size;
+        const quantiteTotale = stocksFiltres.reduce((acc, s) => acc + s.quantite, 0);
+
+        const alertes = stocksFiltres.filter(s => {
+          const seuil = s.article?.seuilAlerte || 0;
+          return seuil > 0 && s.quantite <= seuil;
+        }).length;
+
+        this.rapportData = {
+          valeurTotale,
+          totalArticles,
+          quantiteTotale,
+          alertes,
+          rotationMoyenne: 0,
+          mouvements: { entrees: 0, sorties: 0, transferts: 0, ajustements: 0 },
+          mouvementsChart: {},
+          rotation: { rapide: 0, normale: 0, lente: 0 },
+          topArticles: [],
+          previsions: [],
+          alertesDetaillees: stocksFiltres
+            .filter(s => {
+              const seuil = s.article?.seuilAlerte || 0;
+              return seuil > 0 && s.quantite <= seuil;
+            })
+            .map(s => ({
+              niveau: s.quantite === 0 ? 'critique' : 'warning',
+              articleNom: s.article?.designation || 'N/A',
+              type: s.quantite === 0 ? 'Rupture de stock' : 'Stock bas',
+              dateDetection: new Date(),
+              message: s.quantite === 0 ? 'Stock à 0' : `Stock: ${s.quantite}`,
+              stockActuel: s.quantite,
+              seuil: s.article?.seuilAlerte || 0,
+              article: s.article
+            }))
         };
-        stocks.push(stock);
-      });
 
-      // Filtrer selon les critères sélectionnés
-      let stocksFiltres = stocks;
-      
-      if (this.selectedCategorie) {
-        stocksFiltres = stocksFiltres.filter(s => s.article?.categorie === this.selectedCategorie);
+        this.stockDataSource.data = stocksFiltres;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.error = 'Erreur lors du chargement des données de stock';
+        this.isLoading = false;
+        console.error(err);
       }
-      
-      if (this.selectedEmplacement) {
-        stocksFiltres = stocksFiltres.filter(s => s.emplacementPhysique === this.selectedEmplacement);
-      }
-      
-      if (this.searchTerm) {
-        const term = this.searchTerm.toLowerCase();
-        stocksFiltres = stocksFiltres.filter(s => 
-          s.article?.designation?.toLowerCase().includes(term) ||
-          s.article?.reference?.toLowerCase().includes(term)
-        );
-      }
-
-      // Calculer les statistiques
-      const valeurTotale = stocksFiltres.reduce((acc, s) => {
-        const prix = s.article?.prixUnitaireMoyen || 0;
-        return acc + (s.quantite * prix);
-      }, 0);
-      
-      const totalArticles = stocksFiltres.length;
-      const quantiteTotale = stocksFiltres.reduce((acc, s) => acc + s.quantite, 0);
-      
-      const alertes = stocksFiltres.filter(s => {
-        const seuil = s.article?.seuilAlerte || 0;
-        return s.quantite <= seuil;
-      }).length;
-
-      this.rapportData = {
-        valeurTotale,
-        totalArticles,
-        quantiteTotale,
-        alertes,
-        rotationMoyenne: 4.2, // TODO: Calculer depuis les mouvements
-        mouvements: { entrees: 0, sorties: 0, transferts: 0, ajustements: 0 },
-        mouvementsChart: {},
-        rotation: { rapide: 0, normale: 0, lente: 0 },
-        topArticles: [],
-        previsions: [],
-        alertesDetaillees: stocksFiltres
-          .filter(s => s.quantite <= (s.article?.seuilAlerte || 0))
-          .map(s => ({
-            niveau: s.quantite === 0 ? 'critique' : 'warning',
-            articleNom: s.article?.designation || 'N/A',
-            type: s.quantite === 0 ? 'Rupture de stock' : 'Stock bas',
-            dateDetection: new Date(),
-            message: s.quantite === 0 ? 'Stock à 0' : `Stock: ${s.quantite}`,
-            stockActuel: s.quantite,
-            seuil: s.article?.seuilAlerte || 0,
-            article: s.article
-          }))
-      };
-
-      this.stockDataSource.data = stocksFiltres;
-      this.isLoading = false;
-    }, error => {
-      this.error = 'Erreur lors du chargement des données de stock';
-      this.isLoading = false;
-      console.error(error);
     });
   }
 
@@ -230,7 +226,7 @@ export class RapportStockComponent implements OnInit {
   getStockStatusLabel(item: Stock): string {
     if (!item || !item.article) return 'N/A';
     if (item.quantite === 0) return 'Rupture';
-    if (item.quantite <= (item.article.seuilCritique || 0)) return 'Critique';
+    if (item.quantite <= ((item.article as any).seuilCritique || 0)) return 'Critique';
     if (item.quantite <= (item.article.seuilAlerte || 0)) return 'Bas';
     return 'Normal';
   }

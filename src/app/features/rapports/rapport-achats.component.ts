@@ -102,7 +102,7 @@ export class RapportAchatsComponent implements OnInit, AfterViewInit {
 
     const fMap = new Map<string, IStatFournisseur>();
     filtered.forEach(a => {
-      const nom = a.fournisseur?.nom ?? 'Inconnu';
+      const nom = a.fournisseur?.nomEntreprise ?? 'Inconnu';
       const s = fMap.get(nom) ?? { nom, nbAchats: 0, montantTotal: 0 };
       s.nbAchats++;
       s.montantTotal += a.montantTotal ?? 0;

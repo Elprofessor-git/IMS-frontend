@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,10 +37,10 @@ import { TacheService } from './tache.service';
       <mat-card>
         <mat-card-header>
           <mat-card-title>
-            <mat-icon>add_task</mat-icon>
-            Nouvelle Tâche
+            <mat-icon>{{ isEdit ? 'edit' : 'add_task' }}</mat-icon>
+            {{ isEdit ? 'Modifier' : 'Nouvelle' }} Tâche
           </mat-card-title>
-          <mat-card-subtitle>Créer une nouvelle tâche de production</mat-card-subtitle>
+          <mat-card-subtitle>{{ isEdit ? 'Modifier une tâche existante' : 'Créer une nouvelle tâche de production' }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
@@ -48,9 +48,9 @@ import { TacheService } from './tache.service';
             <!-- Nom de la tâche -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Nom de la tâche</mat-label>
-              <input matInput formControlName="nom" placeholder="Ex: Production Lot A">
+              <input matInput formControlName="titre" placeholder="Ex: Production Lot A">
               <mat-icon matSuffix>task</mat-icon>
-              <mat-error *ngIf="tacheForm.get('nom')?.hasError('required')">
+              <mat-error *ngIf="tacheForm.get('titre')?.hasError('required')">
                 Le nom est requis
               </mat-error>
             </mat-form-field>
@@ -67,10 +67,10 @@ import { TacheService } from './tache.service';
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Priorité</mat-label>
               <mat-select formControlName="priorite">
-                <mat-option value="BASSE">Basse</mat-option>
-                <mat-option value="MOYENNE">Moyenne</mat-option>
-                <mat-option value="HAUTE">Haute</mat-option>
-                <mat-option value="CRITIQUE">Critique</mat-option>
+                <mat-option value="Basse">Basse</mat-option>
+                <mat-option value="Normale">Normale</mat-option>
+                <mat-option value="Haute">Haute</mat-option>
+                <mat-option value="Critique">Critique</mat-option>
               </mat-select>
               <mat-icon matSuffix>priority_high</mat-icon>
             </mat-form-field>
@@ -79,48 +79,43 @@ import { TacheService } from './tache.service';
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Statut</mat-label>
               <mat-select formControlName="statut">
-                <mat-option value="EN_ATTENTE">En attente</mat-option>
-                <mat-option value="EN_COURS">En cours</mat-option>
-                <mat-option value="EN_PAUSE">En pause</mat-option>
-                <mat-option value="TERMINEE">Terminée</mat-option>
-                <mat-option value="ANNULEE">Annulée</mat-option>
+                <mat-option value="NonCommence">Non commencée</mat-option>
+                <mat-option value="EnCours">En cours</mat-option>
+                <mat-option value="Bloque">Bloquée</mat-option>
+                <mat-option value="Termine">Terminée</mat-option>
+                <mat-option value="Annule">Annulée</mat-option>
               </mat-select>
               <mat-icon matSuffix>flag</mat-icon>
             </mat-form-field>
 
-            <!-- Date d'échéance -->
+            <!-- Date de fin prévue -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Date d'échéance</mat-label>
-              <input matInput [matDatepicker]="picker" formControlName="dateEcheance">
+              <mat-label>Date de fin prévue</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="dateFinPrevue">
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
-              <mat-error *ngIf="tacheForm.get('dateEcheance')?.hasError('required')">
-                La date d'échéance est requise
+              <mat-error *ngIf="tacheForm.get('dateFinPrevue')?.hasError('required')">
+                La date de fin est requise
               </mat-error>
             </mat-form-field>
 
             <!-- Assigné à -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Assigné à</mat-label>
-              <mat-select formControlName="assigneA">
-                <mat-option value="1">Jean Dupont</mat-option>
-                <mat-option value="2">Marie Martin</mat-option>
-                <mat-option value="3">Pierre Durand</mat-option>
-                <mat-option value="4">Sophie Bernard</mat-option>
-              </mat-select>
+              <input matInput formControlName="responsableAssigne" placeholder="Nom du responsable">
               <mat-icon matSuffix>person</mat-icon>
             </mat-form-field>
 
             <!-- Progression -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Progression (%)</mat-label>
-              <input matInput type="number" formControlName="progression" 
+              <input matInput type="number" formControlName="pourcentageAvancement"
                      min="0" max="100" placeholder="0">
               <span matSuffix>%</span>
-              <mat-error *ngIf="tacheForm.get('progression')?.hasError('min')">
+              <mat-error *ngIf="tacheForm.get('pourcentageAvancement')?.hasError('min')">
                 La progression doit être >= 0
               </mat-error>
-              <mat-error *ngIf="tacheForm.get('progression')?.hasError('max')">
+              <mat-error *ngIf="tacheForm.get('pourcentageAvancement')?.hasError('max')">
                 La progression doit être <= 100
               </mat-error>
             </mat-form-field>
@@ -132,12 +127,12 @@ import { TacheService } from './tache.service';
             <mat-icon>cancel</mat-icon>
             Annuler
           </button>
-          <button mat-raised-button color="primary" 
+          <button mat-raised-button color="primary"
                   [disabled]="tacheForm.invalid || isSubmitting"
                   (click)="onSubmit()">
             <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
             <mat-icon *ngIf="!isSubmitting">save</mat-icon>
-            <span *ngIf="!isSubmitting">Créer la tâche</span>
+            <span *ngIf="!isSubmitting">{{ isEdit ? 'Modifier' : 'Créer' }} la tâche</span>
           </button>
         </mat-card-actions>
       </mat-card>
@@ -199,17 +194,20 @@ import { TacheService } from './tache.service';
 export class TacheFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
   private tacheService = inject(TacheService);
 
   tacheForm: FormGroup;
   isSubmitting = false;
+  isEdit = false;
+  private tacheId: number | null = null;
 
   constructor() {
     this.tacheForm = this.fb.group({
       titre: ['', [Validators.required, Validators.minLength(3)]],
       description: [''],
-      priorite: ['Moyenne', [Validators.required]],
+      priorite: ['Normale', [Validators.required]],
       statut: ['NonCommence', [Validators.required]],
       dateFinPrevue: ['', [Validators.required]],
       responsableAssigne: [''],
@@ -218,12 +216,32 @@ export class TacheFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Set default date to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    this.tacheForm.patchValue({
-      dateEcheance: tomorrow
-    });
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEdit = true;
+      this.tacheId = +id;
+      this.tacheService.getById(this.tacheId).subscribe({
+        next: (tache) => {
+          this.tacheForm.patchValue({
+            titre: tache.titre,
+            description: tache.description,
+            priorite: tache.priorite,
+            statut: tache.statut,
+            dateFinPrevue: tache.dateFinPrevue ? new Date(tache.dateFinPrevue) : null,
+            responsableAssigne: tache.assigneA ?? '',
+            pourcentageAvancement: tache.pourcentageAvancement
+          });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors du chargement de la tâche', 'Fermer', { duration: 3000 });
+          this.router.navigate(['/taches']);
+        }
+      });
+    } else {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      this.tacheForm.patchValue({ dateFinPrevue: tomorrow });
+    }
   }
 
   onSubmit(): void {
@@ -235,26 +253,22 @@ export class TacheFormComponent implements OnInit {
     this.isSubmitting = true;
     const tacheData = this.tacheForm.value;
 
-    
+    const request = this.isEdit && this.tacheId
+      ? this.tacheService.update(this.tacheId, tacheData)
+      : this.tacheService.creerTache(tacheData);
 
-    this.tacheService.creerTache(tacheData as any).subscribe({
+    request.subscribe({
       next: () => {
-        this.snackBar.open('Tâche créée avec succès!', 'OK', {
+        this.snackBar.open(`Tâche ${this.isEdit ? 'modifiée' : 'créée'} avec succès!`, 'OK', {
           duration: 3000,
           panelClass: ['success-snackbar']
         });
         this.router.navigate(['/taches']);
+        this.isSubmitting = false;
       },
       error: (err) => {
         const msg = err?.error?.message || err?.error?.title || 'Erreur serveur';
-        console.error('Erreur lors de la création:', err);
-        this.snackBar.open(msg, 'Fermer', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-        this.isSubmitting = false;
-      },
-      complete: () => {
+        this.snackBar.open(msg, 'Fermer', { duration: 5000, panelClass: ['error-snackbar'] });
         this.isSubmitting = false;
       }
     });
@@ -266,8 +280,7 @@ export class TacheFormComponent implements OnInit {
 
   private markFormGroupTouched(): void {
     Object.keys(this.tacheForm.controls).forEach(key => {
-      const control = this.tacheForm.get(key);
-      control?.markAsTouched();
+      this.tacheForm.get(key)?.markAsTouched();
     });
   }
 }

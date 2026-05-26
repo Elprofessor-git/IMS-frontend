@@ -66,6 +66,7 @@ export class TachesComponent implements OnInit {
 
   // Data
   stats: TaskStats | null = null;
+  private allTasks: Task[] = [];
 
   // Filters
   searchTerm = '';
@@ -102,7 +103,8 @@ export class TachesComponent implements OnInit {
     this.loading = true;
     this.tacheService.getAll().subscribe({
       next: (tasks) => {
-        this.dataSource.data = tasks;
+        this.allTasks = tasks;
+        this.applyFilters();
         this.totalItems = tasks.length;
         this.loading = false;
       },
@@ -136,7 +138,32 @@ export class TachesComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.snackBar.open('Filtres appliqués', 'Fermer', { duration: 2000 });
+    let filtered = this.allTasks;
+
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(t =>
+        t.titre?.toLowerCase().includes(term) ||
+        t.description?.toLowerCase().includes(term)
+      );
+    }
+
+    if (this.selectedStatus) {
+      filtered = filtered.filter(t => t.statut === this.selectedStatus);
+    }
+
+    if (this.selectedPriority) {
+      filtered = filtered.filter(t => t.priorite === this.selectedPriority);
+    }
+
+    if (this.selectedAssignee) {
+      filtered = filtered.filter(t =>
+        t.assigneA?.toLowerCase().includes(this.selectedAssignee.toLowerCase())
+      );
+    }
+
+    this.dataSource.data = filtered;
+    this.totalItems = filtered.length;
   }
 
   clearFilters(): void {
@@ -155,56 +182,62 @@ export class TachesComponent implements OnInit {
   // Helper methods
   getPriorityColor(priority: string): 'primary' | 'accent' | 'warn' {
     switch (priority) {
-      case 'HAUTE': return 'warn';
-      case 'MOYENNE': return 'accent';
-      default: return 'primary';
+      case 'Haute':    return 'warn';
+      case 'Critique': return 'warn';
+      case 'Normale':  return 'accent';
+      default:         return 'primary';
     }
   }
 
   getPriorityIcon(priority: string): string {
     switch (priority) {
-      case 'HAUTE': return 'priority_high';
-      case 'MOYENNE': return 'remove';
-      case 'BASSE': return 'keyboard_arrow_down';
-      default: return 'help';
+      case 'Critique': return 'priority_high';
+      case 'Haute':    return 'priority_high';
+      case 'Normale':  return 'remove';
+      case 'Basse':    return 'keyboard_arrow_down';
+      default:         return 'help';
     }
   }
 
   getPriorityLabel(priority: string): string {
     switch (priority) {
-      case 'HAUTE': return 'Haute';
-      case 'MOYENNE': return 'Moyenne';
-      case 'BASSE': return 'Basse';
-      default: return priority;
+      case 'Haute':    return 'Haute';
+      case 'Critique': return 'Critique';
+      case 'Normale':  return 'Normale';
+      case 'Basse':    return 'Basse';
+      default:         return priority || 'Inconnu';
     }
   }
 
   getStatusColor(status: string): 'primary' | 'accent' | 'warn' {
     switch (status) {
-      case 'TERMINEE': return 'primary';
-      case 'EN_COURS': return 'accent';
-      case 'ANNULEE': return 'warn';
-      default: return 'primary';
+      case 'Termine':     return 'primary';
+      case 'EnCours':     return 'accent';
+      case 'Annule':      return 'warn';
+      case 'Bloque':      return 'warn';
+      default:            return 'primary';
     }
   }
 
   getStatusIcon(status: string): string {
     switch (status) {
-      case 'EN_ATTENTE': return 'schedule';
-      case 'EN_COURS': return 'play_arrow';
-      case 'TERMINEE': return 'check_circle';
-      case 'ANNULEE': return 'cancel';
-      default: return 'help';
+      case 'NonCommence': return 'schedule';
+      case 'EnCours':     return 'play_arrow';
+      case 'Bloque':      return 'block';
+      case 'Termine':     return 'check_circle';
+      case 'Annule':      return 'cancel';
+      default:            return 'help';
     }
   }
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'EN_ATTENTE': return 'En attente';
-      case 'EN_COURS': return 'En cours';
-      case 'TERMINEE': return 'Terminée';
-      case 'ANNULEE': return 'Annulée';
-      default: return status;
+      case 'NonCommence': return 'Non commencée';
+      case 'EnCours':     return 'En cours';
+      case 'Bloque':      return 'Bloquée';
+      case 'Termine':     return 'Terminée';
+      case 'Annule':      return 'Annulée';
+      default:            return status || 'Inconnu';
     }
   }
 
@@ -220,15 +253,15 @@ export class TachesComponent implements OnInit {
 
   // Action methods
   openTaskForm(): void {
-    this.router.navigate(['/taches/nouvelle']);
+    this.router.navigate(['/taches/nouveau']);
   }
 
   viewTask(task: Task): void {
-    this.snackBar.open(`Affichage des détails de ${task.titre}`, 'Fermer', { duration: 3000 });
+    this.router.navigate(['/taches', task.id, 'details']);
   }
 
   editTask(task: Task): void {
-    this.snackBar.open(`Modification de ${task.titre}`, 'Fermer', { duration: 3000 });
+    this.router.navigate(['/taches', task.id]);
   }
 
   startTask(task: Task): void {
