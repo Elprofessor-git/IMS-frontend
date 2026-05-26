@@ -276,7 +276,7 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
             <!-- Notes -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Notes et commentaires</mat-label>
-              <textarea matInput formControlName="notes" rows="3"></textarea>
+              <textarea matInput formControlName="notesSpeciales" rows="3"></textarea>
               <mat-icon matSuffix>note</mat-icon>
             </mat-form-field>
 
@@ -376,7 +376,7 @@ export class CommandeFormComponent implements OnInit {
       statut: ['EnAttente', Validators.required],
       priorite: ['Normale'],
       pctSecurite: [5, [Validators.min(0), Validators.max(20)]],
-      notes: ['']
+      notesSpeciales: ['']
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -431,7 +431,7 @@ export class CommandeFormComponent implements OnInit {
           statut:                 commande.statut,
           priorite:               commande.priorite ?? 'Normale',
           pctSecurite:            commande.pctSecurite ?? 5,
-          notes:                  commande.notesSpeciales ?? ''
+          notesSpeciales:         commande.notesSpeciales ?? ''
         });
         if (commande.plateformeId) {
           this.onPlateformeChange(commande.plateformeId);

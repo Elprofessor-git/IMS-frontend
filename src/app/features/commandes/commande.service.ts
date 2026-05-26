@@ -4,23 +4,6 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { BaseApiService } from '../../core/services/base-api.service';
 import { CommandeClient, BesoinCommande } from '../../shared/models/commande.model';
 
-export interface ICommandeClient {
-  id: number;
-  clientId: number;
-  reference: string;
-  dateCommande: Date;
-  statut: 'EN_ATTENTE' | 'PRETE' | 'EN_COURS' | 'TERMINEE' | 'ANNULEE' | any;
-  lignesCommande: ILigneCommande[];
-}
-
-export interface ILigneCommande {
-  id: number;
-  commandeId: number;
-  articleId: number;
-  quantite: number;
-  prixUnitaire: number;
-  statut: 'EN_ATTENTE' | 'STOCK_RESERVE' | 'EN_PRODUCTION' | any;
-}
 
 export interface ConfigTaille {
   id?: number;

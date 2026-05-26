@@ -135,7 +135,8 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
           filtered = filtered.filter(o =>
             o.numeroCommande?.toLowerCase().includes(term) ||
             o.client?.nom?.toLowerCase().includes(term) ||
-            o.client?.prenom?.toLowerCase().includes(term)
+            o.client?.prenom?.toLowerCase().includes(term) ||
+            (o.client as any)?.plateforme?.nom?.toLowerCase().includes(term)
           );
         }
 
