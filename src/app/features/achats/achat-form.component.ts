@@ -71,7 +71,7 @@ import { CommandeService } from '../commandes/commande.service';
             <mat-label>Fournisseur</mat-label>
                   <mat-select formControlName="fournisseurId" (selectionChange)="onFournisseurChange()">
               <mat-option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
-                      {{ fournisseur.nom }} - {{ fournisseur.code }}
+                      {{ fournisseur.nomEntreprise }}
               </mat-option>
             </mat-select>
                   <mat-icon matSuffix>business</mat-icon>

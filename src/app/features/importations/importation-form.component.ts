@@ -70,7 +70,7 @@ import { CommandeService } from '../commandes/commande.service';
                 <mat-form-field appearance="outline">
                   <mat-label>Fournisseur</mat-label>
                   <mat-select formControlName="fournisseurId">
-                    <mat-option *ngFor="let f of fournisseurs" [value]="f.id">{{ f.nom }}</mat-option>
+                    <mat-option *ngFor="let f of fournisseurs" [value]="f.id">{{ f.nomEntreprise }}</mat-option>
                   </mat-select>
                   <mat-icon matSuffix>business</mat-icon>
                 </mat-form-field>

@@ -97,7 +97,7 @@ import { AuthService } from '../../core/services/auth.service';
                   <mat-label>Article</mat-label>
                   <mat-select formControlName="articleId" (selectionChange)="onArticleChange()">
                     <mat-option *ngFor="let article of articles" [value]="article.id">
-                      {{ article.nom }} - {{ article.reference }}
+                      {{ article.designation }} - {{ article.reference }}
                     </mat-option>
             </mat-select>
                   <mat-icon matSuffix>inventory</mat-icon>

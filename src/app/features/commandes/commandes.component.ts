@@ -265,17 +265,15 @@ export class CommandesComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Action methods
   openNewOrderDialog(): void {
-    this.router.navigate(['/commandes/new']);
+    this.router.navigate(['/commandes/nouveau']);
   }
 
   viewOrder(order: CommandeClient): void {
-    this.snackBar.open(`Voir détails de la commande ${order.numeroCommande}`, 'Fermer', {
-      duration: 2000
-    });
+    this.router.navigate(['/commandes', order.id, 'details']);
   }
 
   editOrder(order: CommandeClient): void {
-    this.router.navigate(['/commandes/edit', order.id]);
+    this.router.navigate(['/commandes', order.id]);
   }
 
   printOrder(order: CommandeClient): void {

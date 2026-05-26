@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -34,10 +34,10 @@ import { Article } from '../../shared/models/stock.model';
       <mat-card>
         <mat-card-header>
           <mat-card-title>
-            <mat-icon>add_box</mat-icon>
-            Nouvel Article
+            <mat-icon>{{ isEdit ? 'edit' : 'add_box' }}</mat-icon>
+            {{ isEdit ? 'Modifier' : 'Nouvel' }} Article
           </mat-card-title>
-          <mat-card-subtitle>Ajouter un nouvel article au stock</mat-card-subtitle>
+          <mat-card-subtitle>{{ isEdit ? 'Modifier un article existant' : 'Ajouter un nouvel article au stock' }}</mat-card-subtitle>
         </mat-card-header>
 
         <mat-card-content>
@@ -155,12 +155,12 @@ import { Article } from '../../shared/models/stock.model';
             <mat-icon>cancel</mat-icon>
             Annuler
           </button>
-          <button mat-raised-button color="primary" 
+          <button mat-raised-button color="primary"
                   [disabled]="articleForm.invalid || isSubmitting"
                   (click)="onSubmit()">
             <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
             <mat-icon *ngIf="!isSubmitting">save</mat-icon>
-            <span *ngIf="!isSubmitting">Créer l'article</span>
+            <span *ngIf="!isSubmitting">{{ isEdit ? 'Modifier' : 'Créer' }} l'article</span>
           </button>
         </mat-card-actions>
       </mat-card>
@@ -270,10 +270,13 @@ export class ArticleFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private articleService = inject(ArticleService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
 
   articleForm: FormGroup;
   isSubmitting = false;
+  isEdit = false;
+  private articleId: number | null = null;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
 
@@ -292,8 +295,32 @@ export class ArticleFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Générer une référence automatique
-    this.generateReference();
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEdit = true;
+      this.articleId = +id;
+      this.articleService.getById(this.articleId).subscribe({
+        next: (article) => {
+          this.articleForm.patchValue({
+            designation: article.designation,
+            description: article.description,
+            reference: article.reference,
+            prixUnitaireMoyen: article.prixUnitaireMoyen,
+            seuilAlerte: article.seuilAlerte,
+            seuilCritique: article.seuilCritique,
+            categorie: article.categorie,
+            unite: article.unite,
+            estActif: article.estActif
+          });
+        },
+        error: () => {
+          this.snackBar.open('Erreur lors du chargement de l\'article', 'Fermer', { duration: 3000 });
+          this.router.navigate(['/stock/articles']);
+        }
+      });
+    } else {
+      this.generateReference();
+    }
   }
 
   private generateReference(): void {
@@ -313,31 +340,31 @@ export class ArticleFormComponent implements OnInit {
     this.isSubmitting = true;
     const articleData = this.articleForm.value;
 
-    
-    this.articleService.create(articleData).subscribe({
-      next: (response) => {
-        if (this.selectedFile && response?.id) {
+    const request = this.isEdit && this.articleId
+      ? this.articleService.update(this.articleId, articleData)
+      : this.articleService.create(articleData);
+
+    request.subscribe({
+      next: (response: any) => {
+        if (!this.isEdit && this.selectedFile && response?.id) {
           this.uploadImage(response.id, () => this.router.navigate(['/stock/articles']));
         } else {
           this.isSubmitting = false;
-          this.snackBar.open('Article créé avec succès!', 'Fermer', {
+          this.snackBar.open(`Article ${this.isEdit ? 'modifié' : 'créé'} avec succès!`, 'Fermer', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });
           this.router.navigate(['/stock/articles']);
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         this.isSubmitting = false;
-        console.error('Erreur création article:', error);
-        
-        let errorMessage = 'Erreur lors de la création de l\'article';
+        let errorMessage = `Erreur lors de ${this.isEdit ? 'la modification' : 'la création'} de l'article`;
         if (error.status === 400) {
           errorMessage = 'Données invalides. Vérifiez les champs.';
         } else if (error.status === 409) {
           errorMessage = 'Un article avec cette référence existe déjà.';
         }
-
         this.snackBar.open(errorMessage, 'Fermer', {
           duration: 5000,
           panelClass: ['error-snackbar']
