@@ -22,6 +22,7 @@ import { forkJoin, switchMap } from 'rxjs';
 import { CommandeService, ConfigTaille, BomLigne, ResultatCalcul } from './commande.service';
 import { ArticleService } from '../../core/services/article.service';
 import { MarqueService } from './marque.service';
+import { ModeleBomService, ModeleBom } from './modele-bom.service';
 import { AchatService } from '../../core/services/achat.service';
 import { StockService } from '../stock/stock.service';
 import { ImportationService } from '../importations/importation.service';
@@ -203,6 +204,21 @@ import { ImportationService } from '../importations/importation.service';
                   <button mat-stroked-button color="primary" (click)="addBomLigne()">
                     <mat-icon>add</mat-icon> Ajouter fourniture
                   </button>
+                </div>
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" style="width: calc(50% - 8px)">
+                    <mat-label>Charger un modèle BOM</mat-label>
+                    <mat-select [(ngModel)]="selectedModeleBomId"
+                                (selectionChange)="onModeleBomChange($event.value)">
+                      <mat-option [value]="null">-- Saisie manuelle --</mat-option>
+                      <mat-option *ngFor="let m of modelesBom" [value]="m.id">
+                        {{ m.nom }}<ng-container *ngIf="m.fournitures?.length"> ({{ m.fournitures.length }} fournitures)</ng-container>
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>account_tree</mat-icon>
+                    <mat-hint>Pré-remplit les fournitures — vous pouvez ensuite les ajuster</mat-hint>
+                  </mat-form-field>
                 </div>
 
                 <div class="bom-list">
@@ -607,6 +623,8 @@ export class CommandeDetailsComponent implements OnInit {
 
   // Onglet 3 — BOM
   bomLignes: BomLigne[] = [];
+  modelesBom: ModeleBom[] = [];
+  selectedModeleBomId: number | null = null;
   articles: any[] = [];
   savingBom = false;
 
@@ -634,6 +652,7 @@ export class CommandeDetailsComponent implements OnInit {
     private achatService: AchatService,
     private stockService: StockService,
     private importationService: ImportationService,
+    private modeleBomService: ModeleBomService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -644,6 +663,7 @@ export class CommandeDetailsComponent implements OnInit {
     this.loadCommande();
     this.loadTailles();
     this.loadBom();
+    this.loadModelesBom();
     this.loadResultat();
     this.loadStockVentile();
     this.articleService.getAll().subscribe({ next: (data) => this.articles = data, error: () => {} });
@@ -745,6 +765,24 @@ export class CommandeDetailsComponent implements OnInit {
 
   removeBomLigne(i: number): void {
     this.bomLignes.splice(i, 1);
+  }
+
+  private loadModelesBom(): void {
+    this.modeleBomService.getAll().subscribe({
+      next: (data) => this.modelesBom = data,
+      error: () => {}
+    });
+  }
+
+  onModeleBomChange(id: number | null): void {
+    if (!id) return;
+    const modele = this.modelesBom.find(m => m.id === id);
+    if (!modele?.fournitures?.length) return;
+    this.bomLignes = modele.fournitures.map(f => ({
+      articleId: f.articleId,
+      quantiteParPiece: f.qteParPiece,
+      unite: f.unite ?? ''
+    }));
   }
 
   saveBom(): void {

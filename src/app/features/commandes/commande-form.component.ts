@@ -21,6 +21,7 @@ import { ClientService } from '../../core/services/client.service';
 import { PlateformeService } from '../../core/services/plateforme.service';
 import { MarqueService, Marque } from './marque.service';
 import { ArticleService } from '../../core/services/article.service';
+import { ModeleBomService, ModeleBom } from './modele-bom.service';
 
 interface TailleLigne { taille: string; quantite: number; }
 interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: string; }
@@ -202,6 +203,22 @@ interface BomLigneSaisie { articleId: number; quantiteParPiece: number; unite: s
               <h3>Nomenclature (BOM)</h3>
             </div>
 
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Charger un modèle BOM</mat-label>
+                <mat-select [(ngModel)]="selectedModeleBomId"
+                            [ngModelOptions]="{standalone: true}"
+                            (selectionChange)="onModeleBomChange($event.value)">
+                  <mat-option [value]="null">-- Saisie manuelle --</mat-option>
+                  <mat-option *ngFor="let m of modelesBom" [value]="m.id">
+                    {{ m.nom }}<ng-container *ngIf="m.fournitures?.length"> ({{ m.fournitures.length }} fournitures)</ng-container>
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>account_tree</mat-icon>
+                <mat-hint>Pré-remplit les fournitures — vous pouvez ensuite les ajuster</mat-hint>
+              </mat-form-field>
+            </div>
+
             <div class="bom-list">
               <div *ngFor="let b of bomLignes; let i = index" class="bom-row">
                 <mat-form-field appearance="outline" class="article-select">
@@ -326,6 +343,7 @@ export class CommandeFormComponent implements OnInit {
   private plateformeService = inject(PlateformeService);
   private marqueService = inject(MarqueService);
   private articleService = inject(ArticleService);
+  private modeleBomService = inject(ModeleBomService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
@@ -342,6 +360,8 @@ export class CommandeFormComponent implements OnInit {
 
   taillesDynamiques: TailleLigne[] = [];
   bomLignes: BomLigneSaisie[] = [];
+  modelesBom: ModeleBom[] = [];
+  selectedModeleBomId: number | null = null;
   nbPieces = 0;
 
   constructor() {
@@ -368,6 +388,7 @@ export class CommandeFormComponent implements OnInit {
     this.loadClients();
     this.loadPlateformes();
     this.loadArticles();
+    this.loadModelesBom();
     if (this.isEdit && this.commandeId) {
       this.loadCommandeExistante();
     } else {
@@ -467,6 +488,24 @@ export class CommandeFormComponent implements OnInit {
 
   removeBomLigne(i: number): void {
     this.bomLignes.splice(i, 1);
+  }
+
+  private loadModelesBom(): void {
+    this.modeleBomService.getAll().subscribe({
+      next: (data) => this.modelesBom = data,
+      error: () => {}
+    });
+  }
+
+  onModeleBomChange(id: number | null): void {
+    if (!id) return;
+    const modele = this.modelesBom.find(m => m.id === id);
+    if (!modele?.fournitures?.length) return;
+    this.bomLignes = modele.fournitures.map(f => ({
+      articleId: f.articleId,
+      quantiteParPiece: f.qteParPiece,
+      unite: f.unite
+    }));
   }
 
   // --- Actions ---
