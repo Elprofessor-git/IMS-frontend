@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -12,9 +12,15 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
+import { ClientService } from '../../core/services/client.service';
+import { FournisseurService } from '../../core/services/fournisseur.service';
+import { Client } from '../../shared/models/commande.model';
+import { Fournisseur } from '../../shared/models/common.model';
 
 @Component({
   selector: 'app-clients-fournisseurs',
@@ -33,7 +39,9 @@ import { Router } from '@angular/router';
     MatInputModule,
     MatFormFieldModule,
     MatChipsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule
   ],
   template: `
     <div class="clients-fournisseurs-container">
@@ -80,8 +88,8 @@ import { Router } from '@angular/router';
                   <ng-container matColumnDef="actif">
                     <th mat-header-cell *matHeaderCellDef>Statut</th>
                     <td mat-cell *matCellDef="let client">
-                      <mat-chip [color]="client.actif ? 'primary' : 'warn'" selected>
-                        {{ client.actif ? 'Actif' : 'Inactif' }}
+                      <mat-chip [color]="client.estActif ? 'primary' : 'warn'" selected>
+                        {{ client.estActif ? 'Actif' : 'Inactif' }}
                       </mat-chip>
                     </td>
                   </ng-container>
@@ -93,9 +101,9 @@ import { Router } from '@angular/router';
                               matTooltip="Modifier">
                         <mat-icon>edit</mat-icon>
                       </button>
-                      <button mat-icon-button (click)="toggleClientStatus(client.id)"
-                              [matTooltip]="client.actif ? 'Désactiver' : 'Activer'">
-                        <mat-icon>{{ client.actif ? 'block' : 'check_circle' }}</mat-icon>
+                      <button mat-icon-button (click)="toggleClientStatus(client)"
+                              [matTooltip]="client.estActif ? 'Désactiver' : 'Activer'">
+                        <mat-icon>{{ client.estActif ? 'block' : 'check_circle' }}</mat-icon>
                       </button>
                     </td>
                   </ng-container>
@@ -127,7 +135,7 @@ import { Router } from '@angular/router';
                 <table mat-table [dataSource]="fournisseurs" class="fournisseurs-table">
                   <ng-container matColumnDef="nom">
                     <th mat-header-cell *matHeaderCellDef>Nom</th>
-                    <td mat-cell *matCellDef="let fournisseur">{{ fournisseur.nom }}</td>
+                    <td mat-cell *matCellDef="let fournisseur">{{ fournisseur.nomEntreprise }}</td>
                   </ng-container>
 
                   <ng-container matColumnDef="email">
@@ -137,14 +145,14 @@ import { Router } from '@angular/router';
 
                   <ng-container matColumnDef="specialite">
                     <th mat-header-cell *matHeaderCellDef>Spécialité</th>
-                    <td mat-cell *matCellDef="let fournisseur">{{ fournisseur.specialite || '-' }}</td>
+                    <td mat-cell *matCellDef="let fournisseur">{{ fournisseur.specialitesProduits || '-' }}</td>
                   </ng-container>
 
                   <ng-container matColumnDef="actif">
                     <th mat-header-cell *matHeaderCellDef>Statut</th>
                     <td mat-cell *matCellDef="let fournisseur">
-                      <mat-chip [color]="fournisseur.actif ? 'primary' : 'warn'" selected>
-                        {{ fournisseur.actif ? 'Actif' : 'Inactif' }}
+                      <mat-chip [color]="fournisseur.estActif ? 'primary' : 'warn'" selected>
+                        {{ fournisseur.estActif ? 'Actif' : 'Inactif' }}
                       </mat-chip>
                     </td>
                   </ng-container>
@@ -156,9 +164,9 @@ import { Router } from '@angular/router';
                               matTooltip="Modifier">
                         <mat-icon>edit</mat-icon>
                       </button>
-                      <button mat-icon-button (click)="toggleFournisseurStatus(fournisseur.id)"
-                              [matTooltip]="fournisseur.actif ? 'Désactiver' : 'Activer'">
-                        <mat-icon>{{ fournisseur.actif ? 'block' : 'check_circle' }}</mat-icon>
+                      <button mat-icon-button (click)="toggleFournisseurStatus(fournisseur)"
+                              [matTooltip]="fournisseur.estActif ? 'Désactiver' : 'Activer'">
+                        <mat-icon>{{ fournisseur.estActif ? 'block' : 'check_circle' }}</mat-icon>
                       </button>
                     </td>
                   </ng-container>
@@ -238,91 +246,95 @@ import { Router } from '@angular/router';
     }
   `]
 })
-export class ClientsFournisseursComponent implements OnInit {
+export class ClientsFournisseursComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   clientSearchControl = new FormControl('');
   fournisseurSearchControl = new FormControl('');
 
   clientColumns = ['nom', 'email', 'telephone', 'actif', 'actions'];
   fournisseurColumns = ['nom', 'email', 'specialite', 'actif', 'actions'];
 
-  clients = [
-    { id: 1, nom: 'Client A', email: 'clienta@example.com', telephone: '0123456789', actif: true },
-    { id: 2, nom: 'Client B', email: 'clientb@example.com', telephone: '0987654321', actif: true },
-    { id: 3, nom: 'Client C', email: 'clientc@example.com', telephone: null, actif: false }
-  ];
+  clients: Client[] = [];
+  fournisseurs: Fournisseur[] = [];
+  loadingClients = false;
+  loadingFournisseurs = false;
 
-  fournisseurs = [
-    { id: 1, nom: 'Fournisseur A', email: 'fournisseura@example.com', specialite: 'Tissus', actif: true },
-    { id: 2, nom: 'Fournisseur B', email: 'fournisseurb@example.com', specialite: 'Accessoires', actif: true },
-    { id: 3, nom: 'Fournisseur C', email: 'fournisseurc@example.com', specialite: 'Fils', actif: false }
-  ];
-
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private clientService: ClientService,
+    private fournisseurService: FournisseurService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
-    // Configuration de la recherche pour les clients
+    this.loadClients();
+    this.loadFournisseurs();
+
     this.clientSearchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged()
-      )
-      .subscribe(searchTerm => {
-        this.searchClients(searchTerm || '');
-      });
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.loadClients());
 
-    // Configuration de la recherche pour les fournisseurs
     this.fournisseurSearchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged()
-      )
-      .subscribe(searchTerm => {
-        this.searchFournisseurs(searchTerm || '');
-      });
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.loadFournisseurs());
   }
 
-  // Méthodes pour les clients
-  addClient() {
-    this.router.navigate(['/clients-fournisseurs/clients/add']);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  editClient(clientId: number) {
-    this.router.navigate(['/clients-fournisseurs/clients/edit', clientId]);
+  loadClients(): void {
+    this.loadingClients = true;
+    this.clientService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => { this.clients = data; this.loadingClients = false; },
+      error: () => {
+        this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 3000 });
+        this.loadingClients = false;
+      }
+    });
   }
 
-  toggleClientStatus(clientId: number) {
-    const client = this.clients.find(c => c.id === clientId);
-    if (client) {
-      client.actif = !client.actif;
-      
-    }
+  loadFournisseurs(): void {
+    this.loadingFournisseurs = true;
+    this.fournisseurService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => { this.fournisseurs = data; this.loadingFournisseurs = false; },
+      error: () => {
+        this.snackBar.open('Erreur lors du chargement des fournisseurs', 'Fermer', { duration: 3000 });
+        this.loadingFournisseurs = false;
+      }
+    });
   }
 
-  searchClients(searchTerm: string) {
-    
-    // Ici, vous implémenteriez la logique de recherche
+  addClient(): void {
+    this.router.navigate(['/clients-fournisseurs/clients/nouveau']);
   }
 
-  // Méthodes pour les fournisseurs
-  addFournisseur() {
-    this.router.navigate(['/clients-fournisseurs/fournisseurs/add']);
+  editClient(clientId: number): void {
+    this.router.navigate(['/clients-fournisseurs/clients', clientId]);
   }
 
-  editFournisseur(fournisseurId: number) {
-    this.router.navigate(['/clients-fournisseurs/fournisseurs/edit', fournisseurId]);
+  toggleClientStatus(client: Client): void {
+    this.clientService.toggleStatus(client.id).subscribe({
+      next: () => this.loadClients(),
+      error: () => this.snackBar.open('Erreur lors du changement de statut', 'Fermer', { duration: 3000 })
+    });
   }
 
-  toggleFournisseurStatus(fournisseurId: number) {
-    const fournisseur = this.fournisseurs.find(f => f.id === fournisseurId);
-    if (fournisseur) {
-      fournisseur.actif = !fournisseur.actif;
-      
-    }
+  addFournisseur(): void {
+    this.router.navigate(['/clients-fournisseurs/fournisseurs/nouveau']);
   }
 
-  searchFournisseurs(searchTerm: string) {
-    
-    // Ici, vous implémenteriez la logique de recherche
+  editFournisseur(fournisseurId: number): void {
+    this.router.navigate(['/clients-fournisseurs/fournisseurs', fournisseurId]);
+  }
+
+  toggleFournisseurStatus(fournisseur: Fournisseur): void {
+    this.fournisseurService.toggleStatus(fournisseur.id).subscribe({
+      next: () => this.loadFournisseurs(),
+      error: () => this.snackBar.open('Erreur lors du changement de statut', 'Fermer', { duration: 3000 })
+    });
   }
 }
 
